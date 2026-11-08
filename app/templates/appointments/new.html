@@ -1,0 +1,126 @@
+{% extends "layouts/base.html" %}
+{% block title %}提交预约{% endblock %}
+
+{% block content %}
+<div class="grid grid-2-1">
+    <section class="card">
+        <div class="card-header"><span>📅 提交服务预约</span><span class="sub">提交后进入「待受理」</span></div>
+        <div class="card-body">
+            <form id="appt-form" class="form-grid" method="post" action="#" onsubmit="return false;">
+                <div class="form-field">
+                    <label for="elder_id">服务老人 <span class="muted">*</span></label>
+                    {% if role == 'elder' and my_elder %}
+                        <input type="hidden" id="elder_id" name="elder_id" value="{{ my_elder.id }}">
+                        <input type="text" value="{{ my_elder.name|mask_name }}（{{ my_elder.code }}）" readonly>
+                        <div class="hint">本人档案已自动带出</div>
+                    {% else %}
+                        <select id="elder_id" name="elder_id" required>
+                            <option value="">请选择老人</option>
+                            {% for e in elders %}
+                                <option value="{{ e.id }}">{{ e.name|mask_name }}（{{ e.code }} · {{ ABILITY_NAMES.get(e.ability_level, e.ability_level) }}）</option>
+                            {% endfor %}
+                        </select>
+                        <div class="hint">共 {{ elders|length }} 位老人可选</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-field">
+                    <label for="service_item_id">服务项目 <span class="muted">*</span></label>
+                    <select id="service_item_id" name="service_item_id" required>
+                        <option value="">请选择服务项目</option>
+                        {% for item in items %}
+                            {% set price = prices.get(item.current_price_version_id) %}
+                            <option value="{{ item.id }}"
+                                    data-price="{{ price.unit_price if price else '' }}"
+                                    data-duration="{{ item.standard_duration_min }}"
+                                    data-levels="{{ (item.applicable_levels or [])|join(',') }}">
+                                {{ item.name }}（{{ '%.2f' % (price.unit_price if price else 0) }} 元 / {{ item.standard_duration_min|int }} 分钟）
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="desired_start">期望上门时间 <span class="muted">*</span></label>
+                    <input id="desired_start" name="desired_start" type="datetime-local" required>
+                    <div class="hint">系统将校验：同老人 ±2 小时内无冲突、地址在社区范围内、能力等级与项目适配</div>
+                </div>
+
+                <div class="form-field" style="grid-column:1/-1">
+                    <label for="remark">备注（可选）</label>
+                    <textarea id="remark" name="remark" maxlength="200" placeholder="例如：老人行动不便，请携带轮椅；需测量血压"></textarea>
+                </div>
+            </form>
+
+            <div class="btn-row mt-2">
+                <button class="btn btn-primary" type="button" id="btn-submit">✓ 提交预约</button>
+                <a class="btn btn-ghost" href="/appointments">返回列表</a>
+            </div>
+            <div class="demo-tip" id="form-tip">
+                提交后由网格员受理；不符合规则的预约会提示原因并转人工受理。
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>🧾 预约须知</span></div>
+        <div class="card-body">
+            <ul style="font-size:17px;line-height:1.9;padding-left:20px">
+                <li><strong>三重校验</strong>：时间冲突、服务范围、能力适配，任一不满足转人工。</li>
+                <li><strong>取消规则</strong>：距服务开始 &lt; 2 小时取消将按规则计费并留痕。</li>
+                <li><strong>派单规则</strong>：技能匹配 → 3 公里半径 → 当日 &lt; 6 单 → 时段无冲突，四因子加权排序取 Top3。</li>
+                <li><strong>上门留痕</strong>：签到定位偏差 &gt; 200 米需填写说明，服务过程逐项勾选并拍照。</li>
+            </ul>
+            <div class="notice success">演示提示：为保证演示效果，请选择未来 1～2 小时内的时段。</div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var form = document.getElementById("appt-form");
+        var tip = document.getElementById("form-tip");
+
+        // 默认时间：明天上午 9 点
+        var d = new Date();
+        d.setDate(d.getDate() + 1);
+        d.setHours(9, 0, 0, 0);
+        var pad = function (n) { return String(n).padStart(2, "0"); };
+        document.getElementById("desired_start").value =
+            d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T09:00";
+
+        document.getElementById("btn-submit").addEventListener("click", function () {
+            var btn = this;
+            var elderId = document.getElementById("elder_id").value;
+            var itemId = document.getElementById("service_item_id").value;
+            var start = document.getElementById("desired_start").value;
+            if (!elderId || !itemId || !start) {
+                App.toast("请完整填写老人、服务项目与时间", "warn");
+                return;
+            }
+            var payload = {
+                elder_id: Number(elderId),
+                service_item_id: Number(itemId),
+                desired_start: start.replace("T", " ") + (start.length === 16 ? ":00" : ""),
+                remark: document.getElementById("remark").value || undefined
+            };
+            btn.disabled = true;
+            App.api.post("/appointments", payload).then(function (res) {
+                var data = res.data || {};
+                App.toast("预约提交成功" + (data.code ? "：" + data.code : ""), "success");
+                tip.textContent = "预约提交成功，正在跳转列表…";
+                window.setTimeout(function () { window.location.href = "/appointments"; }, 900);
+            }).catch(function (err) {
+                if (err && err.message !== "UNAUTHORIZED") {
+                    var payloadErr = err.payload || {};
+                    var msg = payloadErr.message || err.message;
+                    tip.innerHTML = '<span style="color:#a11616;font-weight:700">提交失败：' + App.esc(msg) + "</span>";
+                    App.toast(msg, "error");
+                }
+            }).finally(function () { btn.disabled = false; });
+        });
+    })();
+</script>
+{% endblock %}

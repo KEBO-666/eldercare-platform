@@ -1,0 +1,251 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}评价与投诉{% endblock %}
+
+{% block content %}
+<div class="grid grid-4">
+    <div class="stat-card ok">
+        <div class="stat-label">⭐ 平均满意度</div>
+        <div class="stat-value">{{ '%.2f'|format(avg_score) }}</div>
+        <div class="stat-hint">5 分制 · 近 {{ evaluations|length }} 条评价</div>
+    </div>
+    <div class="stat-card warn">
+        <div class="stat-label">📞 待回访任务</div>
+        <div class="stat-value">{{ pending_callback }}</div>
+        <div class="stat-hint">≤3 星自动生成 48 小时内回访</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-label">📣 未结案投诉</div>
+        <div class="stat-value">{{ open_complaint }}</div>
+        <div class="stat-hint">同护理员月内 3 次成立将标记重点关注</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">👩‍⚕️ 绩效榜样本</div>
+        <div class="stat-value">{{ performance|length }}</div>
+        <div class="stat-hint">平均评分 / 准时率 / 异常率 / 完成量</div>
+    </div>
+</div>
+
+<section class="card">
+    <div class="card-header"><span>⭐ 服务评价</span><span class="sub">准时 / 态度 / 专业 / 效果</span></div>
+    <div class="card-body tight">
+        {% if evaluations %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                <tr><th>工单</th><th>老人</th><th>护理员</th><th>准时</th><th>态度</th><th>专业</th><th>效果</th><th>综合</th><th>评论</th><th>时间</th></tr>
+                </thead>
+                <tbody>
+                {% for ev in evaluations %}
+                <tr>
+                    <td class="small">{{ orders.get(ev.work_order_id).code if orders.get(ev.work_order_id) else ev.work_order_id }}</td>
+                    <td>{{ (elders.get(ev.elder_id).name if elders.get(ev.elder_id) else '-')|mask_name }}</td>
+                    <td>{{ staffs.get(ev.nurse_id).name if staffs.get(ev.nurse_id) else '-' }}</td>
+                    <td class="small">{{ ev.punctuality|stars }}</td>
+                    <td class="small">{{ ev.attitude|stars }}</td>
+                    <td class="small">{{ ev.professionalism|stars }}</td>
+                    <td class="small">{{ ev.effect|stars }}</td>
+                    <td><strong>{{ '%.2f'|format(ev.avg_score or 0) }}</strong></td>
+                    <td class="small">{{ ev.comment or '-' }}</td>
+                    <td class="small">{{ ev.created_at|short }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无评价记录', '⭐') }}
+        {% endif %}
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><span>📞 回访任务</span><span class="sub">低分评价 / 投诉转办</span></div>
+    <div class="card-body tight">
+        {% if callbacks %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>老人</th><th>来源</th><th>截止时间</th><th>状态</th><th>结果</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for task in callbacks %}
+                <tr>
+                    <td>{{ (elders.get(task.elder_id).name if elders.get(task.elder_id) else '-')|mask_name }}</td>
+                    <td class="small">{{ '评价回访' if task.evaluation_id else '投诉转办' }}</td>
+                    <td class="small">{{ task.due_at|dt }}</td>
+                    <td><span class="badge {{ 'badge-yellow' if task.status == 'pending' else 'badge-green' }}">{{ CALLBACK_STATUS_NAMES.get(task.status, task.status) }}</span></td>
+                    <td class="small">{{ task.result or task.note or '-' }}</td>
+                    <td class="actions">
+                        {% if can_handle and task.status == 'pending' %}
+                            <button class="btn btn-secondary btn-sm" data-callback="{{ task.id }}">完成回访</button>
+                        {% else %}<span class="muted small">-</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无回访任务', '📞') }}
+        {% endif %}
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><span>📣 投诉处理</span><span class="sub">登记 → 指派 → 复核 → 结论</span></div>
+    <div class="card-body tight">
+        {% if complaints %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>投诉号</th><th>老人</th><th>护理员</th><th>内容</th><th>状态</th><th>结论</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for c in complaints %}
+                <tr>
+                    <td><strong>{{ c.code }}</strong></td>
+                    <td>{{ (elders.get(c.elder_id).name if elders.get(c.elder_id) else '-')|mask_name }}</td>
+                    <td>{{ staffs.get(c.nurse_id).name if staffs.get(c.nurse_id) else '-' }}</td>
+                    <td class="small">{{ c.content[:40] }}{% if c.content|length > 40 %}…{% endif %}</td>
+                    <td><span class="badge {{ 'badge-yellow' if c.status in ('new', 'assigned') else ('badge-blue' if c.status == 'reviewing' else 'badge-green') }}">{{ COMPLAINT_STATUS_NAMES.get(c.status, c.status) }}</span></td>
+                    <td class="small">
+                        {% if c.status == 'concluded' %}
+                            {% if c.is_established %}<span class="badge badge-red">成立</span>{% else %}<span class="badge badge-gray">不成立</span>{% endif %}
+                            {{ c.resolution or '' }}
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="actions">
+                        {% if can_handle and c.status in ('new', 'assigned') %}
+                            <button class="btn btn-secondary btn-sm" data-assign="{{ c.id }}">指派</button>
+                        {% endif %}
+                        {% if can_handle and c.status == 'reviewing' %}
+                            <button class="btn btn-primary btn-sm" data-conclude="{{ c.id }}">结案</button>
+                        {% endif %}
+                        {% if not can_handle %}<span class="muted small">-</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无投诉记录', '📣') }}
+        {% endif %}
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><span>🏆 护理员月度绩效</span><span class="sub">平均分 / 准时率 / 异常率 / 完成量</span></div>
+    <div class="card-body tight">
+        {% if performance %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>排名</th><th>护理员</th><th>周期</th><th>平均评分</th><th>准时率</th><th>异常率</th><th>完成量</th><th>投诉</th></tr></thead>
+                <tbody>
+                {% for p in performance %}
+                <tr>
+                    <td><strong>{{ p.rank_no or '-' }}</strong></td>
+                    <td>{{ staffs.get(p.staff_id).name if staffs.get(p.staff_id) else '-' }}</td>
+                    <td class="small">{{ p.period }}</td>
+                    <td>{{ '%.2f'|format(p.avg_score or 0) }}</td>
+                    <td>{{ (p.punctuality_rate or 0)|pct }}</td>
+                    <td>{{ (p.anomaly_rate or 0)|pct }}</td>
+                    <td>{{ p.order_count }}</td>
+                    <td>{{ p.complaint_count }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无绩效数据（可等待月度统计任务生成）', '🏆') }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var USERS = [
+            {% for u in users %}{ id: {{ u.id }}, name: "{{ u.real_name }}" }{% if not loop.last %},{% endif %}{% endfor %}
+        ];
+
+        document.addEventListener("click", function (ev) {
+            var callbackBtn = ev.target.closest("[data-callback]");
+            if (callbackBtn) {
+                App.modal({
+                    title: "完成回访",
+                    html: '<div class="form-field mb-1"><label>回访结果</label><select id="cb-result">' +
+                        '<option value="improve">已解释并改进</option>' +
+                        '<option value="to_complaint">转正式投诉</option>' +
+                        "</select></div>" +
+                        '<div class="form-field"><label>回访记录（必填）</label>' +
+                        '<textarea id="cb-note" placeholder="例如：已电话回访老人，护理员已致歉并补做清洁"></textarea></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "提交", cls: "btn-primary", onClick: function (modal) {
+                                var note = (modal.querySelector("#cb-note").value || "").trim();
+                                if (!note) { App.toast("请填写回访记录", "warn"); return true; }
+                                App.action(callbackBtn, "/quality/callbacks/" + callbackBtn.getAttribute("data-callback") + "/finish",
+                                    { result: modal.querySelector("#cb-result").value, note: note }, "回访已完成");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var assignBtn = ev.target.closest("[data-assign]");
+            if (assignBtn) {
+                var options = USERS.map(function (u) {
+                    return '<option value="' + u.id + '">' + App.esc(u.name) + "</option>";
+                }).join("");
+                App.modal({
+                    title: "指派处理人",
+                    html: '<div class="form-field"><label>处理人</label><select id="assign-user">' + options + "</select></div>",
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "确认指派", cls: "btn-primary", onClick: function (modal) {
+                                App.action(assignBtn, "/quality/complaints/" + assignBtn.getAttribute("data-assign") + "/assign",
+                                    { handler_id: Number(modal.querySelector("#assign-user").value) }, "已指派处理人");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var concludeBtn = ev.target.closest("[data-conclude]");
+            if (concludeBtn) {
+                App.modal({
+                    title: "投诉结案",
+                    html: '<div class="form-field mb-1"><label>调查结论（必填）</label>' +
+                        '<textarea id="cc-conclusion" placeholder="例如：经核实护理员未按标准时长服务，投诉成立"></textarea></div>' +
+                        '<div class="form-field mb-1"><label>是否成立</label><select id="cc-established">' +
+                        '<option value="true">成立</option><option value="false">不成立</option></select></div>' +
+                        '<div class="form-field"><label>处置方式</label><select id="cc-resolution">' +
+                        '<option value="refund">退费（生成红冲账单）</option>' +
+                        '<option value="change_nurse">更换护理员</option>' +
+                        '<option value="deduct">扣分 / 内部处理</option>' +
+                        "</select></div>",
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "提交结论", cls: "btn-danger", onClick: function (modal) {
+                                var conclusion = (modal.querySelector("#cc-conclusion").value || "").trim();
+                                if (!conclusion) { App.toast("请填写调查结论", "warn"); return true; }
+                                var established = modal.querySelector("#cc-established").value === "true";
+                                App.action(concludeBtn, "/quality/complaints/" + concludeBtn.getAttribute("data-conclude") + "/conclude", {
+                                    conclusion: conclusion,
+                                    is_established: established,
+                                    resolution: established ? modal.querySelector("#cc-resolution").value : undefined
+                                }, "投诉已结案");
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty, tag_chips %}
+{% block title %}老人档案{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>👵 老人档案库</span>
+        <span class="sub">默认脱敏展示 · 查看明文需二次授权</span>
+    </div>
+    <form class="filter-bar" method="get" action="/elders">
+        <div class="form-field grow">
+            <label for="keyword">关键字（姓名 / 编号）</label>
+            <input id="keyword" type="search" name="keyword" value="{{ filters.keyword }}" placeholder="如：E0001 或 张">
+        </div>
+        <div class="form-field">
+            <label for="ability_level">失能等级</label>
+            <select id="ability_level" name="ability_level">
+                <option value="">全部</option>
+                {% for code, name in ABILITY_NAMES.items() %}
+                    <option value="{{ code }}" {% if filters.ability_level == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="tag">特殊标签</label>
+            <select id="tag" name="tag">
+                <option value="">全部</option>
+                {% for code, name in TAG_NAMES.items() %}
+                    <option value="{{ code }}" {% if filters.tag == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="community_id">社区</label>
+            <select id="community_id" name="community_id">
+                <option value="">全部</option>
+                {% for org in communities %}
+                    <option value="{{ org.id }}" {% if filters.community_id == org.id %}selected{% endif %}>{{ org.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="grid_id">网格</label>
+            <select id="grid_id" name="grid_id">
+                <option value="">全部</option>
+                {% for org in grids %}
+                    <option value="{{ org.id }}" {% if filters.grid_id == org.id %}selected{% endif %}>{{ org.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/elders">重置</a>
+            {% if can_export %}
+                <a class="btn btn-secondary" href="/api/v1/elders/export">⬇ 导出 CSV</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if elders %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>编号</th>
+                <th>姓名（脱敏）</th>
+                <th>性别/年龄</th>
+                <th>失能等级</th>
+                <th>特殊标签</th>
+                <th>所属社区 / 网格</th>
+                <th>困难类型</th>
+                <th>地址（脱敏）</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for elder in elders %}
+            <tr>
+                <td><strong>{{ elder.code }}</strong></td>
+                <td>{{ elder.name|mask_name }} <span class="small muted" title="已脱敏">🔒</span></td>
+                <td>{{ GENDER_NAMES.get(elder.gender, '未知') }}
+                    {% if elder.birth_date %}· {{ (now.date() - elder.birth_date).days // 365 }} 岁{% endif %}
+                </td>
+                <td>
+                    {% set level_badge = 'badge-green' if elder.ability_level == 'intact' else ('badge-blue' if elder.ability_level == 'mild' else ('badge-yellow' if elder.ability_level == 'moderate' else 'badge-red')) %}
+                    <span class="badge {{ level_badge }}">{{ ABILITY_NAMES.get(elder.ability_level, elder.ability_level) }}</span>
+                </td>
+                <td>{{ tag_chips(tag_map.get(elder.id, [])) }}</td>
+                <td class="small">{{ org_map.get(elder.community_org_id, '-') }}{% if elder.grid_org_id %} / {{ org_map.get(elder.grid_org_id, '') }}{% endif %}</td>
+                <td><span class="badge badge-outline">{{ DIFFICULTY_NAMES.get(elder.difficulty_type, elder.difficulty_type) }}</span></td>
+                <td class="small">{{ elder.address_masked or '-' }}</td>
+                <td class="actions">
+                    <a class="btn btn-secondary btn-sm" href="/elders/{{ elder.id }}">详情</a>
+                    <a class="btn btn-ghost btn-sm" href="/monitoring/{{ elder.id }}">健康</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/elders', 'keyword=' ~ (filters.keyword|urlencode) ~ '&ability_level=' ~ filters.ability_level ~ '&tag=' ~ filters.tag ~ '&community_id=' ~ (filters.community_id or '') ~ '&grid_id=' ~ (filters.grid_id or '')) }}
+    {% else %}
+        {{ empty('没有符合条件的老人档案', '🔍') }}
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 · {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app-body">
+<main class="login-page">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="logo" aria-hidden="true">颐</div>
+            <h1>{{ app_name }}</h1>
+            <p>社区智慧养老 · 健康监测 · 上门服务全流程平台</p>
+        </div>
+
+        {% if error %}
+            <div class="login-error" role="alert">{{ error }}</div>
+        {% endif %}
+        {% if notice %}
+            <div class="notice {{ notice_type|default('') }}">{{ notice }}</div>
+        {% endif %}
+
+        <form class="login-form" method="post" action="/login" autocomplete="on">
+            <input type="hidden" name="next" value="{{ next_url|default('/') }}">
+            <div class="form-field">
+                <label for="username">用户名</label>
+                <input id="username" name="username" type="text" required autofocus
+                       placeholder="请输入用户名，例如 grid1" value="{{ username|default('') }}"
+                       autocomplete="username">
+            </div>
+            <div class="form-field">
+                <label for="password">密码</label>
+                <input id="password" name="password" type="password" required
+                       placeholder="演示环境统一密码 Admin@123" autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">登 录</button>
+        </form>
+
+        <div class="demo-accounts">
+            <div class="mb-1"><strong>演示账号</strong>（密码统一 <span class="pwd">Admin@123</span>）</div>
+            <table>
+                <tbody>
+                <tr><td>超级管理员</td><td><code>super</code></td><td>全部权限 / 系统管理</td></tr>
+                <tr><td>街道监管员</td><td><code>street</code></td><td>全街道监管 / 审计备份</td></tr>
+                <tr><td>机构管理员</td><td><code>orgadmin</code></td><td>机构运营 / 账单复核</td></tr>
+                <tr><td>社区网格员</td><td><code>grid1</code> / <code>grid2</code></td><td>受理预约 / 智能派单</td></tr>
+                <tr><td>护理员</td><td><code>nurse1</code> … <code>nurse8</code></td><td>上门服务执行</td></tr>
+                <tr><td>老人/家属</td><td><code>elder1</code> … <code>elder20</code></td><td>预约 / 查看报告 / 评价</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

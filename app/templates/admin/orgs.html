@@ -1,0 +1,89 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}组织管理{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>🏢 组织架构（街道 → 社区 → 网格）</span>
+        <span class="btn-row">
+            <button class="btn btn-primary btn-sm" data-org-new>＋ 新建组织</button>
+        </span>
+    </div>
+    <div class="card-body tight">
+        {% if tree %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>组织名称</th><th>编码</th><th>层级</th><th>ID</th><th>账号数</th><th>老人数</th><th>状态</th></tr></thead>
+                <tbody>
+                {% for node in tree %}
+                <tr>
+                    <td>
+                        <span style="display:inline-block;width:{{ node.depth * 28 }}px"></span>
+                        {% if node.depth > 0 %}<span class="muted">└─</span>{% endif %}
+                        <strong>{{ node.org.name }}</strong>
+                    </td>
+                    <td class="small">{{ node.org.code }}</td>
+                    <td>
+                        {% if node.org.level == 'street' %}<span class="badge badge-red">街道</span>
+                        {% elif node.org.level == 'community' %}<span class="badge badge-blue">社区</span>
+                        {% else %}<span class="badge badge-green">网格</span>{% endif %}
+                    </td>
+                    <td class="small">{{ node.org.id }}</td>
+                    <td>{{ user_counts.get(node.org.id, 0) }}</td>
+                    <td>{{ elder_counts.get(node.org.id, 0) }}</td>
+                    <td>{% if node.org.is_active %}<span class="badge badge-green">启用</span>{% else %}<span class="badge badge-gray">停用</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无组织数据', '🏢') }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var ORGS = [{% for o in orgs %}{ id: {{ o.id }}, name: "{{ o.name }}", level: "{{ o.level }}" }{% if not loop.last %},{% endif %}{% endfor %}];
+
+        document.addEventListener("click", function (ev) {
+            var btn = ev.target.closest("[data-org-new]");
+            if (!btn) { return; }
+            App.modal({
+                title: "新建组织",
+                html: '<div class="form-grid">' +
+                    '<div class="form-field"><label>组织编码</label><input id="o-code" placeholder="如 CM03 / GD07"></div>' +
+                    '<div class="form-field"><label>组织名称</label><input id="o-name" placeholder="如 和谐社区"></div>' +
+                    '<div class="form-field"><label>层级</label><select id="o-level">' +
+                    '<option value="street">街道</option><option value="community" selected>社区</option><option value="grid">网格</option>' +
+                    '</select></div>' +
+                    '<div class="form-field"><label>上级组织</label><select id="o-parent"><option value="">无（顶级）</option>' +
+                    ORGS.map(function (o) { return '<option value="' + o.id + '">' + App.esc(o.name) + "（" + o.level + "）</option>"; }).join("") +
+                    "</select></div>" +
+                    "</div>",
+                buttons: [
+                    { text: "取消", cls: "btn-secondary" },
+                    {
+                        text: "创建", cls: "btn-primary", onClick: function (modal) {
+                            var code = (modal.querySelector("#o-code").value || "").trim();
+                            var name = (modal.querySelector("#o-name").value || "").trim();
+                            if (!code || !name) { App.toast("请填写组织编码与名称", "warn"); return true; }
+                            var parent = modal.querySelector("#o-parent").value;
+                            App.action(btn, "/admin/orgs", {
+                                code: code,
+                                name: name,
+                                level: modal.querySelector("#o-level").value,
+                                parent_id: parent ? Number(parent) : undefined
+                            }, "组织已创建");
+                        }
+                    }
+                ]
+            });
+        });
+    })();
+</script>
+{% endblock %}

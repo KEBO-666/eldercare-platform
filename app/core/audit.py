@@ -14,6 +14,22 @@ from app.models import AuditLog, User
 GENESIS_HASH = "0" * 64
 
 
+def _json_safe(value: Any) -> Any:
+    """把 datetime / Decimal / Enum 等对象规范化为可写入 JSON 列的结构。"""
+    if value is None:
+        return None
+    try:
+        return json.loads(
+            json.dumps(
+                value,
+                ensure_ascii=False,
+                default=lambda o: getattr(o, "value", None) if hasattr(o, "value") else str(o),
+            )
+        )
+    except (TypeError, ValueError):
+        return {"_repr": str(value)[:500]}
+
+
 def _payload(log: AuditLog) -> str:
     raw = "|".join(
         [
@@ -61,8 +77,8 @@ def write_audit(
         action=action,
         entity_type=entity_type,
         entity_id=entity_id,
-        before_json=before,
-        after_json=after,
+        before_json=_json_safe(before),
+        after_json=_json_safe(after),
         detail=detail,
         ip=ip,
         ua=ua,

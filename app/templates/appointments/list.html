@@ -1,0 +1,126 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty %}
+{% block title %}预约服务{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>📅 预约单</span>
+        <span class="btn-row">
+            {% if can_create %}<a class="btn btn-primary btn-sm" href="/appointments/new">＋ 提交预约</a>{% endif %}
+            {% if can_dispatch %}<a class="btn btn-secondary btn-sm" href="/dispatch">🧭 去派单</a>{% endif %}
+        </span>
+    </div>
+    <form class="filter-bar" method="get" action="/appointments">
+        <div class="form-field">
+            <label for="status">状态</label>
+            <select id="status" name="status">
+                <option value="">全部状态</option>
+                {% for code, name in APPOINTMENT_STATUS_NAMES.items() %}
+                    <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/appointments">重置</a>
+        </div>
+    </form>
+
+    {% if appointments %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>预约号</th>
+                <th>老人</th>
+                <th>服务项目</th>
+                <th>预约时段</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>说明</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td><strong>{{ appt.code }}</strong></td>
+                <td>{{ (elders.get(appt.elder_id).name if elders.get(appt.elder_id) else '-')|mask_name }}</td>
+                <td>{{ items.get(appt.service_item_id).name if items.get(appt.service_item_id) else '-' }}</td>
+                <td class="small">{{ appt.desired_start|dt }}</td>
+                <td>
+                    <span class="badge {{ APPOINTMENT_STATUS_BADGE.get(appt.status, 'badge-gray') }}">
+                        {{ APPOINTMENT_STATUS_NAMES.get(appt.status, appt.status) }}
+                    </span>
+                    {% if appt.is_chargeable_cancel %}
+                        <span class="badge badge-red">计费取消</span>
+                    {% endif %}
+                </td>
+                <td class="small">{{ appt.created_at|short }}</td>
+                <td class="small">
+                    {% if appt.cancel_reason %}取消原因：{{ appt.cancel_reason }}{% else %}{{ appt.remark or '-' }}{% endif %}
+                </td>
+                <td class="actions">
+                    {% if can_accept and appt.status == 'pending_accept' %}
+                        <button class="btn btn-success btn-sm" data-act="accept" data-id="{{ appt.id }}">受理</button>
+                    {% endif %}
+                    {% if can_accept and appt.status in ('accepted', 'pending_dispatch') %}
+                        {% if appt.status == 'accepted' %}
+                        <button class="btn btn-secondary btn-sm" data-act="to-dispatch" data-id="{{ appt.id }}">转待派单</button>
+                        {% else %}
+                        <a class="btn btn-secondary btn-sm" href="/dispatch">去派单</a>
+                        {% endif %}
+                    {% endif %}
+                    {% if can_cancel and appt.status in ('pending_accept', 'accepted', 'pending_dispatch', 'dispatched') %}
+                        <button class="btn btn-ghost btn-sm" data-act="cancel" data-id="{{ appt.id }}">取消</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/appointments', 'status=' ~ status) }}
+    {% else %}
+        {{ empty('暂无预约单，点击右上角「提交预约」开始', '📅') }}
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        document.addEventListener("click", function (ev) {
+            var target = ev.target.closest("[data-act]");
+            if (!target) { return; }
+            var act = target.getAttribute("data-act");
+            var id = target.getAttribute("data-id");
+            if (act === "cancel") {
+                App.modal({
+                    title: "取消预约",
+                    html: '<p>距离服务开始不足 2 小时的取消将产生计费，请填写取消原因：</p>' +
+                        '<div class="form-field"><label>取消原因</label>' +
+                        '<input id="cancel-reason" type="text" maxlength="100" placeholder="例如：老人临时住院"></div>',
+                    buttons: [
+                        { text: "返回", cls: "btn-secondary" },
+                        {
+                            text: "确认取消", cls: "btn-danger", onClick: function (modal) {
+                                var reason = (modal.querySelector("#cancel-reason").value || "").trim();
+                                if (!reason) { App.toast("请填写取消原因", "warn"); return true; }
+                                App.action(target, "/appointments/" + id + "/cancel", { reason: reason }, "已取消预约");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+            if (act === "accept") {
+                App.action(target, "/appointments/" + id + "/accept", {}, "已受理预约");
+            } else if (act === "to-dispatch") {
+                App.action(target, "/appointments/" + id + "/to-dispatch", {}, "已转待派单");
+            }
+        });
+    })();
+</script>
+{% endblock %}

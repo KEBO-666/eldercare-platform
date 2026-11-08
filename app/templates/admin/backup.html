@@ -1,0 +1,121 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}备份与恢复{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>💾 数据备份</span>
+        <span class="btn-row">
+            <button class="btn btn-primary btn-sm" id="btn-backup">＋ 立即备份</button>
+            <span class="badge badge-gray">保留最近 {{ keep_versions }} 个版本</span>
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="info-grid mb-2">
+            <div class="info-item"><div class="k">数据库</div><div class="v small">{{ db_url }}</div></div>
+            <div class="info-item"><div class="k">备份内容</div><div class="v">SQLite 在线备份 + 附件目录打包</div></div>
+            <div class="info-item"><div class="k">恢复保护</div><div class="v">需二次确认 + 恢复前完整性校验 + 恢复后逐表核对</div></div>
+        </div>
+        <div class="notice warn">
+            恢复操作会覆盖当前数据，属于高危操作：将要求输入确认口令并写入审计日志；恢复完成后系统输出各表记录数核对报告。
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><span>🗄️ 备份记录</span></div>
+    <div class="card-body tight">
+        {% if backups %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>备份时间</th><th>类型</th><th>文件</th><th>大小</th><th>状态</th><th>表快照</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for b in backups %}
+                <tr>
+                    <td>{{ b.id }}</td>
+                    <td class="small">{{ b.created_at|dt }}</td>
+                    <td>
+                        {% if b.backup_type == 'manual' %}<span class="badge badge-blue">手动</span>
+                        {% else %}<span class="badge badge-gray">自动</span>{% endif %}
+                    </td>
+                    <td class="small">{{ b.file_path }}</td>
+                    <td class="small">{{ ((b.file_size or 0) / 1024)|round(1) }} KB</td>
+                    <td>
+                        {% if b.status == 'success' %}<span class="badge badge-green">成功</span>
+                        {% else %}<span class="badge badge-red">{{ b.status }}</span>{% endif %}
+                    </td>
+                    <td class="small">{{ (b.tables_snapshot or {})|tojson }}</td>
+                    <td class="actions">
+                        <button class="btn btn-ghost btn-sm" data-restore="{{ b.id }}" data-path="{{ b.file_path }}">恢复</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无备份记录，点击「立即备份」生成第一个备份', '💾') }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var btn = document.getElementById("btn-backup");
+        btn.addEventListener("click", function () {
+            btn.disabled = true;
+            App.api.post("/admin/backup", { backup_type: "manual" }).then(function (res) {
+                var data = (res && res.data) || {};
+                App.toast("备份完成" + (data.file_path ? "：" + data.file_path : ""), "success");
+                window.setTimeout(function () { window.location.reload(); }, 800);
+            }).catch(function (err) {
+                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "备份失败", "error"); }
+            }).finally(function () { btn.disabled = false; });
+        });
+
+        document.addEventListener("click", function (ev) {
+            var restore = ev.target.closest("[data-restore]");
+            if (!restore) { return; }
+            var backupId = restore.getAttribute("data-restore");
+            var path = restore.getAttribute("data-path");
+            App.modal({
+                title: "⚠️ 高危操作：恢复备份 #" + backupId,
+                html: '<div class="notice danger">恢复将用备份数据<strong>覆盖当前全部数据</strong>，且不可撤销！</div>' +
+                    '<div class="form-field mb-1"><label>备份文件</label><input type="text" value="' + App.esc(path) + '" readonly></div>' +
+                    '<div class="form-field"><label>请输入 <strong>RESTORE</strong> 以确认</label>' +
+                    '<input id="restore-confirm" type="text" placeholder="RESTORE"></div>',
+                buttons: [
+                    { text: "取消", cls: "btn-secondary" },
+                    {
+                        text: "确认恢复", cls: "btn-danger", onClick: function (modal) {
+                            var text = (modal.querySelector("#restore-confirm").value || "").trim();
+                            if (text !== "RESTORE") { App.toast("确认口令不正确", "warn"); return true; }
+                            var payload = { backup_id: Number(backupId), confirm: true };
+                            App.api.post("/admin/restore", payload).then(function (res) {
+                                var data = (res && res.data) || {};
+                                var report = data.tables || data.tables_snapshot || data.report || {};
+                                var rows = Object.keys(report).map(function (k) {
+                                    return "<tr><td>" + App.esc(k) + "</td><td class='num'>" + report[k] + "</td></tr>";
+                                }).join("");
+                                App.modal({
+                                    title: "恢复完成 · 数据核对报告",
+                                    html: rows
+                                        ? '<table class="data-table"><thead><tr><th>数据表</th><th class="num">记录数</th></tr></thead><tbody>' + rows + "</tbody></table>"
+                                        : '<div class="notice success">恢复成功，后端未返回逐表统计。</div>',
+                                    buttons: [{ text: "关闭", cls: "btn-secondary" }]
+                                });
+                                window.setTimeout(function () { window.location.reload(); }, 2500);
+                            }).catch(function (err) {
+                                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "恢复失败", "error"); }
+                            });
+                        }
+                    }
+                ]
+            });
+        });
+    })();
+</script>
+{% endblock %}

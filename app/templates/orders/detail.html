@@ -1,0 +1,404 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}工单详情{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>🧰 工单 {{ order.code }}
+            <span class="badge {{ ORDER_STATUS_BADGE.get(order.status, 'badge-gray') }}" style="margin-left:8px">
+                {{ ORDER_STATUS_NAMES.get(order.status, order.status) }}
+            </span>
+            {% if order.duration_anomaly %}<span class="badge badge-red">时长异常</span>{% endif %}
+        </span>
+        <span class="btn-row">
+            <a class="btn btn-ghost btn-sm" href="/orders">← 返回列表</a>
+            {% if elder %}<a class="btn btn-secondary btn-sm" href="/elders/{{ elder.id }}">查看档案</a>{% endif %}
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div class="info-item"><div class="k">服务老人</div>
+                <div class="v">{{ (elder.name|mask_name) if elder else '-' }}</div></div>
+            <div class="info-item"><div class="k">服务项目</div>
+                <div class="v">{{ service_item.name if service_item else '-' }}
+                    <span class="small muted">（标准时长 {{ service_item.standard_duration_min|int if service_item else '-' }} 分钟）</span></div></div>
+            <div class="info-item"><div class="k">服务护理员</div>
+                <div class="v">{{ nurse.name if nurse else '未指派' }}{% if nurse %} <span class="small muted">{{ nurse.employee_no }}</span>{% endif %}</div></div>
+            <div class="info-item"><div class="k">计划时段</div>
+                <div class="v">{{ order.scheduled_start|dt }} ~ {{ order.scheduled_end|dt('%H:%M') if order.scheduled_end else '-' }}</div></div>
+            <div class="info-item"><div class="k">签到时间 / 距离</div>
+                <div class="v">{{ order.checkin_at|dt if order.checkin_at else '未签到' }}
+                    {% if order.checkin_distance_m is not none %}
+                        <span class="badge {{ 'badge-red' if order.checkin_distance_m > settings.checkin_distance_threshold_m else 'badge-green' }}">
+                            {{ order.checkin_distance_m|round(1) }} 米
+                        </span>
+                    {% endif %}
+                </div></div>
+            <div class="info-item"><div class="k">签退时间 / 时长</div>
+                <div class="v">{{ order.checkout_at|dt if order.checkout_at else '未签退' }}
+                    {% if order.duration_min %}<span class="badge badge-blue">{{ order.duration_min }} 分钟</span>{% endif %}</div></div>
+            <div class="info-item"><div class="k">服务金额</div>
+                <div class="v">{{ order.amount|money }} 元 <span class="small muted">（单价 {{ order.unit_price|money }} × {{ order.quantity }}）</span></div></div>
+            <div class="info-item"><div class="k">评价</div>
+                <div class="v">{{ order.rating|stars if order.rating else '暂无评价' }}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="k">服务小结</div>
+                <div class="v">{{ order.summary or '-' }}</div></div>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>✅ 服务项目清单</span><span class="sub">逐项勾选留痕</span></div>
+        <div class="card-body">
+            {% if items %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>项目</th><th>必做</th><th>完成情况</th><th>完成时间</th></tr></thead>
+                    <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.item_name }}</td>
+                        <td>{% if item.is_required %}<span class="badge badge-yellow">必做</span>{% else %}<span class="muted">选做</span>{% endif %}</td>
+                        <td>
+                            <label style="display:flex;align-items:center;gap:8px;margin:0">
+                                <input type="checkbox" class="item-check" data-name="{{ item.item_name }}"
+                                       {% if item.completed %}checked{% endif %}
+                                       {% if not (can_execute and order.status in ('accepted', 'in_service')) %}disabled{% endif %}>
+                                <span class="small">{{ '已完成' if item.completed else '未完成' }}</span>
+                            </label>
+                        </td>
+                        <td class="small">{{ item.completed_at|short if item.completed_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if can_execute and order.status in ('accepted', 'in_service') %}
+            <div class="btn-row mt-2">
+                <button class="btn btn-primary btn-sm" id="btn-save-items">保存勾选结果</button>
+            </div>
+            {% endif %}
+            {% else %}
+                {{ empty('该工单暂无项目清单', '✅') }}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>🛠️ 服务执行</span><span class="sub">按流程操作，全程留痕</span></div>
+        <div class="card-body">
+            {% if not can_execute %}
+                <div class="notice">当前账号无「工单执行」权限，仅可查看。</div>
+            {% else %}
+                <div class="btn-row mb-2">
+                    {% if order.status == 'pending_accept' %}
+                        <button class="btn btn-success" id="btn-accept">✓ 接单</button>
+                        <button class="btn btn-danger" id="btn-reject">✕ 拒单</button>
+                    {% elif order.status == 'accepted' %}
+                        <button class="btn btn-primary" id="btn-checkin">📍 签到</button>
+                    {% elif order.status == 'in_service' %}
+                        <button class="btn btn-primary" id="btn-checkout-open">🧾 签退</button>
+                    {% elif order.status in ('pending_evaluation', 'anomaly') %}
+                        <span class="badge badge-green">服务已结束，等待评价</span>
+                    {% elif order.status == 'completed' %}
+                        <span class="badge badge-green">工单已完成</span>
+                    {% else %}
+                        <span class="badge badge-gray">当前状态不可执行</span>
+                    {% endif %}
+                    {% if order.status in ('accepted', 'in_service', 'pending_evaluation') %}
+                        <button class="btn btn-warning" id="btn-anomaly">⚠ 异常上报</button>
+                    {% endif %}
+                </div>
+
+                {% if order.status in ('accepted', 'in_service') %}
+                <div class="form-field mb-2">
+                    <label for="photo-file">上传服务照片（≤3 张，自动压缩）</label>
+                    <input id="photo-file" type="file" accept="image/*">
+                    <div class="hint">已上传 {{ photos|length }} 张</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btn-upload">⬆ 上传照片</button>
+                {% endif %}
+
+                <div id="checkout-panel" class="mt-2 hidden">
+                    <div class="section-title">签退填报</div>
+                    <div class="form-field mb-2">
+                        <label for="summary">服务小结（必填）</label>
+                        <textarea id="summary" placeholder="例如：完成助浴与血压测量，老人精神状态良好"></textarea>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-field"><label for="m-sbp">收缩压 mmHg</label><input id="m-sbp" type="number" min="40" max="260"></div>
+                        <div class="form-field"><label for="m-dbp">舒张压 mmHg</label><input id="m-dbp" type="number" min="20" max="180"></div>
+                        <div class="form-field"><label for="m-hr">心率 次/分</label><input id="m-hr" type="number" min="20" max="220"></div>
+                        <div class="form-field"><label for="m-spo2">血氧 %</label><input id="m-spo2" type="number" min="50" max="100"></div>
+                    </div>
+                    <div class="btn-row mt-2">
+                        <button class="btn btn-success" id="btn-checkout">✓ 提交签退</button>
+                        <button class="btn btn-ghost" id="btn-checkout-close">收起</button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-header"><span>📷 服务照片</span><span class="sub">签到后上传，自动压缩至 1280px</span></div>
+    <div class="card-body">
+        {% if photos %}
+        <div class="grid grid-4">
+            {% for photo in photos %}
+            <figure style="margin:0">
+                <img src="{{ photo.path|photo_url }}" alt="工单照片 {{ loop.index }}"
+                     style="width:100%;height:180px;object-fit:cover;border-radius:10px;border:1px solid #c9d5e2"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <div class="small muted" style="display:none">图片暂不可预览（{{ photo.path }}）</div>
+                <figcaption class="small muted">上传于 {{ photo.uploaded_at|short if photo.uploaded_at else '-' }}</figcaption>
+            </figure>
+            {% endfor %}
+        </div>
+        {% else %}
+            {{ empty('暂无服务照片', '📷') }}
+        {% endif %}
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>📍 定位轨迹</span><span class="sub">签到 / 签退</span></div>
+        <div class="card-body">
+            {% if tracks %}
+            <ul class="timeline">
+                {% for track in tracks %}
+                <li>
+                    <div class="tl-title">{{ '签到' if track.kind == 'checkin' else '签退' }}
+                        {% if track.distance_m is not none %}
+                            <span class="badge {{ 'badge-red' if track.distance_m > settings.checkin_distance_threshold_m else 'badge-green' }}">{{ track.distance_m|round(1) }} 米</span>
+                        {% endif %}
+                    </div>
+                    <div class="tl-time">{{ track.created_at|dt }} · 坐标 {{ track.lat }}, {{ track.lng }}</div>
+                    {% if track.note %}<div class="small">说明：{{ track.note }}</div>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+                {{ empty('暂无定位轨迹', '📍') }}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>⚠️ 异常上报</span></div>
+        <div class="card-body tight">
+            {% if anomalies %}
+            <table class="data-table">
+                <thead><tr><th>类型</th><th>描述</th><th>上报时间</th><th>状态</th></tr></thead>
+                <tbody>
+                {% for a in anomalies %}
+                <tr>
+                    <td><span class="badge badge-red">{{ ANOMALY_TYPE_NAMES.get(a.anomaly_type, a.anomaly_type) }}</span></td>
+                    <td class="small">{{ a.description or '-' }}</td>
+                    <td class="small">{{ (a.reported_at or a.created_at)|dt }}</td>
+                    <td><span class="badge {{ 'badge-green' if a.status == 'handled' else 'badge-yellow' }}">{{ '已处置' if a.status == 'handled' else '待处置' }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无异常上报', '⚠️') }}
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+{% if evaluation %}
+<section class="card">
+    <div class="card-header"><span>⭐ 满意度评价</span></div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div class="info-item"><div class="k">准时</div><div class="v">{{ evaluation.punctuality|stars }}</div></div>
+            <div class="info-item"><div class="k">态度</div><div class="v">{{ evaluation.attitude|stars }}</div></div>
+            <div class="info-item"><div class="k">专业</div><div class="v">{{ evaluation.professionalism|stars }}</div></div>
+            <div class="info-item"><div class="k">效果</div><div class="v">{{ evaluation.effect|stars }}</div></div>
+            <div class="info-item"><div class="k">综合分</div><div class="v">{{ '%.2f'|format(evaluation.avg_score or 0) }}</div></div>
+        </div>
+        <p class="mt-2">{{ evaluation.comment or '（未填写评价内容）' }}</p>
+    </div>
+</section>
+{% endif %}
+
+{% if metrics %}
+<section class="card">
+    <div class="card-header"><span>❤️ 本次服务录入的体征</span></div>
+    <div class="card-body tight">
+        <table class="data-table">
+            <thead><tr><th>指标</th><th>数值</th><th>测量时间</th><th>来源</th></tr></thead>
+            <tbody>
+            {% for m in metrics %}
+            <tr>
+                <td>{{ METRIC_NAMES.get(m.metric_code, m.metric_code) }}</td>
+                <td><strong>{{ m.value }}</strong> {{ m.unit or '' }}</td>
+                <td class="small">{{ m.measured_at|dt }}</td>
+                <td class="small">{{ '上门录入' if m.source == 'visit' else '可穿戴设备' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var orderId = {{ order.id }};
+        var status = "{{ order.status }}";
+        var threshold = {{ settings.checkin_distance_threshold_m }};
+
+        function reloadSoon() { window.setTimeout(function () { window.location.reload(); }, 700); }
+
+        function bind(id, handler) {
+            var el = document.getElementById(id);
+            if (el) { el.addEventListener("click", handler); }
+        }
+
+        var acceptBtn = document.getElementById("btn-accept");
+        bind("btn-accept", function () {
+            App.action(acceptBtn, "/orders/" + orderId + "/accept", {}, "已接单");
+        });
+
+        var rejectBtn = document.getElementById("btn-reject");
+        bind("btn-reject", function () {
+            App.modal({
+                title: "拒单",
+                html: '<div class="form-field"><label>拒单原因（必填）</label>' +
+                    '<textarea id="reject-reason" placeholder="例如：护理员临时冲突，无法按时上门"></textarea></div>',
+                buttons: [
+                    { text: "返回", cls: "btn-secondary" },
+                    {
+                        text: "确认拒单", cls: "btn-danger", onClick: function (modal) {
+                            var reason = (modal.querySelector("#reject-reason").value || "").trim();
+                            if (!reason) { App.toast("请填写拒单原因", "warn"); return true; }
+                            App.action(rejectBtn, "/orders/" + orderId + "/reject", { reason: reason }, "已拒单，工单退回待派单");
+                        }
+                    }
+                ]
+            });
+        });
+
+        // ---------- 签到 ----------
+        function doCheckin(lat, lng, note) {
+            App.api.post("/orders/" + orderId + "/checkin", { lat: lat, lng: lng, note: note || undefined })
+                .then(function () { App.toast("签到成功", "success"); reloadSoon(); })
+                .catch(function (err) {
+                    if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "签到失败", "error"); }
+                });
+        }
+
+        bind("btn-checkin", function () {
+            var btn = document.getElementById("btn-checkin");
+            btn.disabled = true;
+            btn.textContent = "定位中…";
+            var fallback = function () {
+                App.modal({
+                    title: "手动签到",
+                    html: '<p>无法获取定位，请手动填写坐标（演示环境可留空，由后端判定）。</p>' +
+                        '<div class="form-grid">' +
+                        '<div class="form-field"><label>纬度</label><input id="ci-lat" type="number" step="0.000001" placeholder="31.2304"></div>' +
+                        '<div class="form-field"><label>经度</label><input id="ci-lng" type="number" step="0.000001" placeholder="121.4737"></div>' +
+                        '</div><div class="form-field mt-1"><label>签到说明（偏差 &gt; ' + threshold + ' 米必填）</label>' +
+                        '<input id="ci-note" type="text" placeholder="例如：小区门禁绕行"></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "确认签到", cls: "btn-primary", onClick: function (modal) {
+                                var lat = modal.querySelector("#ci-lat").value;
+                                var lng = modal.querySelector("#ci-lng").value;
+                                var note = modal.querySelector("#ci-note").value;
+                                doCheckin(lat ? Number(lat) : null, lng ? Number(lng) : null, note);
+                            }
+                        }
+                    ]
+                });
+            };
+            if (!navigator.geolocation) { fallback(); return; }
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                doCheckin(Number(pos.coords.latitude.toFixed(6)), Number(pos.coords.longitude.toFixed(6)), "");
+            }, fallback, { timeout: 6000, maximumAge: 30000 });
+            window.setTimeout(function () { btn.disabled = false; btn.textContent = "📍 签到"; }, 8000);
+        });
+
+        // ---------- 勾选 ----------
+        bind("btn-save-items", function () {
+            var items = Array.prototype.slice.call(document.querySelectorAll(".item-check")).map(function (cb) {
+                return { name: cb.getAttribute("data-name"), completed: cb.checked };
+            });
+            App.action(document.getElementById("btn-save-items"), "/orders/" + orderId + "/items", { items: items }, "勾选结果已保存");
+        });
+
+        // ---------- 照片 ----------
+        bind("btn-upload", function () {
+            var input = document.getElementById("photo-file");
+            if (!input.files || !input.files.length) { App.toast("请选择要上传的照片", "warn"); return; }
+            var formData = new FormData();
+            formData.append("file", input.files[0]);
+            var btn = document.getElementById("btn-upload");
+            btn.disabled = true;
+            App.api.upload("/orders/" + orderId + "/photos", formData).then(function () {
+                App.toast("照片上传成功", "success");
+                reloadSoon();
+            }).catch(function (err) {
+                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "上传失败", "error"); }
+            }).finally(function () { btn.disabled = false; });
+        });
+
+        // ---------- 签退 ----------
+        bind("btn-checkout-open", function () {
+            document.getElementById("checkout-panel").classList.remove("hidden");
+            document.getElementById("checkout-panel").scrollIntoView({ behavior: "smooth" });
+        });
+        bind("btn-checkout-close", function () {
+            document.getElementById("checkout-panel").classList.add("hidden");
+        });
+        bind("btn-checkout", function () {
+            var summary = (document.getElementById("summary").value || "").trim();
+            if (!summary) { App.toast("请填写服务小结", "warn"); return; }
+            var metrics = [];
+            [["sbp", "m-sbp"], ["dbp", "m-dbp"], ["hr", "m-hr"], ["spo2", "m-spo2"]].forEach(function (pair) {
+                var el = document.getElementById(pair[1]);
+                var value = el ? el.value : "";
+                if (value !== "") { metrics.push({ metric_code: pair[0], value: Number(value) }); }
+            });
+            var payload = { summary: summary };
+            if (metrics.length) { payload.metrics = metrics; }
+            App.action(document.getElementById("btn-checkout"), "/orders/" + orderId + "/checkout", payload, "签退成功");
+        });
+
+        // ---------- 异常上报 ----------
+        bind("btn-anomaly", function () {
+            var types = [["not_home", "老人不在家"], ["refused", "拒绝服务"], ["sudden_illness", "突发不适"], ["other", "其他"]];
+            App.modal({
+                title: "异常上报",
+                html: '<div class="form-field mb-1"><label>异常类型</label><select id="an-type">' +
+                    types.map(function (t) { return '<option value="' + t[0] + '">' + t[1] + "</option>"; }).join("") +
+                    '</select></div><div class="form-field"><label>描述（必填）</label>' +
+                    '<textarea id="an-desc" placeholder="请描述现场情况与已采取的处置"></textarea></div>',
+                buttons: [
+                    { text: "取消", cls: "btn-secondary" },
+                    {
+                        text: "提交上报", cls: "btn-warning", onClick: function (modal) {
+                            var type = modal.querySelector("#an-type").value;
+                            var desc = (modal.querySelector("#an-desc").value || "").trim();
+                            if (!desc) { App.toast("请填写异常描述", "warn"); return true; }
+                            App.action(document.getElementById("btn-anomaly"), "/orders/" + orderId + "/anomaly",
+                                { anomaly_type: type, description: desc }, "异常已上报");
+                        }
+                    }
+                ]
+            });
+        });
+    })();
+</script>
+{% endblock %}

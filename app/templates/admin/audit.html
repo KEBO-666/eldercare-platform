@@ -1,0 +1,91 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty %}
+{% block title %}审计日志{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>🛡️ 审计日志（哈希链防篡改）</span>
+        <span class="btn-row">
+            <button class="btn btn-secondary btn-sm" id="btn-verify">🔗 校验哈希链</button>
+        </span>
+    </div>
+    <form class="filter-bar" method="get" action="/admin/audit">
+        <div class="form-field">
+            <label for="action">动作</label>
+            <select id="action" name="action">
+                <option value="">全部动作</option>
+                {% for a in actions %}
+                    <option value="{{ a }}" {% if action == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="entity_type">实体</label>
+            <select id="entity_type" name="entity_type">
+                <option value="">全部实体</option>
+                {% for e in ['elder', 'user', 'appointment', 'work_order', 'bill', 'alert', 'complaint', 'backup', 'auth'] %}
+                    <option value="{{ e }}" {% if entity_type == e %}selected{% endif %}>{{ e }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/admin/audit">重置</a>
+        </div>
+    </form>
+
+    {% if logs %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr><th>ID</th><th>时间</th><th>操作人</th><th>动作</th><th>实体</th><th>详情</th><th>IP</th><th>哈希（前 12 位）</th></tr>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.id }}</td>
+                <td class="small">{{ log.created_at|dt }}</td>
+                <td class="small">{{ log.username or '-' }}</td>
+                <td>
+                    {% if log.action in ('delete', 'login_fail', 'restore') %}<span class="badge badge-red">{{ log.action }}</span>
+                    {% elif log.action in ('login', 'create', 'dispatch') %}<span class="badge badge-blue">{{ log.action }}</span>
+                    {% else %}<span class="badge badge-gray">{{ log.action }}</span>{% endif %}
+                </td>
+                <td class="small">{{ log.entity_type or '-' }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</td>
+                <td class="small">{{ log.detail or '-' }}</td>
+                <td class="small">{{ log.ip or '-' }}</td>
+                <td class="small" title="{{ log.hash }}"><code>{{ (log.hash or '')[:12] }}</code></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/admin/audit', 'action=' ~ action ~ '&entity_type=' ~ entity_type) }}
+    {% else %}
+        {{ empty('暂无审计日志', '🛡️') }}
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById("btn-verify").addEventListener("click", function () {
+        var btn = this;
+        btn.disabled = true;
+        App.api.get("/admin/audit/verify").then(function (res) {
+            var data = (res && res.data) || {};
+            var valid = data.valid !== undefined ? data.valid : (data.chain_valid !== undefined ? data.chain_valid : true);
+            App.modal({
+                title: "审计哈希链校验结果",
+                html: valid
+                    ? '<div class="notice success">✅ 哈希链完整，未发现篡改。共校验 <strong>' + (data.checked || data.total || "-") + "</strong> 条日志。</div>"
+                    : '<div class="notice danger">❌ 哈希链校验失败！异常记录 ID：<strong>' + (data.broken_id || "-") + "</strong>，原因：" + App.esc(data.reason || "未知") + "</div>",
+                buttons: [{ text: "关闭", cls: "btn-secondary" }]
+            });
+        }).catch(function (err) {
+            if (err && err.message !== "UNAUTHORIZED") { App.toast("校验接口暂不可用：" + err.message, "error"); }
+        }).finally(function () { btn.disabled = false; });
+    });
+</script>
+{% endblock %}

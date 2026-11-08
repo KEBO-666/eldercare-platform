@@ -1,0 +1,72 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty %}
+{% block title %}工单{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>🧰 服务工单</span>
+        <span class="sub">签到 / 逐项勾选 / 拍照 / 签退 / 异常上报</span>
+    </div>
+    <form class="filter-bar" method="get" action="/orders">
+        <div class="form-field">
+            <label for="status">工单状态</label>
+            <select id="status" name="status">
+                <option value="">全部状态</option>
+                {% for code, name in ORDER_STATUS_NAMES.items() %}
+                    <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/orders">重置</a>
+        </div>
+    </form>
+
+    {% if orders %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>工单号</th>
+                <th>老人</th>
+                <th>服务项目</th>
+                <th>护理员</th>
+                <th>计划上门</th>
+                <th>状态</th>
+                <th>时长</th>
+                <th>评分</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>{{ order.code }}</strong></td>
+                <td>{{ (elders.get(order.elder_id).name if elders.get(order.elder_id) else '-')|mask_name }}</td>
+                <td>{{ items.get(order.service_item_id).name if items.get(order.service_item_id) else '-' }}</td>
+                <td>{{ nurse_staffs.get(order.nurse_id).name if nurse_staffs.get(order.nurse_id) else '<span class="muted">未指派</span>'|safe }}</td>
+                <td class="small">{{ order.scheduled_start|dt }}</td>
+                <td>
+                    <span class="badge {{ ORDER_STATUS_BADGE.get(order.status, 'badge-gray') }}">
+                        {{ ORDER_STATUS_NAMES.get(order.status, order.status) }}
+                    </span>
+                    {% if order.duration_anomaly %}<span class="badge badge-red">时长异常</span>{% endif %}
+                </td>
+                <td class="small">{{ (order.duration_min|string + ' 分钟') if order.duration_min else '-' }}</td>
+                <td class="small">{{ order.rating|stars if order.rating else '-' }}</td>
+                <td class="actions">
+                    <a class="btn btn-secondary btn-sm" href="/orders/{{ order.id }}">详情</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/orders', 'status=' ~ status) }}
+    {% else %}
+        {{ empty('暂无工单数据', '🧰') }}
+    {% endif %}
+</section>
+{% endblock %}

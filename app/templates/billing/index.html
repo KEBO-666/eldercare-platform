@@ -1,0 +1,326 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty %}
+{% block title %}费用账单{% endblock %}
+
+{% block content %}
+<div class="grid grid-4">
+    <div class="stat-card">
+        <div class="stat-label">🧾 账单总额</div>
+        <div class="stat-value">{{ totals.amount|money }}</div>
+        <div class="stat-hint">元（含补贴与长护险）</div>
+    </div>
+    <div class="stat-card ok">
+        <div class="stat-label">🏛️ 政府补贴</div>
+        <div class="stat-value">{{ totals.subsidy|money }}</div>
+        <div class="stat-hint">失能等级 × 困难类型政策矩阵</div>
+    </div>
+    <div class="stat-card warn">
+        <div class="stat-label">👛 个人自付</div>
+        <div class="stat-value">{{ totals.self_pay|money }}</div>
+        <div class="stat-hint">扣除补贴与长护险后</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-label">⚠️ 差异金额</div>
+        <div class="stat-value">{{ totals.diff|money }}</div>
+        <div class="stat-hint">差异率 &gt; {{ (diff_threshold * 100)|round(1) }}% 需人工复核</div>
+    </div>
+</div>
+
+<section class="card">
+    <div class="card-header">
+        <span>🧾 月度账单</span>
+        <span class="btn-row">
+            {% if can_generate %}
+                <button class="btn btn-primary btn-sm" data-generate>＋ 生成月度账单</button>
+            {% endif %}
+        </span>
+    </div>
+    <form class="filter-bar" method="get" action="/billing">
+        <div class="form-field">
+            <label for="period">账期</label>
+            <select id="period" name="period">
+                <option value="">全部账期</option>
+                {% for p in periods %}
+                    <option value="{{ p }}" {% if period == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-field">
+            <label for="status">状态</label>
+            <select id="status" name="status">
+                <option value="">全部状态</option>
+                {% for code, name in BILL_STATUS_NAMES.items() %}
+                    <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/billing">重置</a>
+        </div>
+    </form>
+
+    {% if bills %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>账单号</th><th>账期</th><th>社区</th><th>总额</th><th>补贴</th><th>长护险</th>
+                <th>自付</th><th>差异率</th><th>状态</th><th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for bill in bills %}
+            <tr>
+                <td><strong>{{ bill.code }}</strong>
+                    {% if bill.needs_review %}<span class="badge badge-red">需复核</span>{% endif %}
+                </td>
+                <td>{{ bill.period }}</td>
+                <td class="small">{{ orgs.get(bill.community_org_id).name if orgs.get(bill.community_org_id) else '-' }}</td>
+                <td class="num">{{ bill.total_amount|money }}</td>
+                <td class="num">{{ bill.subsidy_amount|money }}</td>
+                <td class="num">{{ bill.ltc_amount|money }}</td>
+                <td class="num">{{ bill.self_pay_amount|money }}</td>
+                <td class="num" {% if (bill.diff_ratio or 0) > diff_threshold %}style="color:#b3261e;font-weight:800"{% endif %}>
+                    {{ (bill.diff_ratio or 0)|pct(2) }}
+                </td>
+                <td><span class="badge {{ BILL_STATUS_BADGE.get(bill.status, 'badge-gray') }}">{{ BILL_STATUS_NAMES.get(bill.status, bill.status) }}</span></td>
+                <td class="actions">
+                    <button class="btn btn-secondary btn-sm" data-detail="{{ bill.id }}">明细</button>
+                    {% if can_generate and bill.status == 'draft' %}
+                        <button class="btn btn-primary btn-sm" data-submit="{{ bill.id }}">提交复核</button>
+                    {% endif %}
+                    {% if can_review and bill.status == 'pending_review' %}
+                        <button class="btn btn-success btn-sm" data-confirm="{{ bill.id }}">复核通过</button>
+                    {% endif %}
+                    {% if can_pay and bill.status == 'confirmed' %}
+                        <button class="btn btn-warning btn-sm" data-pay="{{ bill.id }}">登记缴费</button>
+                    {% endif %}
+                    {% if can_refund and bill.status in ('confirmed', 'paid') %}
+                        <button class="btn btn-ghost btn-sm" data-reverse="{{ bill.id }}">红冲</button>
+                    {% endif %}
+                    <a class="btn btn-ghost btn-sm" href="/api/v1/billing/bills/{{ bill.id }}/export">⬇ 导出</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/billing', 'period=' ~ period ~ '&status=' ~ status) }}
+    {% else %}
+        {{ empty('暂无账单数据，可点击「生成月度账单」按工单价格快照自动结算', '🧾') }}
+    {% endif %}
+</section>
+
+<section class="card">
+    <div class="card-header">
+        <span>⚠️ 对账差异清单</span>
+        <span class="sub">重复计费 / 补贴超限 / 未完成计费 / 时长异常</span>
+    </div>
+    <div class="card-body tight">
+        {% if open_diffs %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>规则</th><th>老人</th><th>描述</th><th>金额</th><th>状态</th><th>说明</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for d in open_diffs %}
+                <tr>
+                    <td><span class="badge badge-red">{{ d.rule_code }}</span></td>
+                    <td>{{ (diff_elders.get(d.elder_id).name if d.elder_id and diff_elders.get(d.elder_id) else '-')|mask_name }}</td>
+                    <td class="small">{{ d.description }}</td>
+                    <td class="num">{{ d.amount|money }}</td>
+                    <td><span class="badge {{ 'badge-yellow' if d.status == 'open' else 'badge-green' }}">{{ DIFF_STATUS_NAMES.get(d.status, d.status) }}</span></td>
+                    <td class="small">{{ d.explanation or '-' }}</td>
+                    <td class="actions">
+                        {% if can_review and d.status == 'open' %}
+                            <button class="btn btn-secondary btn-sm" data-diff="{{ d.id }}">处理</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无待处理差异', '✅') }}
+        {% endif %}
+    </div>
+</section>
+
+<script type="application/json" id="bill-payload">{{ bill_payload_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var PAYLOAD = {};
+        try { PAYLOAD = JSON.parse(document.getElementById("bill-payload").textContent || "{}"); } catch (e) { PAYLOAD = {}; }
+
+        function showDetail(billId) {
+            var bill = PAYLOAD[String(billId)];
+            if (!bill) {
+                App.toast("账单明细暂不可用", "warn");
+                return;
+            }
+            var rows = (bill.details || []).map(function (d) {
+                return "<tr><td>" + App.esc(d.elder) + "</td><td class='num'>" + d.unit_price + "</td><td class='num'>" +
+                    d.quantity + "</td><td class='num'>" + d.amount + "</td><td class='num'>" + d.subsidy +
+                    "</td><td class='num'>" + d.self_pay + "</td><td>" + (d.work_order_id || "-") + "</td></tr>";
+            }).join("");
+            var diffRows = (bill.diffs || []).map(function (d) {
+                return "<tr><td><span class='badge badge-red'>" + App.esc(d.rule_code) + "</span></td><td>" +
+                    App.esc(d.description) + "</td><td class='num'>" + d.amount + "</td><td>" + App.esc(d.status) + "</td></tr>";
+            }).join("");
+            var payRows = (bill.payments || []).map(function (p) {
+                return "<tr><td>" + App.esc(p.payer) + "</td><td class='num'>" + p.amount + "</td><td>" + App.esc(p.status) + "</td></tr>";
+            }).join("");
+            App.modal({
+                title: "账单明细 · " + bill.code,
+                html: '<div class="info-grid mb-2">' +
+                    '<div class="info-item"><div class="k">账期 / 状态</div><div class="v">' + bill.period + " · " + bill.status + "</div></div>" +
+                    '<div class="info-item"><div class="k">总额</div><div class="v">' + bill.total + " 元</div></div>" +
+                    '<div class="info-item"><div class="k">补贴 / 长护险</div><div class="v">' + bill.subsidy + " / " + bill.ltc + " 元</div></div>" +
+                    '<div class="info-item"><div class="k">个人自付</div><div class="v">' + bill.self_pay + " 元</div></div>" +
+                    '<div class="info-item"><div class="k">差异金额 / 差异率</div><div class="v">' + bill.diff + " 元 / " + bill.diff_ratio + "</div></div>" +
+                    '<div class="info-item"><div class="k">是否需要复核</div><div class="v">' + (bill.needs_review ? "需要" : "否") + "</div></div>" +
+                    "</div>" +
+                    '<div class="section-title">服务明细</div>' +
+                    '<div class="table-wrap"><table class="data-table"><thead><tr><th>老人</th><th class="num">单价</th><th class="num">数量</th>' +
+                    '<th class="num">金额</th><th class="num">补贴</th><th class="num">自付</th><th>工单</th></tr></thead><tbody>' +
+                    (rows || "<tr><td colspan='7'>暂无明细</td></tr>") + "</tbody></table></div>" +
+                    (payRows ? '<div class="section-title mt-2">缴费记录</div><div class="table-wrap"><table class="data-table"><thead><tr><th>付款方</th><th class="num">金额</th><th>状态</th></tr></thead><tbody>' + payRows + "</tbody></table></div>" : "") +
+                    (diffRows ? '<div class="section-title mt-2">差异清单</div><div class="table-wrap"><table class="data-table"><thead><tr><th>规则</th><th>描述</th><th class="num">金额</th><th>状态</th></tr></thead><tbody>' + diffRows + "</tbody></table></div>" : ""),
+                buttons: [{ text: "关闭", cls: "btn-secondary" }]
+            });
+        }
+
+        document.addEventListener("click", function (ev) {
+            var detail = ev.target.closest("[data-detail]");
+            if (detail) { showDetail(detail.getAttribute("data-detail")); return; }
+
+            var submit = ev.target.closest("[data-submit]");
+            if (submit) { App.action(submit, "/billing/bills/" + submit.getAttribute("data-submit") + "/submit", {}, "已提交复核"); return; }
+
+            var confirmBtn = ev.target.closest("[data-confirm]");
+            if (confirmBtn) {
+                var billId = confirmBtn.getAttribute("data-confirm");
+                var bill = PAYLOAD[String(billId)] || {};
+                var needNote = (bill.diff_ratio_num || 0) > {{ diff_threshold }};
+                App.modal({
+                    title: "复核通过 · " + (bill.code || billId),
+                    html: (needNote
+                        ? '<div class="notice warn">该账单差异率 <strong>' + (bill.diff_ratio || "-") + "</strong> 超过阈值 " +
+                          "{{ (diff_threshold * 100)|round(1) }}%，" + "<strong>必须填写复核说明</strong>后才能通过。</div>"
+                        : '<div class="notice">确认账单金额与明细无误后通过复核。</div>') +
+                        '<div class="form-field"><label>复核说明' + (needNote ? "（必填）" : "（选填）") + "</label>" +
+                        '<textarea id="review-note" placeholder="例如：差异为重复计费已剔除，金额核对无误"></textarea></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "确认通过", cls: "btn-success", onClick: function (modal) {
+                                var note = (modal.querySelector("#review-note").value || "").trim();
+                                if (needNote && note.length < 2) { App.toast("差异率超阈值，必须填写复核说明", "warn"); return true; }
+                                App.action(confirmBtn, "/billing/bills/" + billId + "/confirm",
+                                    { review_note: note || undefined }, "账单已复核通过");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var pay = ev.target.closest("[data-pay]");
+            if (pay) {
+                var payBillId = pay.getAttribute("data-pay");
+                var payBill = PAYLOAD[String(payBillId)] || {};
+                App.modal({
+                    title: "登记缴费 · " + (payBill.code || payBillId),
+                    html: '<div class="notice">三方分账金额必须与账单一致（补贴 ' + (payBill.subsidy || "0.00") +
+                        " + 长护险 " + (payBill.ltc || "0.00") + " + 自付 " + (payBill.self_pay || "0.00") + "）。</div>" +
+                        '<div class="form-grid">' +
+                        '<div class="form-field"><label>政府补贴实缴</label><input id="pay-gov" type="number" step="0.01" value="' +
+                        (payBill.subsidy_num || 0) + '"></div>' +
+                        '<div class="form-field"><label>长护险实缴</label><input id="pay-ins" type="number" step="0.01" value="' +
+                        (payBill.ltc_num || 0) + '"></div>' +
+                        '<div class="form-field"><label>个人自付实缴</label><input id="pay-self" type="number" step="0.01" value="' +
+                        (payBill.self_pay_num || 0) + '"></div>' +
+                        '<div class="form-field"><label>备注</label><input id="pay-remark" placeholder="如：2026-10 街道统一代缴"></div>' +
+                        "</div>",
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "确认登记", cls: "btn-success", onClick: function (modal) {
+                                App.action(pay, "/billing/bills/" + payBillId + "/pay", {
+                                    government: Number(modal.querySelector("#pay-gov").value || 0),
+                                    insurance: Number(modal.querySelector("#pay-ins").value || 0),
+                                    self_pay: Number(modal.querySelector("#pay-self").value || 0),
+                                    remark: modal.querySelector("#pay-remark").value || undefined
+                                }, "缴费已登记");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var reverse = ev.target.closest("[data-reverse]");
+            if (reverse) {
+                App.confirmAction("红冲将生成负向账单（原账单不变），确认执行？", function () {
+                    App.action(reverse, "/billing/bills/" + reverse.getAttribute("data-reverse") + "/reverse", { reason: "人工红冲" }, "已生成红冲账单");
+                });
+                return;
+            }
+
+            var generate = ev.target.closest("[data-generate]");
+            if (generate) {
+                var d = new Date();
+                d.setDate(1);
+                d.setMonth(d.getMonth() - 1);
+                var period = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+                App.modal({
+                    title: "生成月度账单",
+                    html: '<div class="form-field"><label>账期（YYYY-MM）</label>' +
+                        '<input id="gen-period" type="text" value="' + period + '" maxlength="7"></div>' +
+                        '<div class="demo-tip">系统将按工单价格快照生成明细，计算政府补贴（受月度上限约束）与长护险，并自动对账拦截四类差异。</div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "开始生成", cls: "btn-primary", onClick: function (modal) {
+                                var value = (modal.querySelector("#gen-period").value || "").trim();
+                                if (!/^\d{4}-\d{2}$/.test(value)) { App.toast("账期格式应为 YYYY-MM", "warn"); return true; }
+                                App.action(generate, "/billing/generate", { period: value }, "账单生成成功");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var diff = ev.target.closest("[data-diff]");
+            if (diff) {
+                App.modal({
+                    title: "处理对账差异",
+                    html: '<div class="notice">请填写差异原因说明，处理后将留痕。</div>' +
+                        '<div class="form-field mb-1"><label>处理状态</label><select id="d-status">' +
+                        '<option value="explained">已说明（保留账单）</option>' +
+                        '<option value="handled">已处理（调整账单）</option></select></div>' +
+                        '<div class="form-field"><label>说明</label><textarea id="d-exp" placeholder="例如：同一工单重复计费，已删除重复明细"></textarea></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "提交", cls: "btn-primary", onClick: function (modal) {
+                                var exp = (modal.querySelector("#d-exp").value || "").trim();
+                                if (!exp) { App.toast("请填写说明", "warn"); return true; }
+                                App.action(diff, "/billing/diffs/" + diff.getAttribute("data-diff") + "/handle", {
+                                    status: modal.querySelector("#d-status").value,
+                                    explanation: exp
+                                }, "差异已处理");
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}

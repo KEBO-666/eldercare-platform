@@ -1,0 +1,183 @@
+{% extends "layouts/base.html" %}
+{% block title %}首页看板{% endblock %}
+
+{% block content %}
+<div class="grid grid-4">
+    {% for card in cards %}
+    <a class="stat-card {{ card.cls }}" href="{{ card.url }}">
+        <div class="stat-label">{{ card.icon }} {{ card.label }}</div>
+        <div class="stat-value">{{ card.value }}</div>
+        <div class="stat-hint">{{ card.hint }}</div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if red_alerts and red_alerts > 0 %}
+<div class="notice danger">
+    🚨 当前有 <strong>{{ red_alerts }}</strong> 条<strong>红色预警</strong>待处置（要求 5 分钟内响应、30 分钟内闭环）。
+    <a class="btn btn-danger btn-sm" href="/alerts?level=red&amp;status=pending">立即前往处置</a>
+</div>
+{% endif %}
+
+<div class="grid grid-2-1">
+    <section class="card">
+        <div class="card-header">
+            <span>📈 服务趋势（近 14 天）</span>
+            <span class="sub">工单量 / 预约量</span>
+        </div>
+        <div class="card-body">
+            <div class="chart" id="trend-chart"></div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <span>🥧 工单状态分布</span>
+            <span class="sub">近 14 天</span>
+        </div>
+        <div class="card-body">
+            <div class="chart" id="status-chart"></div>
+        </div>
+    </section>
+</div>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header">
+            <span>🚨 待处置预警</span>
+            {# 颜色优先级：红色置顶 #}
+            <a class="btn btn-secondary btn-sm" href="/alerts">全部预警</a>
+        </div>
+        <div class="card-body tight">
+            {% if recent_alerts %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>级别</th>
+                        <th>老人</th>
+                        <th>摘要</th>
+                        <th>时间</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for alert in recent_alerts %}
+                    <tr class="row-{{ alert.level }}">
+                        <td>
+                            <span class="badge badge-{{ 'red' if alert.level == 'red' else ('yellow' if alert.level == 'yellow' else 'blue') }}">
+                                {{ ALERT_LEVEL_NAMES.get(alert.level, alert.level) }}
+                            </span>
+                        </td>
+                        <td>{{ (alert_elders.get(alert.elder_id).name if alert_elders.get(alert.elder_id) else '-')|mask_name }}</td>
+                        <td>{{ alert.summary or (METRIC_NAMES.get(alert.metric_code, alert.metric_code or '') ~ ' ' ~ (alert.metric_value or '')) }}</td>
+                        <td class="small">{{ alert.created_at|short }}</td>
+                        <td><a class="btn btn-secondary btn-sm" href="/alerts?level={{ alert.level }}&amp;status=pending">处置</a></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><span class="icon">✅</span>暂无待处置预警，一切正常</div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <span>⏳ 待办事项</span>
+            <span class="sub">近期预约 / 工单</span>
+        </div>
+        <div class="card-body tight">
+            {% if pending_appts or pending_orders %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>类型</th>
+                        <th>老人</th>
+                        <th>服务项目</th>
+                        <th>计划时间</th>
+                        <th>状态</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for appt in pending_appts %}
+                    <tr>
+                        <td><span class="badge badge-blue">预约</span></td>
+                        <td>{{ (appt_elders.get(appt.elder_id).name if appt_elders.get(appt.elder_id) else '-')|mask_name }}</td>
+                        <td>{{ appt_items.get(appt.service_item_id).name if appt_items.get(appt.service_item_id) else '-' }}</td>
+                        <td class="small">{{ appt.desired_start|dt }}</td>
+                        <td><span class="badge {{ APPOINTMENT_STATUS_BADGE.get(appt.status, 'badge-gray') }}">{{ APPOINTMENT_STATUS_NAMES.get(appt.status, appt.status) }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% for order in pending_orders %}
+                    <tr>
+                        <td><span class="badge badge-purple">工单</span></td>
+                        <td>{{ (wo_elders.get(order.elder_id).name if wo_elders.get(order.elder_id) else '-')|mask_name }}</td>
+                        <td>{{ wo_items.get(order.service_item_id).name if wo_items.get(order.service_item_id) else '-' }}</td>
+                        <td class="small">{{ order.scheduled_start|dt }}</td>
+                        <td>
+                            <a class="badge {{ ORDER_STATUS_BADGE.get(order.status, 'badge-gray') }}" href="/orders/{{ order.id }}">
+                                {{ ORDER_STATUS_NAMES.get(order.status, order.status) }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><span class="icon">📭</span>暂无待办事项</div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-header">
+        <span>⚡ 快捷操作</span>
+        <span class="sub">当前角色：{{ user.role_name }}</span>
+    </div>
+    <div class="card-body">
+        <div class="btn-row">
+            {% if role in ('elder', 'grid', 'org_admin', 'super') %}
+                <a class="btn btn-primary" href="/appointments/new">＋ 提交预约</a>
+            {% endif %}
+            {% if role in ('nurse', 'grid', 'org_admin', 'street', 'super') %}
+                <a class="btn btn-secondary" href="/elders">👵 老人档案</a>
+            {% endif %}
+            {% if role in ('grid', 'super') %}
+                <a class="btn btn-secondary" href="/dispatch">🧭 智能派单</a>
+            {% endif %}
+            <a class="btn btn-secondary" href="/orders">🧰 工单</a>
+            <a class="btn btn-secondary" href="/alerts">🚨 预警</a>
+            {% if role in ('grid', 'org_admin', 'street', 'super') %}
+                <a class="btn btn-secondary" href="/stats">📊 统计看板</a>
+            {% endif %}
+            {% if role in ('street', 'super') %}
+                <a class="btn btn-ghost" href="/admin/audit">🛡️ 审计日志</a>
+            {% endif %}
+            <a class="btn btn-ghost" href="/login">⇄ 切换账号</a>
+        </div>
+        {% if role in ('nurse', 'grid', 'org_admin', 'street', 'super') %}
+        <div class="demo-tip">
+            演示提示：老人档案默认脱敏（姓名/身份证/手机号/住址），查看明文需在档案详情页申请<strong>二次授权</strong>（10 分钟有效、理由必填、全程留痕）。
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<script type="application/json" id="trend-data">{{ trend_json|safe }}</script>
+<script type="application/json" id="status-data">{{ pie_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        AppChart.fromElement("trend-chart", "trend-data");
+        AppChart.fromElement("status-chart", "status-data");
+    });
+</script>
+{% endblock %}

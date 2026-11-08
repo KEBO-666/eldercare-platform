@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+{% block title %}统计看板{% endblock %}
+
+{% block content %}
+<div class="grid grid-4">
+    {% for kpi in kpis %}
+    <div class="stat-card {{ kpi.cls }}">
+        <div class="stat-label">{{ kpi.label }}</div>
+        <div class="stat-value">{{ kpi.value }}</div>
+        <div class="stat-hint">{{ kpi.hint }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<section class="card">
+    <div class="card-header">
+        <span>📊 统计看板 · 时间范围</span>
+        <span class="btn-row">
+            <a class="btn {{ 'btn-primary' if days == 7 else 'btn-secondary' }} btn-sm" href="/stats?days=7">近 7 天</a>
+            <a class="btn {{ 'btn-primary' if days == 30 else 'btn-secondary' }} btn-sm" href="/stats?days=30">近 30 天</a>
+            <a class="btn {{ 'btn-primary' if days == 90 else 'btn-secondary' }} btn-sm" href="/stats?days=90">近 90 天</a>
+            {% if can_export %}
+                <a class="btn btn-ghost btn-sm"
+                   href="/api/v1/stats/export?report=orders&amp;from={{ date_from }}&amp;to={{ date_to }}">⬇ 导出报表</a>
+            {% endif %}
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="notice">
+            统计口径：{{ date_from }} 至 {{ date_to }}（{{ days }} 天），金额按工单价格快照汇总；数据范围受当前账号权限约束。
+        </div>
+        <div class="grid grid-2">
+            <section class="card" style="margin-bottom:0">
+                <div class="card-header"><span>📈 服务趋势（折线）</span><span class="sub">完成工单 / 新增预约</span></div>
+                <div class="card-body"><div class="chart" id="trend-chart"></div></div>
+            </section>
+            <section class="card" style="margin-bottom:0">
+                <div class="card-header"><span>🥧 工单状态占比（饼图）</span></div>
+                <div class="card-body"><div class="chart" id="status-chart"></div></div>
+            </section>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>🏆 护理员完成量排行（条形）</span><span class="sub">Top 8</span></div>
+        <div class="card-body"><div class="chart" id="ranking-chart"></div></div>
+    </section>
+    <section class="card">
+        <div class="card-header"><span>👵 失能等级分布（柱状）</span></div>
+        <div class="card-body"><div class="chart" id="ability-chart"></div></div>
+    </section>
+</div>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>⭐ 满意度分布（饼图）</span><span class="sub">评价综合分</span></div>
+        <div class="card-body"><div class="chart" id="satisfaction-chart"></div></div>
+    </section>
+    <section class="card">
+        <div class="card-header"><span>🏘️ 社区完成量对比（柱状）</span></div>
+        <div class="card-body"><div class="chart" id="community-chart"></div></div>
+    </section>
+</div>
+
+<script type="application/json" id="trend-data">{{ trend_json|safe }}</script>
+<script type="application/json" id="status-data">{{ status_pie_json|safe }}</script>
+<script type="application/json" id="satisfaction-data">{{ satisfaction_json|safe }}</script>
+<script type="application/json" id="ranking-data">{{ ranking_json|safe }}</script>
+<script type="application/json" id="ability-data">{{ ability_json|safe }}</script>
+<script type="application/json" id="community-data">{{ community_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        AppChart.fromElement("trend-chart", "trend-data");
+        AppChart.fromElement("status-chart", "status-data");
+        AppChart.fromElement("ranking-chart", "ranking-data");
+        AppChart.fromElement("ability-chart", "ability-data");
+        AppChart.fromElement("satisfaction-chart", "satisfaction-data");
+        AppChart.fromElement("community-chart", "community-data");
+    });
+</script>
+{% endblock %}

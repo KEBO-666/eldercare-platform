@@ -1,0 +1,177 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}系统配置{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>⚙️ 运行期配置（可热更新）</span>
+        <span class="btn-row"><button class="btn btn-primary btn-sm" data-config-new>＋ 新增配置项</button></span>
+    </div>
+    <div class="card-body tight">
+        {% if configs %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>配置键</th><th>当前值</th><th>说明</th><th>更新时间</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for c in configs %}
+                <tr>
+                    <td><code>{{ c.key }}</code></td>
+                    <td><strong>{{ c.value }}</strong></td>
+                    <td class="small">{{ c.description or '-' }}</td>
+                    <td class="small">{{ c.updated_at|dt }}</td>
+                    <td class="actions">
+                        <button class="btn btn-secondary btn-sm" data-config-edit="{{ c.id }}"
+                                data-key="{{ c.key }}" data-value="{{ c.value }}">修改</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无运行期配置项（可在派单/预警时自动写入，或手动新增）', '⚙️') }}
+        {% endif %}
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>📌 关键运行参数（.env 配置）</span></div>
+        <div class="card-body tight">
+            <table class="data-table">
+                <tbody>
+                <tr><td>派单四因子权重</td><td><strong>{{ dispatch_weights }}</strong>（技能/距离/负荷/评分）</td></tr>
+                <tr><td>护理员当日单量上限</td><td>{{ order_daily_limit }} 单</td></tr>
+                <tr><td>服务半径</td><td>{{ service_radius_km }} 公里</td></tr>
+                <tr><td>签到距离阈值</td><td>{{ checkin_distance }} 米</td></tr>
+                <tr><td>静默预警时长</td><td>{{ alert_silence_hours }} 小时</td></tr>
+                <tr><td>账单差异率阈值</td><td>{{ (diff_ratio_threshold * 100)|round(1) }}%</td></tr>
+                </tbody>
+            </table>
+            <div class="demo-tip">如需修改以上默认参数，请调整项目根目录 <code>.env</code> 后重启服务。</div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>🚨 预警规则阈值</span><span class="sub"><a href="/alerts">在预警看板维护</a></span></div>
+        <div class="card-body tight">
+            {% if rules %}
+            <table class="data-table">
+                <thead><tr><th>规则</th><th>触发条件</th><th>级别</th></tr></thead>
+                <tbody>
+                {% for rule in rules %}
+                <tr>
+                    <td>{{ rule.name }}</td>
+                    <td class="small">
+                        {% if rule.rule_type == 'threshold' %}{{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator or '>=' }} {{ rule.threshold }}
+                        {% elif rule.rule_type == 'consecutive' %}连续 {{ rule.window_size or 3 }} 次 {{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator or '>' }} {{ rule.threshold }}
+                        {% else %}静默 {{ rule.silence_hours or 48 }} 小时{% endif %}
+                    </td>
+                    <td><span class="badge badge-{{ 'red' if rule.level == 'red' else ('yellow' if rule.level == 'yellow' else 'blue') }}">{{ ALERT_LEVEL_NAMES.get(rule.level, rule.level) }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无预警规则', '🚨') }}
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-header"><span>🏛️ 补贴政策矩阵</span><span class="sub">失能等级 × 困难类型</span></div>
+    <div class="card-body tight">
+        {% if policies %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>失能等级</th><th>困难类型</th><th>补贴比例</th><th>月度上限</th><th>长护险比例</th><th>状态</th></tr></thead>
+                <tbody>
+                {% for p in policies %}
+                <tr>
+                    <td>{{ ABILITY_NAMES.get(p.ability_level, p.ability_level) }}</td>
+                    <td>{{ DIFFICULTY_NAMES.get(p.difficulty_type, p.difficulty_type) }}</td>
+                    <td>{{ (p.subsidy_ratio or 0)|pct(0) }}</td>
+                    <td class="num">{{ p.monthly_limit|money }} 元</td>
+                    <td>{{ (p.ltc_ratio or 0)|pct(0) }}</td>
+                    <td>{% if p.enabled %}<span class="badge badge-green">生效</span>{% else %}<span class="badge badge-gray">停用</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无补贴政策（种子数据会写入政策矩阵）', '🏛️') }}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        function saveConfig(btn, key, value, description) {
+            var primary = App.api.put("/admin/config", { key: key, value: value, description: description || undefined });
+            primary.then(function () {
+                App.toast("配置已更新", "success");
+                window.setTimeout(function () { window.location.reload(); }, 600);
+            }).catch(function (err) {
+                if (!err || err.message === "UNAUTHORIZED") { return; }
+                // 兼容后端 {items:[...]} 批量格式
+                App.api.put("/admin/config", { items: [{ key: key, value: value }] }).then(function () {
+                    App.toast("配置已更新", "success");
+                    window.setTimeout(function () { window.location.reload(); }, 600);
+                }).catch(function (err2) {
+                    if (err2 && err2.message !== "UNAUTHORIZED") { App.toast(err2.message || "保存失败", "error"); }
+                });
+            });
+        }
+
+        document.addEventListener("click", function (ev) {
+            var edit = ev.target.closest("[data-config-edit]");
+            if (edit) {
+                App.modal({
+                    title: "修改配置项",
+                    html: '<div class="form-field mb-1"><label>配置键</label>' +
+                        '<input type="text" value="' + App.esc(edit.getAttribute("data-key")) + '" readonly></div>' +
+                        '<div class="form-field"><label>配置值</label>' +
+                        '<input id="cfg-value" type="text" value="' + App.esc(edit.getAttribute("data-value")) + '"></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "保存", cls: "btn-primary", onClick: function (modal) {
+                                var value = (modal.querySelector("#cfg-value").value || "").trim();
+                                if (!value) { App.toast("配置值不能为空", "warn"); return true; }
+                                saveConfig(edit, edit.getAttribute("data-key"), value);
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var create = ev.target.closest("[data-config-new]");
+            if (create) {
+                App.modal({
+                    title: "新增配置项",
+                    html: '<div class="form-field mb-1"><label>配置键</label><input id="nc-key" placeholder="如 dispatch_weights"></div>' +
+                        '<div class="form-field mb-1"><label>配置值</label><input id="nc-value" placeholder="如 0.4,0.3,0.2,0.1"></div>' +
+                        '<div class="form-field"><label>说明</label><input id="nc-desc" placeholder="如 派单四因子权重"></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "创建", cls: "btn-primary", onClick: function (modal) {
+                                var key = (modal.querySelector("#nc-key").value || "").trim();
+                                var value = (modal.querySelector("#nc-value").value || "").trim();
+                                if (!key || !value) { App.toast("请填写配置键与值", "warn"); return true; }
+                                saveConfig(create, key, value, modal.querySelector("#nc-desc").value);
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}

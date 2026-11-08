@@ -1,0 +1,54 @@
+# 社区智慧养老服务与健康监测平台 · 一键编排（应用 + PostgreSQL 16）
+# 用法：docker compose -f docker/docker-compose.yml up -d --build
+#      浏览器访问 http://127.0.0.1:8000 ，默认密码 Admin@123
+
+name: eldercare-platform
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: eldercare-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: eldercare
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Shanghai
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eldercare"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: eldercare-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: prod
+      TZ: Asia/Shanghai
+      SECRET_KEY: change-me-in-production-please
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/eldercare
+      UPLOAD_DIR: /app/data/uploads
+      BACKUP_DIR: /app/data/backups
+      DATA_DIR: /app/data
+      ENABLE_SCHEDULER: "true"
+      DISPATCH_WEIGHTS: "0.4,0.3,0.2,0.1"
+    volumes:
+      - appdata:/app/data
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+  appdata:

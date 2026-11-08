@@ -277,7 +277,9 @@ appt.status = new_status
 | GET/PUT | `/admin/config` | 运行期配置（派单权重等） | admin:config |
 
 ### 页面（F）
-`/login`、`/`、`/elders`、`/elders/{id}`、`/appointments`、`/dispatch`、`/orders`、`/orders/{id}`、`/health/{elder_id}`、`/alerts`、`/quality`、`/billing`、`/stats`、`/admin/users`、`/admin/audit`、`/admin/backup`、`/admin/config`
+`/login`、`/`、`/elders`、`/elders/{id}`、`/appointments`、`/dispatch`、`/orders`、`/orders/{id}`、`/monitoring`、`/monitoring/{elder_id}`、`/alerts`、`/quality`、`/billing`、`/stats`、`/admin/users`、`/admin/audit`、`/admin/backup`、`/admin/config`
+
+> 注意：页面健康监测路由为 `/monitoring`（避免与系统健康检查 `GET /health` 冲突），接口仍为 `/api/v1/health/*`。
 
 ---
 
@@ -296,6 +298,28 @@ def test_create_appointment(client, headers, accounts):
 - 提交前自查：`pytest tests -q` 你自己的文件全绿 + `ruff check` 无告警。
 
 ---
+
+## 6.5 跨模块接口（并行开发期间用 try/except 兜底，不要因此阻塞）
+
+| 提供方 | 函数 | 用途 |
+|---|---|---|
+| D | `app.services.alert_service.evaluate_metric(db, metric, operator_id=None) -> list[Alert]` | 任何模块写入 `HealthMetric` 后调用，返回新生成的预警 |
+| D | `app.services.alert_service.ensure_default_rules(db) -> int` | 幂等写入默认规则（血压/心率/血氧/静默） |
+| D | `app.tasks.alert_timeout.run_alert_timeout_scan() -> dict` | 超时升级 + 静默检测 |
+| E | `app.services.billing_service.create_refund(db, work_order_id, amount, reason, operator_id) -> dict` | 投诉结论成立时生成红冲，C 只在结论为 refund 时调用 |
+| A1 | `app.services.admin_service.get_config(db, key, default)` | 读取运行期配置（如派单权重） |
+| A1 | `app.tasks.backup_daily.run_daily_backup(backup_type="auto", created_by=None) -> dict` | 备份 |
+| B | `app.algorithms.dispatch.score_candidates(...) -> list[dict]` | 纯函数评分（供测试与页面复用） |
+
+调用方写法：
+```python
+try:
+    from app.services.alert_service import evaluate_metric
+except Exception:  # 模块尚未就绪时降级
+    evaluate_metric = None
+if evaluate_metric:
+    evaluate_metric(db, metric, operator_id=user.id)
+```
 
 ## 7. 交付与沟通
 

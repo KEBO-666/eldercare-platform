@@ -46,7 +46,7 @@ APPOINTMENT = StateMachine("预约单", {
     "pending_accept": {"accept": "accepted", "cancel": "cancelled", "to_manual": "cancelled"},
     "accepted": {"to_dispatch": "pending_dispatch", "cancel": "cancelled"},
     "pending_dispatch": {"dispatch": "dispatched", "cancel": "cancelled"},
-    "dispatched": {"start": "in_service", "cancel": "cancelled", "no_show": "no_show"},
+    "dispatched": {"start": "in_service", "cancel": "cancelled", "no_show": "no_show", "requeue": "pending_dispatch"},
     "in_service": {"complete": "completed"},
     "completed": {},
     "cancelled": {},
@@ -55,7 +55,7 @@ APPOINTMENT = StateMachine("预约单", {
 
 # ---------------- 工单 ----------------
 ORDER = StateMachine("工单", {
-    "pending_accept": {"accept": "accepted", "cancel": "cancelled", "reject": "pending_accept"},
+    "pending_accept": {"accept": "accepted", "cancel": "cancelled", "reject": "cancelled"},
     "accepted": {"checkin": "in_service", "cancel": "cancelled", "report_anomaly": "anomaly"},
     "in_service": {"checkout": "pending_evaluation", "report_anomaly": "anomaly"},
     "pending_evaluation": {"complete": "completed", "report_anomaly": "anomaly"},

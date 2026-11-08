@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f3557">
+    <title>{% block title %}{{ page_title|default('首页') }}{% endblock %} · {{ app_name }}</title>
+    <link rel="stylesheet" href="/static/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app-body">
+<a class="skip-link" href="#main-content">跳到主要内容</a>
+<div class="app-shell">
+    <aside class="app-sidebar" id="sidebar">
+        <div class="brand">
+            <span class="brand-logo" aria-hidden="true">颐</span>
+            <div>
+                <div class="brand-name">智慧养老平台</div>
+                <div class="brand-sub">{{ user.org_name|default('社区养老服务中心') }}</div>
+            </div>
+        </div>
+        <nav class="app-nav" aria-label="主导航">
+            {% for item in nav_items %}
+                {% if item['divider'] %}
+                    <div class="nav-divider"></div>
+                    <div class="nav-group-label">{{ item.label }}</div>
+                {% else %}
+                    <a class="nav-item{% if item.key == active %} active{% endif %}"
+                       href="{{ item.url }}"
+                       {% if item.key == active %}aria-current="page"{% endif %}
+                       data-nav="{{ item.key }}">
+                        <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+                        <span>{{ item.label }}</span>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        <div class="sidebar-foot">
+            <div>版本 {{ version }}</div>
+            <div>服务热线 12345</div>
+        </div>
+    </aside>
+
+    <div class="app-main">
+        <header class="app-topbar">
+            <button class="btn btn-ghost btn-sm menu-toggle" type="button" onclick="toggleSidebar()"
+                    aria-label="展开或收起菜单">☰ 菜单</button>
+            <div class="page-heading">
+                {% if breadcrumb %}
+                    <div class="breadcrumb">{{ breadcrumb }}</div>
+                {% endif %}
+                <h1>{{ page_title|default('首页') }}</h1>
+            </div>
+            <div class="user-box">
+                <span class="role-badge role-{{ user.role_code }}">{{ user.role_name }}</span>
+                <span class="user-name">{{ user.real_name }}</span>
+                <a class="btn btn-ghost btn-sm" href="/logout" data-action="logout">退出</a>
+            </div>
+        </header>
+
+        <main class="app-content" id="main-content">
+            {% if notice %}
+                <div class="notice {{ notice_type|default('') }}">{{ notice }}</div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<div id="toast-box" class="toast-box" aria-live="polite"></div>
+
+<script src="/static/vendor/bootstrap.bundle.min.js"></script>
+<script src="/static/vendor/echarts.min.js"></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/charts.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

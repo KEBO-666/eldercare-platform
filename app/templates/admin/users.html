@@ -1,0 +1,180 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import pager, empty %}
+{% block title %}用户管理{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>👥 账号列表</span>
+        <span class="btn-row">
+            <button class="btn btn-primary btn-sm" data-user-new>＋ 新建账号</button>
+        </span>
+    </div>
+    <form class="filter-bar" method="get" action="/admin/users">
+        <div class="form-field grow">
+            <label for="keyword">关键字（用户名 / 姓名）</label>
+            <input id="keyword" type="search" name="keyword" value="{{ keyword }}" placeholder="如：nurse1">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="submit">🔍 查询</button>
+            <a class="btn btn-ghost" href="/admin/users">重置</a>
+        </div>
+    </form>
+
+    {% if users %}
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr><th>ID</th><th>用户名</th><th>姓名</th><th>角色</th><th>所属组织</th><th>数据范围</th><th>状态</th><th>最近登录</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+            <tr class="{{ 'row-muted' if not u.is_active else '' }}">
+                <td>{{ u.id }}</td>
+                <td><strong>{{ u.username }}</strong></td>
+                <td>{{ u.real_name }}</td>
+                <td><span class="badge role-badge role-{{ u.role.code if u.role else 'elder' }}">{{ u.role.name if u.role else '-' }}</span></td>
+                <td class="small">{{ u.org.name if u.org else '-' }}</td>
+                <td class="small">{{ dict(scope_options).get(u.data_scope, u.data_scope) }}</td>
+                <td>
+                    {% if u.is_active %}<span class="badge badge-green">启用</span>
+                    {% else %}<span class="badge badge-gray">停用</span>{% endif %}
+                </td>
+                <td class="small">{{ u.last_login_at|dt if u.last_login_at else '从未登录' }}</td>
+                <td class="actions">
+                    <button class="btn btn-secondary btn-sm" data-reset="{{ u.id }}" data-name="{{ u.username }}">重置密码</button>
+                    <button class="btn btn-ghost btn-sm" data-toggle="{{ u.id }}"
+                            data-active="{{ 'true' if u.is_active else 'false' }}">{{ '停用' if u.is_active else '启用' }}</button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager(page, pages, total, '/admin/users', 'keyword=' ~ (keyword|urlencode)) }}
+    {% else %}
+        {{ empty('暂无账号数据', '👥') }}
+    {% endif %}
+</section>
+
+<section class="card">
+    <div class="card-header"><span>🔑 角色与权限矩阵</span><span class="sub">共 {{ perm_groups.values()|map('length')|sum }} 个权限点</span></div>
+    <div class="card-body">
+        <div class="grid grid-2">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>角色</th><th>编码</th><th>数据范围</th><th>权限点</th></tr></thead>
+                    <tbody>
+                    {% for role in roles %}
+                    <tr>
+                        <td><strong>{{ role.name }}</strong></td>
+                        <td class="small">{{ role.code }}</td>
+                        <td class="small">{{ dict(scope_options).get(role.data_scope, role.data_scope) }}</td>
+                        <td class="small">{{ role.permissions|length }} 个</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                {% for module, perms in perm_groups.items() %}
+                <div class="mb-1">
+                    <strong>{{ module }}</strong>：
+                    {% for perm in perms %}
+                        <span class="tag-chip" title="{{ perm.code }}">{{ perm.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var ROLES = [{% for r in roles %}{ id: {{ r.id }}, code: "{{ r.code }}", name: "{{ r.name }}" }{% if not loop.last %},{% endif %}{% endfor %}];
+        var ORGS = [{% for o in orgs %}{ id: {{ o.id }}, name: "{{ o.name }}", level: "{{ o.level }}" }{% if not loop.last %},{% endif %}{% endfor %}];
+        var SCOPES = [{% for code, name in scope_options %}{ code: "{{ code }}", name: "{{ name }}" }{% if not loop.last %},{% endif %}{% endfor %}];
+
+        document.addEventListener("click", function (ev) {
+            var newBtn = ev.target.closest("[data-user-new]");
+            if (newBtn) {
+                App.modal({
+                    title: "新建账号",
+                    html: '<div class="form-grid">' +
+                        '<div class="form-field"><label>用户名</label><input id="u-username" placeholder="如 grid3"></div>' +
+                        '<div class="form-field"><label>真实姓名</label><input id="u-realname" placeholder="如 李网格"></div>' +
+                        '<div class="form-field"><label>初始密码</label><input id="u-password" type="text" value="Admin@123"></div>' +
+                        '<div class="form-field"><label>角色</label><select id="u-role">' +
+                        ROLES.map(function (r) { return '<option value="' + r.id + '">' + App.esc(r.name) + "（" + r.code + "）</option>"; }).join("") +
+                        "</select></div>" +
+                        '<div class="form-field"><label>所属组织</label><select id="u-org"><option value="">不指定</option>' +
+                        ORGS.map(function (o) { return '<option value="' + o.id + '">' + App.esc(o.name) + "</option>"; }).join("") +
+                        "</select></div>" +
+                        '<div class="form-field"><label>数据范围</label><select id="u-scope">' +
+                        SCOPES.map(function (s) { return '<option value="' + s.code + '">' + App.esc(s.name) + "</option>"; }).join("") +
+                        "</select></div>" +
+                        "</div>",
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "创建", cls: "btn-primary", onClick: function (modal) {
+                                var username = (modal.querySelector("#u-username").value || "").trim();
+                                var realName = (modal.querySelector("#u-realname").value || "").trim();
+                                if (!username || !realName) { App.toast("请填写用户名与姓名", "warn"); return true; }
+                                var orgId = modal.querySelector("#u-org").value;
+                                App.action(newBtn, "/admin/users", {
+                                    username: username,
+                                    real_name: realName,
+                                    password: modal.querySelector("#u-password").value || "Admin@123",
+                                    role_id: Number(modal.querySelector("#u-role").value),
+                                    org_id: orgId ? Number(orgId) : undefined,
+                                    data_scope: modal.querySelector("#u-scope").value
+                                }, "账号已创建");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var resetBtn = ev.target.closest("[data-reset]");
+            if (resetBtn) {
+                App.modal({
+                    title: "重置密码 · " + resetBtn.getAttribute("data-name"),
+                    html: '<div class="form-field"><label>新密码</label><input id="rp-password" type="text" value="Admin@123"></div>',
+                    buttons: [
+                        { text: "取消", cls: "btn-secondary" },
+                        {
+                            text: "确认重置", cls: "btn-danger", onClick: function (modal) {
+                                var pwd = (modal.querySelector("#rp-password").value || "").trim();
+                                if (pwd.length < 6) { App.toast("密码至少 6 位", "warn"); return true; }
+                                App.action(resetBtn, "/admin/users/" + resetBtn.getAttribute("data-reset") + "/reset-password",
+                                    { password: pwd }, "密码已重置");
+                            }
+                        }
+                    ]
+                });
+                return;
+            }
+
+            var toggleBtn = ev.target.closest("[data-toggle]");
+            if (toggleBtn) {
+                var active = toggleBtn.getAttribute("data-active") === "true";
+                App.confirmAction(active ? "确认停用该账号？停用后将无法登录。" : "确认启用该账号？", function () {
+                    var url = "/admin/users/" + toggleBtn.getAttribute("data-toggle");
+                    var payload = { is_active: !active };
+                    App.api.put(url, payload).then(function () {
+                        App.toast(active ? "账号已停用" : "账号已启用", "success");
+                        window.setTimeout(function () { window.location.reload(); }, 500);
+                    }).catch(function (err) {
+                        if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "操作失败", "error"); }
+                    });
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ page_title|default('提示') }}{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <span class="icon">🔒</span>
+            <div style="font-size:22px;font-weight:800;color:#14508c;margin-bottom:8px">
+                {{ page_title|default('无法访问') }}
+            </div>
+            <div class="mb-2">{{ notice or '请联系管理员或返回首页。' }}</div>
+            <div class="btn-row" style="justify-content:center">
+                <a class="btn btn-primary" href="/">返回首页</a>
+                <a class="btn btn-secondary" href="/login">重新登录</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty, tag_chips %}
+{% block title %}老人档案详情{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>👵 {{ elder.name|mask_name }}（{{ elder.code }}）
+            <span class="badge badge-{{ 'green' if elder.ability_level == 'intact' else ('blue' if elder.ability_level == 'mild' else ('yellow' if elder.ability_level == 'moderate' else 'red')) }}"
+                  style="margin-left:8px">{{ ABILITY_NAMES.get(elder.ability_level, elder.ability_level) }}</span>
+        </span>
+        <span class="btn-row">
+            <a class="btn btn-secondary btn-sm" href="/monitoring/{{ elder.id }}">❤️ 健康趋势</a>
+            <a class="btn btn-ghost btn-sm" href="/elders">← 返回列表</a>
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="mb-2">{{ tag_chips(tags | map(attribute='tag') | list) }}</div>
+        <div class="info-grid">
+            <div class="info-item"><div class="k">老人编号</div><div class="v">{{ elder.code }}</div></div>
+            <div class="info-item"><div class="k">姓名（脱敏）</div><div class="v">{{ elder.name|mask_name }}</div></div>
+            <div class="info-item"><div class="k">性别 / 年龄</div>
+                <div class="v">{{ GENDER_NAMES.get(elder.gender, '未知') }}
+                    {% if elder.birth_date %}· {{ (now.date() - elder.birth_date).days // 365 }} 岁（{{ elder.birth_date }}）{% endif %}
+                </div>
+            </div>
+            <div class="info-item"><div class="k">困难类型</div><div class="v">{{ DIFFICULTY_NAMES.get(elder.difficulty_type, elder.difficulty_type) }}</div></div>
+            <div class="info-item"><div class="k">所属社区</div><div class="v">{{ community.name if community else '-' }}</div></div>
+            <div class="info-item"><div class="k">所属网格</div><div class="v">{{ grid.name if grid else '-' }}</div></div>
+            <div class="info-item"><div class="k">医保类型</div><div class="v">{{ elder.insurance_type or '-' }}</div></div>
+            <div class="info-item"><div class="k">长护险类型</div><div class="v">{{ elder.ltc_type or '-' }}</div></div>
+            <div class="info-item"><div class="k">身份证号（脱敏）</div><div class="v locked" id="id_card_masked">🔒 {{ (elder.id_card_hash and '********') or '未登记' }}</div></div>
+            <div class="info-item"><div class="k">手机号（脱敏）</div><div class="v locked" id="phone_masked">🔒 {{ (elder.phone_hash and '138****0000') or '未登记' }}</div></div>
+            <div class="info-item"><div class="k">居住地址（脱敏）</div><div class="v locked" id="address_masked">🔒 {{ elder.address_masked or '未登记' }}</div></div>
+            <div class="info-item"><div class="k">紧急联系人</div>
+                <div class="v">{{ elder.emergency_name or '-' }}{% if elder.emergency_relation %}（{{ elder.emergency_relation }}）{% endif %}
+                    {% if elder.emergency_phone_enc %} · 已登记{% endif %}
+                </div>
+            </div>
+            <div class="info-item"><div class="k">过敏史</div><div class="v">{{ elder.allergy or '无' }}</div></div>
+            <div class="info-item"><div class="k">备注</div><div class="v">{{ elder.notes or '-' }}</div></div>
+        </div>
+    </div>
+</section>
+
+{% if can_grant %}
+<section class="card">
+    <div class="card-header">
+        <span>🔐 敏感信息二次授权</span>
+        <span class="sub">10 分钟有效 · 理由必填 · 全程审计留痕</span>
+    </div>
+    <div class="card-body">
+        <div class="notice">
+            默认情况下身份证号、手机号、住址均以密文保存并脱敏展示。确需查看明文时，请填写<strong>查看理由</strong>申请临时授权。
+        </div>
+        <div class="form-field mb-2">
+            <label for="grant-reason">查看理由（必填，不少于 4 个字）</label>
+            <input id="grant-reason" type="text" placeholder="例如：核实签约服务地址准确性（走访问卷回填）" maxlength="120">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" type="button" id="btn-grant">申请二次授权并查看明文</button>
+            <button class="btn btn-ghost" type="button" id="btn-clear-grant">隐藏明文</button>
+            <span class="small muted" id="grant-status"></span>
+        </div>
+        <div class="mt-2 hidden" id="grant-result">
+            <div class="info-grid">
+                <div class="info-item"><div class="k">身份证号</div><div class="v" id="raw-id-card">-</div></div>
+                <div class="info-item"><div class="k">手机号</div><div class="v" id="raw-phone">-</div></div>
+                <div class="info-item"><div class="k">居住地址</div><div class="v" id="raw-address">-</div></div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>🩺 慢病记录</span></div>
+        <div class="card-body tight">
+            {% if diseases %}
+            <table class="data-table">
+                <thead><tr><th>疾病名称</th><th>确诊日期</th><th>备注</th></tr></thead>
+                <tbody>
+                {% for d in diseases %}
+                <tr><td>{{ d.name }}</td><td class="small">{{ d.diagnosed_at or '-' }}</td><td class="small">{{ d.note or '-' }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无慢病记录', '🩺') }}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>💊 用药记录</span></div>
+        <div class="card-body tight">
+            {% if meds %}
+            <table class="data-table">
+                <thead><tr><th>药品</th><th>剂量</th><th>频次</th></tr></thead>
+                <tbody>
+                {% for m in meds %}
+                <tr><td>{{ m.name }}</td><td>{{ m.dosage or '-' }}</td><td>{{ m.frequency or '-' }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无用药记录', '💊') }}
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="card">
+    <div class="card-header"><span>📋 能力评估记录</span><span class="sub">最新评估决定当前失能等级</span></div>
+    <div class="card-body tight">
+        {% if assessments %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>评估时间</th><th>评估等级</th><th>得分</th><th>评估人</th><th>依据</th></tr></thead>
+                <tbody>
+                {% for a in assessments %}
+                <tr>
+                    <td>{{ a.assessed_at|dt }}</td>
+                    <td><span class="badge badge-blue">{{ ABILITY_NAMES.get(a.level, a.level) }}</span></td>
+                    <td>{{ a.score if a.score is not none else '-' }}</td>
+                    <td>{{ user_names.get(a.assessor_id, '系统') if a.assessor_id else '系统' }}</td>
+                    <td class="small">{{ a.basis or '-' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无评估记录', '📋') }}
+        {% endif %}
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-header"><span>🗂️ 档案变更日志</span><span class="sub">不可篡改留痕</span></div>
+    <div class="card-body tight">
+        {% if changes %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>时间</th><th>操作人</th><th>变更字段</th><th>变更前</th><th>变更后</th><th>原因</th></tr></thead>
+                <tbody>
+                {% for c in changes %}
+                <tr>
+                    <td class="small">{{ c.created_at|dt }}</td>
+                    <td>{{ user_names.get(c.changed_by, '-') if c.changed_by else '系统' }}</td>
+                    <td class="small">{{ (c.changed_fields or [])|join('、') }}</td>
+                    <td class="small">{{ (c.before_json or {})|tojson }}</td>
+                    <td class="small">{{ (c.after_json or {})|tojson }}</td>
+                    <td class="small">{{ c.reason or '-' }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {{ empty('暂无变更记录', '🗂️') }}
+        {% endif %}
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>📅 最近预约</span></div>
+        <div class="card-body tight">
+            {% if appts %}
+            <table class="data-table">
+                <thead><tr><th>预约号</th><th>服务项目</th><th>计划时间</th><th>状态</th></tr></thead>
+                <tbody>
+                {% for a in appts %}
+                <tr>
+                    <td class="small">{{ a.code }}</td>
+                    <td>{{ appt_items.get(a.service_item_id).name if appt_items.get(a.service_item_id) else '-' }}</td>
+                    <td class="small">{{ a.desired_start|dt }}</td>
+                    <td><span class="badge {{ APPOINTMENT_STATUS_BADGE.get(a.status, 'badge-gray') }}">{{ APPOINTMENT_STATUS_NAMES.get(a.status, a.status) }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无预约记录', '📅') }}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>🧰 最近工单</span></div>
+        <div class="card-body tight">
+            {% if orders %}
+            <table class="data-table">
+                <thead><tr><th>工单号</th><th>项目</th><th>护理员</th><th>状态</th></tr></thead>
+                <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td class="small"><a href="/orders/{{ o.id }}">{{ o.code }}</a></td>
+                    <td>{{ order_items.get(o.service_item_id).name if order_items.get(o.service_item_id) else '-' }}</td>
+                    <td>{{ staffs.get(o.nurse_id).name if staffs.get(o.nurse_id) else '-' }}</td>
+                    <td><span class="badge {{ ORDER_STATUS_BADGE.get(o.status, 'badge-gray') }}">{{ ORDER_STATUS_NAMES.get(o.status, o.status) }}</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                {{ empty('暂无工单记录', '🧰') }}
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if can_grant %}
+<script>
+    (function () {
+        var elderId = {{ elder.id }};
+        var grantId = null;
+        var btn = document.getElementById("btn-grant");
+        var statusEl = document.getElementById("grant-status");
+
+        function pick(obj) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            for (var i = 0; i < args.length; i += 1) {
+                if (obj && obj[args[i]] !== undefined && obj[args[i]] !== null && obj[args[i]] !== "") { return obj[args[i]]; }
+            }
+            return "";
+        }
+
+        btn.addEventListener("click", function () {
+            var reason = (document.getElementById("grant-reason").value || "").trim();
+            if (reason.length < 4) {
+                App.toast("请填写查看理由（不少于 4 个字）", "warn");
+                return;
+            }
+            btn.disabled = true;
+            App.api.post("/elders/" + elderId + "/grants", {
+                fields: ["id_card", "phone", "address"],
+                reason: reason
+            }).then(function (res) {
+                var data = res.data || res;
+                grantId = pick(data, "grant_id", "id", "grantId");
+                if (!grantId && typeof data === "number") { grantId = data; }
+                if (!grantId) { throw new Error("授权接口未返回 grant_id（后端尚未就绪）"); }
+                statusEl.textContent = "授权成功，有效期 10 分钟，正在读取明文…";
+                return App.api.get("/elders/" + elderId + "/sensitive?grant_id=" + encodeURIComponent(grantId));
+            }).then(function (res) {
+                var data = (res && res.data) || res || {};
+                var nested = data.fields || data.values || data.sensitive || {};
+                var idCard = pick(data, "id_card", "idCard") || pick(nested, "id_card", "idCard");
+                var phone = pick(data, "phone", "mobile", "phone_number") || pick(nested, "phone", "mobile");
+                var address = pick(data, "address", "addr") || pick(nested, "address", "addr");
+                document.getElementById("raw-id-card").textContent = idCard || "（接口未返回）";
+                document.getElementById("raw-phone").textContent = phone || "（接口未返回）";
+                document.getElementById("raw-address").textContent = address || "（接口未返回）";
+                document.getElementById("grant-result").classList.remove("hidden");
+                statusEl.textContent = "已获取明文（本次查看已写入审计日志）";
+                App.toast("二次授权成功", "success");
+            }).catch(function (err) {
+                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "授权失败", "error"); }
+                statusEl.textContent = "授权失败：" + (err && err.message ? err.message : "未知错误");
+            }).finally(function () { btn.disabled = false; });
+        });
+
+        document.getElementById("btn-clear-grant").addEventListener("click", function () {
+            document.getElementById("grant-result").classList.add("hidden");
+            statusEl.textContent = "明文已隐藏";
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

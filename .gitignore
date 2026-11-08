@@ -14,6 +14,12 @@ data/*.db
 data/*.sqlite3
 data/uploads/*
 data/backups/*
+data/tmp/
+data/pip-cache/
+data/logs/
+data/reports/
+data/*.log
+data/_speedtest.whl
 !data/uploads/.gitkeep
 !data/backups/.gitkeep
 

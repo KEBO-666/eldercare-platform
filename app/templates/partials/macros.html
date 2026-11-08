@@ -1,0 +1,53 @@
+{# ============ 通用宏：分页 / 空状态 / 徽标 ============ #}
+
+{% macro pager(page, pages, total, base_url, q='') %}
+    {% if pages and pages > 1 %}
+    {% set sep = '&' if q else '' %}
+    <nav class="pagination" aria-label="分页导航">
+        <span class="total">共 {{ total }} 条 · 第 {{ page }}/{{ pages }} 页</span>
+        {% if page > 1 %}
+            <a class="page-link" href="{{ base_url }}?{{ q }}{{ sep }}page={{ page - 1 }}&amp;size={{ size|default(20) }}">上一页</a>
+        {% endif %}
+        {% for p in range(1, pages + 1) %}
+            {% if p == 1 or p == pages or (p >= page - 1 and p <= page + 1) %}
+                <a class="page-link {% if p == page %}active{% endif %}"
+                   href="{{ base_url }}?{{ q }}{{ sep }}page={{ p }}&amp;size={{ size|default(20) }}"
+                   {% if p == page %}aria-current="page"{% endif %}>{{ p }}</a>
+            {% elif p == 2 or p == pages - 1 %}
+                <span class="page-link">…</span>
+            {% endif %}
+        {% endfor %}
+        {% if page < pages %}
+            <a class="page-link" href="{{ base_url }}?{{ q }}{{ sep }}page={{ page + 1 }}&amp;size={{ size|default(20) }}">下一页</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+{% endmacro %}
+
+{% macro empty(text='暂无数据', icon='📭') %}
+    <div class="empty-state"><span class="icon">{{ icon }}</span>{{ text }}</div>
+{% endmacro %}
+
+{% macro level_badge(level) %}
+    <span class="badge badge-{{ 'red' if level == 'red' else ('yellow' if level == 'yellow' else 'blue') }}">
+        {{ ALERT_LEVEL_NAMES.get(level, level) }}
+    </span>
+{% endmacro %}
+
+{% macro alert_level_row(level) %}{{ 'row-red' if level == 'red' else ('row-yellow' if level == 'yellow' else 'row-blue') }}{% endmacro %}
+
+{% macro status_badge(status, mapping, badge_mapping) %}
+    <span class="badge {{ badge_mapping.get(status, 'badge-gray') }}">{{ mapping.get(status, status) }}</span>
+{% endmacro %}
+
+{% macro star_cell(score) %}
+    <span class="small" title="{{ score }} 分">{{ score|stars }} <span class="muted">{{ '%.1f'|format(score or 0) }}</span></span>
+{% endmacro %}
+
+{% macro tag_chips(tags) %}
+    {% for tag in tags %}
+        <span class="tag-chip {{ 'danger' if tag in ('dementia', 'bedridden') else ('warn' if tag in ('living_alone', 'low_income') else '') }}">
+            {{ TAG_NAMES.get(tag, tag) }}
+        </span>
+    {% endfor %}
+{% endmacro %}

@@ -102,10 +102,6 @@ def create_app(
 
     application.include_router(api_router, prefix="/api/v1")
 
-    from app.web.routes import router as web_router
-
-    application.include_router(web_router)
-
     @application.get("/health", tags=["系统"], summary="健康检查")
     def health() -> dict:
         return {
@@ -113,6 +109,10 @@ def create_app(
             "message": "ok",
             "data": {"status": "healthy", "app": settings.app_name, "version": settings.version},
         }
+
+    from app.web.routes import router as web_router
+
+    application.include_router(web_router)
 
     return application
 

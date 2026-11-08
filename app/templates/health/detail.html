@@ -1,0 +1,183 @@
+{% extends "layouts/base.html" %}
+{% from "partials/macros.html" import empty %}
+{% block title %}健康监测{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="card-header">
+        <span>❤️ 健康监测 · {{ elder.name|mask_name }}（{{ elder.code }}）
+            <span class="badge badge-blue" style="margin-left:8px">{{ ABILITY_NAMES.get(elder.ability_level, elder.ability_level) }}</span>
+        </span>
+        <span class="btn-row">
+            <a class="btn btn-secondary btn-sm" href="/elders/{{ elder.id }}">👵 档案</a>
+            <a class="btn btn-ghost btn-sm" href="/alerts">🚨 预警看板</a>
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div class="info-item"><div class="k">数据来源</div><div class="v">上门录入 / 可穿戴设备（模拟）</div></div>
+            <div class="info-item"><div class="k">绑定设备</div>
+                <div class="v">{{ devices|length }} 台{% if devices %}（{% for d in devices %}{{ d.device_code }}{% if not loop.last %}、{% endif %}{% endfor %}）{% endif %}</div></div>
+            <div class="info-item"><div class="k">数据窗口</div><div class="v">近 {{ days }} 天（按日聚合）</div></div>
+            <div class="info-item"><div class="k">指标记录</div><div class="v">{{ metrics|length }} 条（最近 30 条）</div></div>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>🩸 血压 / 心率趋势</span><span class="sub">日平均值</span></div>
+        <div class="card-body"><div class="chart" id="vitals-chart"></div></div>
+    </section>
+    <section class="card">
+        <div class="card-header"><span>🫁 血氧趋势</span><span class="sub">低于 90% 触发红色预警</span></div>
+        <div class="card-body"><div class="chart" id="spo2-chart"></div></div>
+    </section>
+</div>
+
+<div class="grid grid-2-1">
+    <section class="card">
+        <div class="card-header"><span>🚶 步数趋势</span><span class="sub">活动量 / 体动</span></div>
+        <div class="card-body"><div class="chart" id="steps-chart"></div></div>
+    </section>
+
+    {% if can_write %}
+    <section class="card">
+        <div class="card-header"><span>✍️ 录入健康指标</span><span class="sub">录入后自动触发规则引擎</span></div>
+        <div class="card-body">
+            <form id="metric-form" onsubmit="return false;">
+                <div class="form-field mb-1">
+                    <label for="metric_code">指标类型</label>
+                    <select id="metric_code" required>
+                        {% for code, name in metric_options %}
+                            <option value="{{ code }}">{{ name }}（{{ code }}）</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-field mb-1">
+                    <label for="metric_value">数值</label>
+                    <input id="metric_value" type="number" step="0.1" required placeholder="例如：收缩压 135">
+                </div>
+                <div class="form-field mb-1">
+                    <label for="measured_at">测量时间</label>
+                    <input id="measured_at" type="datetime-local" required>
+                </div>
+                <button class="btn btn-primary btn-block" type="button" id="btn-metric">✓ 保存并检测预警</button>
+                <div class="demo-tip">
+                    规则示例：收缩压 ≥180 或 ≤90 → 红色；血氧 &lt;90% → 红色；连续 3 次心率 &gt;100 → 黄色；48 小时无数据 → 蓝色。
+                </div>
+            </form>
+        </div>
+    </section>
+    {% else %}
+    <section class="card">
+        <div class="card-header"><span>💡 健康提示</span></div>
+        <div class="card-body">
+            <ul style="font-size:17px;line-height:1.9;padding-left:20px">
+                <li>血压建议每日同一时段测量，记录静息 5 分钟后的数值。</li>
+                <li>血氧低于 90% 请立即联系家属与社区医生。</li>
+                <li>连续 3 天数据缺失会自动触发蓝色预警，请保持设备充电。</li>
+            </ul>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<div class="grid grid-2">
+    <section class="card">
+        <div class="card-header"><span>📄 最近指标记录</span></div>
+        <div class="card-body tight">
+            {% if metrics %}
+            <div class="table-wrap" style="max-height:420px;overflow-y:auto">
+                <table class="data-table">
+                    <thead><tr><th>指标</th><th>数值</th><th>测量时间</th><th>来源</th></tr></thead>
+                    <tbody>
+                    {% for m in metrics %}
+                    <tr>
+                        <td>{{ METRIC_NAMES.get(m.metric_code, m.metric_code) }}</td>
+                        <td><strong>{{ m.value }}</strong> <span class="small muted">{{ m.unit or '' }}</span></td>
+                        <td class="small">{{ m.measured_at|dt }}</td>
+                        <td class="small">{{ '上门录入' if m.source == 'visit' else '可穿戴设备' }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                {{ empty('暂无健康指标数据', '📄') }}
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header"><span>🚨 该老人预警记录</span></div>
+        <div class="card-body tight">
+            {% if alerts %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th>级别</th><th>摘要</th><th>时间</th><th>状态</th></tr></thead>
+                    <tbody>
+                    {% for a in alerts %}
+                    <tr class="row-{{ a.level }}">
+                        <td><span class="badge badge-{{ 'red' if a.level == 'red' else ('yellow' if a.level == 'yellow' else 'blue') }}">{{ ALERT_LEVEL_NAMES.get(a.level, a.level) }}</span></td>
+                        <td class="small">{{ a.summary or '-' }}</td>
+                        <td class="small">{{ a.created_at|short }}</td>
+                        <td class="small">{{ ALERT_STATUS_NAMES.get(a.status, a.status) }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                {{ empty('暂无预警记录', '✅') }}
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<script type="application/json" id="vitals-data">{{ vitals_json|safe }}</script>
+<script type="application/json" id="spo2-data">{{ spo2_json|safe }}</script>
+<script type="application/json" id="steps-data">{{ steps_json|safe }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var elderId = {{ elder.id }};
+        AppChart.fromElement("vitals-chart", "vitals-data");
+        AppChart.fromElement("spo2-chart", "spo2-data");
+        AppChart.fromElement("steps-chart", "steps-data");
+
+        var form = document.getElementById("metric-form");
+        if (!form) { return; }
+
+        var now = new Date();
+        var pad = function (n) { return String(n).padStart(2, "0"); };
+        document.getElementById("measured_at").value =
+            now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "T" + pad(now.getHours()) + ":" + pad(now.getMinutes());
+
+        document.getElementById("btn-metric").addEventListener("click", function () {
+            var code = document.getElementById("metric_code").value;
+            var value = document.getElementById("metric_value").value;
+            var measured = document.getElementById("measured_at").value;
+            if (value === "" || !measured) { App.toast("请填写数值与测量时间", "warn"); return; }
+            var btn = this;
+            btn.disabled = true;
+            App.api.post("/health/metrics", {
+                elder_id: elderId,
+                metric_code: code,
+                value: Number(value),
+                measured_at: measured.replace("T", " ") + (measured.length === 16 ? ":00" : ""),
+                source: "visit"
+            }).then(function (res) {
+                var data = (res && res.data) || {};
+                var newAlerts = data.alerts || data.new_alerts || [];
+                App.toast("指标已保存" + (newAlerts.length ? "，触发 " + newAlerts.length + " 条预警" : ""), "success");
+                window.setTimeout(function () { window.location.reload(); }, 900);
+            }).catch(function (err) {
+                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "保存失败", "error"); }
+            }).finally(function () { btn.disabled = false; });
+        });
+    })();
+</script>
+{% endblock %}

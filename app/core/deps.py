@@ -20,7 +20,7 @@ from app.core.enums import DataScope, RoleCode
 from app.core.exceptions import Forbidden, Unauthorized
 from app.core.security import decode_token
 from app.db.session import get_db
-from app.models import Elder, Staff, User
+from app.models import Elder, Staff, User, WorkOrder
 
 
 # ---------------- 认证 ----------------
@@ -98,6 +98,7 @@ def scope_condition(model: Any, user: User, db: Session):
     community_col = getattr(model, "community_org_id", None)
     grid_col = getattr(model, "grid_org_id", None)
     org_col = getattr(model, "org_id", None)
+    elder_col = getattr(model, "elder_id", None)
 
     if scope == DataScope.ORG:
         if community_col is not None:
@@ -119,9 +120,15 @@ def scope_condition(model: Any, user: User, db: Session):
         nurse_col = getattr(model, "nurse_id", None)
         if staff is not None and nurse_col is not None:
             return nurse_col == staff.id
+        # 护理员对无 nurse_id 列的实体（老人档案/指标/预约等）只能看到自己服务过的老人
+        if staff is not None:
+            served_ids = select(WorkOrder.elder_id).where(WorkOrder.nurse_id == staff.id)
+            if model is Elder:
+                return Elder.id.in_(served_ids)
+            if elder_col is not None:
+                return elder_col.in_(served_ids)
         return None
     elder = get_elder_of_user(db, user)
-    elder_col = getattr(model, "elder_id", None)
     if elder is not None and elder_col is not None:
         return elder_col == elder.id
     if elder is not None and model is Elder:
