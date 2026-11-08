@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = ["data", ".venv", "build", "dist", "scripts/_archive"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = [
+    "B008",   # FastAPI Depends 必须写在参数默认值里
+    "E501",   # 行宽由 formatter 控制
+    "B904",   # 异常链式转换在业务代码中可简化
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "scripts", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

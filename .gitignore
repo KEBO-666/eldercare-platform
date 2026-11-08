@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# 数据与运行时产物
+data/*.db
+data/*.sqlite3
+data/uploads/*
+data/backups/*
+!data/uploads/.gitkeep
+!data/backups/.gitkeep
+
+# 配置
+.env
+*.local
+
+# 编辑器/系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# 打包产物
+*.zip
+dist/
+build/
