@@ -1,0 +1,174 @@
+{
+  "started_at_utc": "2026-11-12T10:13:16.511719+00:00",
+  "started_at_local": "2026-11-12T18:13:16.511719+08:00",
+  "source_method": "anonymous HTTPS git clone of public remote; no source-copy fallback",
+  "remote": "https://github.com/KEBO-666/eldercare-platform.git",
+  "authentication": "credential.helper cleared; credential.interactive=never; terminal prompt disabled",
+  "run_directory": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316",
+  "runtime": {
+    "python": "3.12.14 (main, Sep  1 2026, 14:17:39) [MSC v.1944 64 bit (AMD64)]",
+    "base_python": "C:\\Users\\Administrator\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
+    "os": "Windows-11-10.0.26200-SP0",
+    "logical_cpus": 8
+  },
+  "conditions": {
+    "python_preinstalled": true,
+    "venv_reused": false,
+    "database_reused": false,
+    "pip_cache_policy": "default cache; actual pre-install cache logged",
+    "scheduler_enabled": false,
+    "browser_visual_check": false,
+    "pip_cache_before": {
+      "http_bytes": 0,
+      "http_files": 0,
+      "wheel_bytes": 0,
+      "wheel_files": 0
+    },
+    "package_index_observed": "https://pypi.tuna.tsinghua.edu.cn"
+  },
+  "steps": [
+    {
+      "name": "anonymous-clone",
+      "elapsed_seconds": 4.094,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\anonymous-clone.log"
+    },
+    {
+      "name": "create-venv",
+      "elapsed_seconds": 9.25,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\create-venv.log"
+    },
+    {
+      "name": "pip-cache-before",
+      "elapsed_seconds": 0.484,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\pip-cache-before.log"
+    },
+    {
+      "name": "install-dependencies",
+      "elapsed_seconds": 60.266,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\install-dependencies.log"
+    },
+    {
+      "name": "pip-check",
+      "elapsed_seconds": 1.562,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\pip-check.log"
+    },
+    {
+      "name": "installed-versions",
+      "elapsed_seconds": 0.656,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\github-remote-reproduction\\20261112-181316\\installed-versions.log"
+    },
+    {
+      "name": "launcher-seed-start-and-six-role-http",
+      "elapsed_seconds": 9.547,
+      "exit_code": 0
+    }
+  ],
+  "checks": [
+    {
+      "username": "super",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "username": "super",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "username": "super",
+      "path": "/admin/audit",
+      "status": 200
+    },
+    {
+      "username": "street",
+      "path": "/stats",
+      "status": 200
+    },
+    {
+      "username": "street",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "username": "orgadmin",
+      "path": "/quality",
+      "status": 200
+    },
+    {
+      "username": "orgadmin",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "username": "grid1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "username": "grid1",
+      "path": "/dispatch",
+      "status": 200
+    },
+    {
+      "username": "grid1",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "username": "nurse1",
+      "path": "/orders",
+      "status": 200
+    },
+    {
+      "username": "elder1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "username": "elder1",
+      "path": "/billing",
+      "status": 200
+    }
+  ],
+  "passed": true,
+  "git": {
+    "branch": "main",
+    "head": "a2c11b5dc636d7fa5a0f99c7cd14b4986b392b07",
+    "origin_head": "refs/remotes/origin/main",
+    "origin_url": "https://github.com/KEBO-666/eldercare-platform.git",
+    "initial_status": ""
+  },
+  "initial_state": {
+    "venv_exists": false,
+    "database_exists": false,
+    "env_exists": false
+  },
+  "owned_server_pid": 13076,
+  "elapsed_clone_to_all_logins_seconds": 90.484,
+  "server_shutdown": {
+    "method": "taskkill-own-PID-tree",
+    "pid": 13076,
+    "taskkill_exit_code": 0,
+    "port": 59673,
+    "port_released": true
+  },
+  "within_ten_minutes": true,
+  "finished_at_utc": "2026-11-12T10:14:47.479146+00:00",
+  "finished_at_local": "2026-11-12T18:14:47.479146+08:00",
+  "total_elapsed_seconds": 90.781,
+  "app_blob_comparison": {
+    "original_commit": "5524ab578eb154fe782743cb0dd7cdab0b4a2c5d",
+    "public_commit": "a2c11b5dc636d7fa5a0f99c7cd14b4986b392b07",
+    "comparison": "Git blob IDs from ls-tree, independent of checkout autocrlf",
+    "original_app_blob_count": 94,
+    "public_app_blob_count": 94,
+    "mismatches": [],
+    "passed": true
+  }
+}

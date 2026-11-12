@@ -2,7 +2,7 @@
 
 > **传智杯参赛材料｜本科B组｜2132417｜唐克波**<br>
 > [技术文档 PDF](submission/2132417-唐克波-技术文档.pdf) · [演示视频 MP4](submission/2132417-唐克波-演示视频.mp4) · [公开版本与历史说明](docs/chuanzhi/公开版本说明.md) · [AI协同证据](docs/chuanzhi/AI协同与演进索引.md) · [验证原始产物](submission/verification/)<br>
-> 已通过410项测试、89.14%覆盖率及28项Edge检查。公开历史是排除运行数据和缓存后的独立过滤副本，原/公开哈希映射见[commit-map.json](submission/commit-map.json)。
+> 已通过410项测试、89.14%覆盖率及28项Edge检查；匿名克隆至全新环境启动及六角色13页面通过用时90.484秒，详见[发布实测](docs/chuanzhi/GitHub发布记录.md)。公开历史是排除运行数据和缓存后的独立过滤副本，原/公开哈希映射见[commit-map.json](submission/commit-map.json)。
 
 
 > 面向社区居家养老场景的一体化平台：老人档案（敏感字段加密 + 二次授权）、能力评估、服务目录与价格版本、

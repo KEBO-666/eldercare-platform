@@ -2,6 +2,7 @@
   "2132417-唐克波-技术文档.pdf": "90aec59e9e9a64ce042dc206406f3bb55226021e198d470e6887296629b69b17",
   "2132417-唐克波-演示视频.mp4": "a6607f5bf249ffd3df36a190bd039fe050f22c8c788925baa41860c4146464c5",
   "commit-map.json": "75ab24c5de614832c31572c7fc3f969d4ee9860bbf3ee6842ed671cb6dc3d671",
+  "verification/app-blob-comparison.json": "ed64db6a413e0ae73f0b333b8b0a6064e7b45e20499a057b2e7ff6f63f09924e",
   "verification/artifacts-qa.json": "77106c4772f339c7385bc6f8e403165dce5b0d2672230d252f9aa8e17949439e",
   "verification/browser-result.json": "3b93565f7484b1703d25753cbeab5a410b35d336d009c5ed887f18becca13916",
   "verification/final/coverage.xml": "a62e642f7d0eac16b625523e96d14476a25ab83dcd4f2c4ca633eca94ccb4850",
@@ -17,6 +18,8 @@
   "verification/final/smoke-cleanup-regression.json": "5ddc8cf491069985483749f952585752b435b98b3686a1d777e765eb426e3e75",
   "verification/final/source-sha256-after.json": "948965b5483dbeb203b2325ee040c47518df321a67763d2edbfc1234d001c780",
   "verification/final/source-sha256-before.json": "7afe9e8baabce7a9734e517212f000207580801e0dad2f4c5d75078a0d2d2bfb",
+  "verification/github-publication.json": "df28d14dabad2f49d6cf907694000ae8f8689096dd9d9c3603cb9c3160b5977c",
+  "verification/github-remote-reproduction.json": "b1f7c252a3fed9a17d0542f97ce8e18bbffc377f56b469278a4d1413aeb100ec",
   "verification/publication-review.json": "ad5c84aea7800aaff91ca70a62d7af8d74b08411330f152b4fe504449485de13",
   "verification/reproduction-final.json": "9ce673ad1b8338d10b0b3b5995e0a475290d0260cc8e8617e481c4197bb39276"
 }

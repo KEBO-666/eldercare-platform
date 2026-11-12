@@ -1,0 +1,9 @@
+{
+  "original_commit": "5524ab578eb154fe782743cb0dd7cdab0b4a2c5d",
+  "public_commit": "a2c11b5dc636d7fa5a0f99c7cd14b4986b392b07",
+  "comparison": "Git blob IDs from ls-tree, independent of checkout autocrlf",
+  "original_app_blob_count": 94,
+  "public_app_blob_count": 94,
+  "mismatches": [],
+  "passed": true
+}

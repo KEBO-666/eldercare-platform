@@ -79,7 +79,8 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
             add(path)
     reports = root / "reports"
     for name in ("chuanzhi-reproduction.json", "chuanzhi-reproduction-errors.json", "chuanzhi-reproduction-final.json",
-                 "chuanzhi-history-audit.json"):
+                 "chuanzhi-history-audit.json", "chuanzhi-publication-review.json",
+                 "github-publication.json", "github-remote-reproduction.json"):
         add(reports / name)
     for path in reports.glob("chuanzhi-evidence-*.json"):
         add(path)
@@ -155,7 +156,7 @@ Python需预安装；首次运行安装依赖并初始化合成演示数据。�
 
 ## 必须保留的说明
 
-当前未配置Git远程仓库，未完成评审访问验证。既有本地Git历史需审查数据库旁文件等内容后再决定授权方式；本包不含`.git`或Git bundle，不能替代比赛要求的可访问仓库和真实细粒度历史。
+公开仓库：https://github.com/KEBO-666/eldercare-platform 。发布状态、匿名访问实测和版本关系见`docs/chuanzhi/GitHub发布记录.md`。公开仓库采用独立过滤副本，排除全部历史中的运行数据与缓存，原本地仓库保留；本包不含`.git`或Git bundle，不能替代真实细粒度历史。旧PDF/视频中的未发布表述是发布前快照，以发布记录为准。
 
 已取得真实优化轮及三个核心主题的索引，尚未证实三条独立完整人类Prompt链。部分委派正文在本地会话中为加密内容；导出未解密、未伪造。请阅读`docs/chuanzhi/AI协同与演进索引.md`。
 
