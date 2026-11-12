@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.core.deps import ensure_elder_visible, require
@@ -29,9 +29,22 @@ class MetricCreateIn(BaseModel):
     device_id: int | None = Field(None, description="来源设备 id（可穿戴场景）")
     work_order_id: int | None = Field(None, description="关联工单 id（上门录入场景）")
 
+    @field_validator("value", mode="before")
+    @classmethod
+    def reject_boolean_value(cls, value: Any) -> Any:
+        if isinstance(value, bool):
+            raise RuleViolation("指标值必须是有限数字", http_status=422)
+        return value
+
+    @field_validator("measured_at", mode="before")
+    @classmethod
+    def normalize_measured_time(cls, value: Any) -> datetime | None:
+        return health_svc.to_naive(value)
+
 
 class MetricBatchIn(BaseModel):
-    items: list[MetricCreateIn] = Field(default_factory=list, description="待录入指标列表")
+    # 保留原始条目，避免单条字段校验错误在逐条处理前拒绝整批。
+    items: list[Any] = Field(default_factory=list, description="待录入指标列表，每条独立校验")
 
 
 class DeviceBindIn(BaseModel):
@@ -39,12 +52,6 @@ class DeviceBindIn(BaseModel):
     device_code: str = Field(..., description="设备编号（全局唯一）")
     device_type: str = Field("band", description="设备类型：band/watch/bp")
     status: str = Field("online", description="设备状态")
-
-
-def _item_to_dict(item: MetricCreateIn) -> dict[str, Any]:
-    if hasattr(item, "model_dump"):
-        return item.model_dump()
-    return item.dict()  # pragma: no cover - pydantic v1 兼容
 
 
 # ---------------------------------------------------------------- 指标录入
@@ -56,10 +63,10 @@ def create_metric(
 ) -> dict:
     """校验指标编码 → 写入 HealthMetric（recorded_by=当前用户）→ 触发预警评估。
 
-    预警评估异常不影响指标入库，返回值中 alerts 为空列表即可。
+    预警评估异常不影响指标入库，并通过 alert_evaluation 明确返回处理状态。
     """
     ensure_elder_visible(db, user, payload.elder_id)
-    metric, alerts = health_svc.create_metric(
+    result = health_svc.create_metric_report(
         db,
         elder_id=payload.elder_id,
         metric_code=payload.metric_code,
@@ -71,10 +78,7 @@ def create_metric(
         work_order_id=payload.work_order_id,
         recorded_by=user.id,
     )
-    return ok(
-        {"metric_id": metric.id, "metric": health_svc.metric_to_dict(metric), "alerts": alerts},
-        message="录入成功",
-    )
+    return ok(result, message="录入成功")
 
 
 @router.post("/health/metrics/batch", summary="批量录入健康指标")
@@ -88,7 +92,7 @@ def create_metrics_batch(
         raise RuleViolation("items 不能为空", http_status=422)
     result = health_svc.create_metrics_batch(
         db,
-        [_item_to_dict(item) for item in payload.items],
+        payload.items,
         operator_id=user.id,
         user=user,
     )

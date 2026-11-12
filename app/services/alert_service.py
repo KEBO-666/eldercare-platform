@@ -19,13 +19,13 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Request
-from sqlalchemy import case, func, select
+from sqlalchemy import case, exists, func, select
 from sqlalchemy.orm import Session
 
 from app.algorithms.alert_rules import is_silent, rule_matches
 from app.core.audit import write_audit
 from app.core.config import settings
-from app.core.deps import apply_scope, visible_elder_ids
+from app.core.deps import apply_scope, ensure_elder_visible, visible_elder_ids
 from app.core.enums import (
     ALERT_LEVEL_NAMES,
     METRIC_NAMES,
@@ -69,6 +69,9 @@ RESOLUTION_ACTIONS: dict[str, str] = {
     AlertStatus.FALSE_ALARM.value: "false_alarm",
     AlertStatus.REFERRED.value: "refer",
 }
+LIFECYCLE_STATUSES = ("unacknowledged", "responded", "handling", "awaiting_followup", "closed")
+LIFECYCLE_NAMES = {"unacknowledged": "待响应", "responded": "已响应", "handling": "处置中",
+                   "awaiting_followup": "转诊待回访", "closed": "已闭环"}
 RULE_FIELDS: tuple[str, ...] = (
     "code",
     "name",
@@ -220,6 +223,13 @@ def _page_bounds(page: int, size: int) -> tuple[int, int]:
 # ---------------------------------------------------------------- 默认规则
 def ensure_default_rules(db: Session) -> int:
     """按 code 幂等写入默认规则，返回本次新建数量。"""
+    created = _ensure_default_rules(db)
+    if created:
+        db.commit()
+    return created
+
+
+def _ensure_default_rules(db: Session) -> int:
     existing = set(db.execute(select(AlertRule.code)).scalars().all())
     created = 0
     for spec in DEFAULT_RULES:
@@ -229,7 +239,7 @@ def ensure_default_rules(db: Session) -> int:
         existing.add(spec["code"])
         created += 1
     if created:
-        db.commit()
+        db.flush()
     return created
 
 
@@ -386,8 +396,10 @@ def serialize_alert(
     now = now or utcnow()
     elder = db.get(Elder, alert.elder_id) if alert.elder_id else None
     rule = db.get(AlertRule, alert.rule_id) if alert.rule_id else None
-    pending = str(alert.status) == AlertStatus.PENDING.value
-    overdue = bool(pending and alert.deadline_at is not None and alert.deadline_at < now)
+    actions = db.scalars(select(AlertAction).where(AlertAction.alert_id == alert.id)
+                         .order_by(AlertAction.action_at.asc(), AlertAction.id.asc())).all()
+    lifecycle = _lifecycle(alert, actions)
+    overdue = bool(not lifecycle["closed"] and alert.deadline_at is not None and alert.deadline_at <= now)
     data: dict[str, Any] = {
         "id": alert.id,
         "elder_id": alert.elder_id,
@@ -418,15 +430,48 @@ def serialize_alert(
         "handling_seconds": alert.handling_seconds,
         "created_at": alert.created_at,
         "overdue": overdue,
+        "source": {"kind": "manual" if (alert.detail or {}).get("source") == "manual_report" else (
+            "work_order" if alert.work_order_id else "metric" if (alert.detail or {}).get("metric_id") else "rule"),
+            "work_order_id": alert.work_order_id, "metric_id": (alert.detail or {}).get("metric_id")},
+        **lifecycle,
     }
     if include_actions:
-        actions = db.execute(
-            select(AlertAction)
-            .where(AlertAction.alert_id == alert.id)
-            .order_by(AlertAction.action_at.asc(), AlertAction.id.asc())
-        ).scalars().all()
-        data["actions"] = [serialize_action(action) for action in actions]
+        data["actions"] = []
+        for action in actions:
+            value = serialize_action(action)
+            operator = db.get(User, action.operator_id) if action.operator_id else None
+            value["operator_name"] = operator.real_name or operator.username if operator is not None else "系统"
+            data["actions"].append(value)
     return data
+
+
+def _lifecycle(alert: Alert, actions: list[AlertAction]) -> dict[str, Any]:
+    ack = next((action for action in actions if action.action_type == "ack"), None)
+    closure = next((action for action in actions if action.action_type == "followup_close"), None)
+    first_response = (ack.action_at or ack.created_at) if ack is not None else None
+    if first_response is None and alert.response_seconds is not None:
+        start = alert.pushed_at or alert.created_at
+        first_response = start + timedelta(seconds=alert.response_seconds) if start is not None else None
+    status = str(alert.status)
+    closed = status in (AlertStatus.RESOLVED.value, AlertStatus.FALSE_ALARM.value) or (
+        status == AlertStatus.REFERRED.value and closure is not None
+    )
+    closed_at = ((closure.action_at or closure.created_at) if closure is not None else alert.resolved_at) if closed else None
+    if closed:
+        stage = "closed"
+    elif status == AlertStatus.REFERRED.value:
+        stage = "awaiting_followup"
+    elif any(action.action_type == "progress" for action in actions):
+        stage = "handling"
+    elif first_response is not None:
+        stage = "responded"
+    else:
+        stage = "unacknowledged"
+    return {"lifecycle_status": stage, "lifecycle_name": LIFECYCLE_NAMES[stage], "closed": closed, "first_responded_at": first_response,
+            "closed_at": closed_at,
+            "closure_seconds": max(0, int((closed_at - alert.created_at).total_seconds()))
+            if closed_at is not None and alert.created_at is not None else None,
+            "referred_at": alert.resolved_at if status == AlertStatus.REFERRED.value else None}
 
 
 def serialize_action(action: AlertAction) -> dict[str, Any]:
@@ -548,17 +593,17 @@ def _write_sms_log(alert: Alert, elder: Elder, now: datetime) -> None:
 
 
 # ---------------------------------------------------------------- 生成预警
-def _in_cooldown(db: Session, elder_id: int, rule: AlertRule, now: datetime) -> bool:
+def _cooldown_alert_id(db: Session, elder_id: int, rule: AlertRule, now: datetime) -> int | None:
     minutes = rule.cooldown_minutes if rule.cooldown_minutes is not None else settings.alert_cooldown_minutes
     if minutes is None or int(minutes) <= 0:
-        return False
+        return None
     since = now - timedelta(minutes=int(minutes))
-    exists = db.execute(
+    return db.execute(
         select(Alert.id)
         .where(Alert.elder_id == elder_id, Alert.rule_id == rule.id, Alert.created_at >= since)
+        .order_by(Alert.created_at.desc(), Alert.id.desc())
         .limit(1)
     ).scalar_one_or_none()
-    return exists is not None
 
 
 def _create_alert(
@@ -633,10 +678,18 @@ def evaluate_metric(
     db: Session, metric: HealthMetric, operator_id: int | None = None
 ) -> list[Alert]:
     """评估一条健康指标，返回本次新生成的预警（同老人同规则冷却期内不重复）。"""
+    with db.begin_nested():
+        report = evaluate_metric_report(db, metric, operator_id)
+    db.commit()
+    return report["alerts"]
+
+
+def evaluate_metric_report(db: Session, metric: HealthMetric, operator_id: int | None = None) -> dict[str, Any]:
+    """Evaluate without committing, so callers can own metric/alert atomicity."""
     if metric is None:
         raise BadRequest("健康指标不能为空")
     now = utcnow()
-    ensure_default_rules(db)
+    _ensure_default_rules(db)
     elder = db.get(Elder, metric.elder_id)
     if elder is None or elder.is_deleted:
         raise NotFound("老人档案不存在")
@@ -651,7 +704,7 @@ def evaluate_metric(
         .order_by(AlertRule.id.asc())
     ).scalars().all()
     if not rules:
-        return []
+        return {"alerts": [], "status": "no_rules", "evaluated_rule_count": 0, "matched_rule_count": 0, "suppressed": []}
 
     max_window = max(
         [int(rule.window_size or 1) for rule in rules if str(rule.rule_type) == AlertRuleType.CONSECUTIVE.value]
@@ -661,6 +714,8 @@ def evaluate_metric(
     value = float(metric.value) if metric.value is not None else None
 
     alerts: list[Alert] = []
+    suppressed = []
+    matched = 0
     for rule in rules:
         if str(rule.rule_type) == AlertRuleType.CONSECUTIVE.value:
             need = max(1, int(rule.window_size or 1))
@@ -669,7 +724,11 @@ def evaluate_metric(
             recent = []
         if not rule_matches(rule, value, recent, None, now):
             continue
-        if _in_cooldown(db, elder.id, rule, now):
+        matched += 1
+        existing_alert_id = _cooldown_alert_id(db, elder.id, rule, now)
+        if existing_alert_id is not None:
+            suppressed.append({"rule_id": rule.id, "rule_code": rule.code, "reason": "cooldown",
+                               "existing_alert_id": existing_alert_id})
             continue
         summary = f"{elder.name} {_window_brief(rule, value)}"
         detail = {
@@ -698,19 +757,22 @@ def evaluate_metric(
                 operator_id=operator_id,
             )
         )
-    if alerts:
-        db.commit()
-    return alerts
+    return {"alerts": alerts, "status": "created" if alerts else "cooldown" if suppressed else "no_match",
+            "evaluated_rule_count": len(rules), "matched_rule_count": matched, "suppressed": suppressed}
 
 
 # ---------------------------------------------------------------- 静默检测 / 超时升级
 def _has_pending_silence(db: Session, elder_id: int) -> bool:
+    finally_closed = exists(select(AlertAction.id).where(
+        AlertAction.alert_id == Alert.id, AlertAction.action_type == "followup_close",
+    ))
     row = db.execute(
         select(Alert.id)
         .join(AlertRule, Alert.rule_id == AlertRule.id)
         .where(
             Alert.elder_id == elder_id,
-            Alert.status == AlertStatus.PENDING.value,
+            Alert.status.in_((AlertStatus.PENDING.value, AlertStatus.REFERRED.value)),
+            ~finally_closed,
             AlertRule.code == SILENCE_CODE,
         )
         .limit(1)
@@ -776,12 +838,16 @@ def _notify_escalation(
 
 
 def _escalate_overdue(db: Session, now: datetime) -> int:
+    followed_up = exists(select(AlertAction.id).where(
+        AlertAction.alert_id == Alert.id, AlertAction.action_type == "followup_close",
+    ))
     overdue_alerts = db.execute(
         select(Alert)
         .where(
-            Alert.status == AlertStatus.PENDING.value,
+            Alert.status.in_((AlertStatus.PENDING.value, AlertStatus.REFERRED.value)),
+            ~followed_up,
             Alert.deadline_at.is_not(None),
-            Alert.deadline_at < now,
+            Alert.deadline_at <= now,
             Alert.escalated_at.is_(None),
         )
         .order_by(Alert.id.asc())
@@ -809,11 +875,18 @@ def _escalate_overdue(db: Session, now: datetime) -> int:
 
 
 def scan_alerts(db: Session, now: datetime | None = None) -> dict[str, int]:
+    with db.begin_nested():
+        _ensure_default_rules(db)
+        result = _scan_alerts(db, now)
+    db.commit()
+    return result
+
+
+def _scan_alerts(db: Session, now: datetime | None = None) -> dict[str, int]:
     """静默检测 + 超时升级；返回统计信息。"""
     now = now or utcnow()
-    ensure_default_rules(db)
     silence_rule = db.execute(
-        select(AlertRule).where(AlertRule.code == SILENCE_CODE).limit(1)
+        select(AlertRule).where(AlertRule.code == SILENCE_CODE, AlertRule.enabled.is_(True)).limit(1)
     ).scalar_one_or_none()
     hours = (
         silence_rule.silence_hours
@@ -823,7 +896,8 @@ def scan_alerts(db: Session, now: datetime | None = None) -> dict[str, int]:
 
     elders = db.execute(select(Elder).where(Elder.is_deleted == 0)).scalars().all()
     silence_created = 0
-    for elder in elders:
+    silence_elders = elders if silence_rule is not None else []
+    for elder in silence_elders:
         last_at = db.execute(
             select(func.max(HealthMetric.measured_at)).where(HealthMetric.elder_id == elder.id)
         ).scalar_one_or_none()
@@ -849,7 +923,6 @@ def scan_alerts(db: Session, now: datetime | None = None) -> dict[str, int]:
         silence_created += 1
 
     escalated = _escalate_overdue(db, now)
-    db.commit()
     return {
         "elders_scanned": len(elders),
         "silence_created": silence_created,
@@ -866,6 +939,7 @@ def list_alerts(
     *,
     level: str | None = None,
     status: str | None = None,
+    lifecycle_status: str | None = None,
     elder_id: int | None = None,
     page: int = 1,
     size: int = 20,
@@ -883,6 +957,23 @@ def list_alerts(
         conditions.append(Alert.status == status_value)
     if elder_id:
         conditions.append(Alert.elder_id == int(elder_id))
+    if lifecycle_status:
+        if lifecycle_status not in LIFECYCLE_STATUSES:
+            raise RuleViolation("lifecycle_status 不合法")
+        acked = (Alert.response_seconds.is_not(None)) | exists(select(AlertAction.id).where(
+            AlertAction.alert_id == Alert.id, AlertAction.action_type == "ack"))
+        progress = exists(select(AlertAction.id).where(
+            AlertAction.alert_id == Alert.id, AlertAction.action_type == "progress"))
+        followup = exists(select(AlertAction.id).where(
+            AlertAction.alert_id == Alert.id, AlertAction.action_type == "followup_close"))
+        lifecycle_conditions = {
+            "unacknowledged": (Alert.status == "pending") & ~acked & ~progress,
+            "responded": (Alert.status == "pending") & acked & ~progress,
+            "handling": (Alert.status == "pending") & progress,
+            "awaiting_followup": (Alert.status == "referred") & ~followup,
+            "closed": Alert.status.in_(("resolved", "false_alarm")) | ((Alert.status == "referred") & followup),
+        }
+        conditions.append(lifecycle_conditions[lifecycle_status])
 
     offset, limit = _page_bounds(page, size)
     count_stmt = _scoped_stmt(db, user, select(func.count(Alert.id)))
@@ -907,13 +998,24 @@ def list_alerts(
 def ack_alert(
     db: Session, user: User, alert_id: int, request: Request | None = None
 ) -> dict[str, Any]:
+    with db.begin_nested():
+        data = _ack_alert(db, user, alert_id, request)
+    db.commit()
+    return data
+
+
+def _ack_alert(db: Session, user: User, alert_id: int, request: Request | None = None) -> dict[str, Any]:
     stmt = _scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id))
     alert = db.execute(stmt).scalar_one_or_none()
     if alert is None:
         raise NotFound("预警不存在或无权访问")
     if str(alert.status) != AlertStatus.PENDING.value:
-        raise Conflict("预警已闭环，无法确认响应")
+        raise Conflict("预警已转诊或闭环，无法确认响应")
     now = utcnow()
+    existing = db.scalars(select(AlertAction).where(AlertAction.alert_id == alert.id,
+                                                   AlertAction.action_type == "ack").order_by(AlertAction.id)).first()
+    if existing is not None or alert.response_seconds is not None:
+        return {**serialize_alert(db, alert, include_actions=True, now=now), "already_acknowledged": True}
     start = alert.pushed_at or alert.created_at or now
     if alert.response_seconds is None:
         alert.response_seconds = max(0, int((now - start).total_seconds()))
@@ -938,9 +1040,8 @@ def ack_alert(
         detail="确认响应预警",
         request=request,
     )
-    db.commit()
-    db.refresh(alert)
-    return serialize_alert(db, alert, include_actions=True, now=now)
+    db.flush()
+    return {**serialize_alert(db, alert, include_actions=True, now=now), "already_acknowledged": False}
 
 
 def handle_alert(
@@ -953,10 +1054,24 @@ def handle_alert(
     note: str | None = None,
     request: Request | None = None,
 ) -> dict[str, Any]:
+    with db.begin_nested():
+        data = _handle_alert(db, user, alert_id, resolution_type=resolution_type, measure=measure, note=note, request=request)
+    db.commit()
+    return data
+
+
+def _handle_alert(
+    db: Session, user: User, alert_id: int, *, resolution_type: str, measure: str | None = None,
+    note: str | None = None, request: Request | None = None,
+) -> dict[str, Any]:
     resolution = str(resolution_type or "").strip()
     action = RESOLUTION_ACTIONS.get(resolution)
     if action is None:
         raise RuleViolation("resolution_type 只能是 resolved / false_alarm / referred")
+    measure = str(measure or "").strip()
+    note = str(note or "").strip()
+    if not (measure or note) or len(measure) > 2000 or len(note) > 255:
+        raise RuleViolation("处置措施或备注至少填写一项；措施不超过2000字，备注不超过255字")
 
     stmt = _scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id))
     alert = db.execute(stmt).scalar_one_or_none()
@@ -966,10 +1081,11 @@ def handle_alert(
     now = utcnow()
     before = {"status": str(alert.status), "resolution_type": alert.resolution_type}
     target = ALERT.next(str(alert.status), action)
+    _ack_alert(db, user, alert_id, request)
     alert.status = target
     alert.resolution_type = resolution
     alert.measure = (measure or "").strip() or None
-    alert.resolution_note = note
+    alert.resolution_note = note or None
     alert.resolved_at = now
     alert.resolved_by = user.id
     if alert.created_at is not None:
@@ -998,12 +1114,82 @@ def handle_alert(
             "measure": alert.measure,
             "handling_seconds": alert.handling_seconds,
         },
-        detail="预警闭环处置",
+        detail="登记预警处置结果",
         request=request,
     )
-    db.commit()
-    db.refresh(alert)
+    db.flush()
     return serialize_alert(db, alert, include_actions=True, now=now)
+
+
+def record_progress(
+    db: Session, user: User, alert_id: int, *, note: str, request: Request | None = None,
+) -> dict[str, Any]:
+    note = _required_note(note)
+    with db.begin_nested():
+        alert = _get_scoped_alert(db, user, alert_id)
+        if str(alert.status) != "pending":
+            raise Conflict("仅待处置预警可补充处置进展")
+        _ack_alert(db, user, alert_id, request)
+        _append_tracking(db, user, alert, "progress", note, request)
+        data = serialize_alert(db, alert, include_actions=True)
+    db.commit()
+    return data
+
+
+def follow_up_alert(
+    db: Session, user: User, alert_id: int, *, note: str, close: bool = False, request: Request | None = None,
+) -> dict[str, Any]:
+    note = _required_note(note)
+    with db.begin_nested():
+        alert = _get_scoped_alert(db, user, alert_id)
+        if str(alert.status) != "referred" or serialize_alert(db, alert)["closed"]:
+            raise Conflict("仅尚未最终闭环的已转诊预警可记录回访")
+        _append_tracking(db, user, alert, "followup_close" if close else "followup", note, request)
+        data = serialize_alert(db, alert, include_actions=True)
+    db.commit()
+    return data
+
+
+def _required_note(note: str) -> str:
+    value = str(note or "").strip()
+    if not value or len(value) > 255:
+        raise RuleViolation("记录必填且不超过255字")
+    return value
+
+
+def _get_scoped_alert(db: Session, user: User, alert_id: int) -> Alert:
+    alert = db.scalar(_scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id)))
+    if alert is None:
+        raise NotFound("预警不存在或无权访问")
+    return alert
+
+
+def _append_tracking(db: Session, user: User, alert: Alert, action: str, note: str, request: Request | None) -> None:
+    db.add(AlertAction(alert_id=alert.id, action_type=action, channel="inapp", operator_id=user.id,
+                       note=note, action_at=utcnow()))
+    write_audit(db, user=user, action=action, entity_type="alert", entity_id=alert.id,
+                after={"status": alert.status, "note": note}, detail="记录预警处置追踪", request=request)
+    db.flush()
+
+
+def report_alert(
+    db: Session, user: User, *, elder_id: int, summary: str, note: str, level: str = "yellow",
+    request: Request | None = None,
+) -> dict[str, Any]:
+    summary, note = _required_note(summary), _required_note(note)
+    if level not in ALERT_LEVELS:
+        raise RuleViolation("level 只能是 red / yellow / blue")
+    with db.begin_nested():
+        elder = db.get(Elder, elder_id)
+        if elder is None or elder.is_deleted:
+            raise NotFound("老人档案不存在")
+        ensure_elder_visible(db, user, elder_id)
+        alert = _create_alert(db, elder=elder, rule=None, level=level, summary=summary, now=utcnow(),
+                              detail={"source": "manual_report", "note": note}, operator_id=user.id)
+        _append_tracking(db, user, alert, "report", note, request)
+        data = serialize_alert(db, alert, include_actions=True)
+    db.commit()
+    return data
 
 
 # ---------------------------------------------------------------- 统计
@@ -1038,6 +1224,18 @@ def alert_stats(db: Session, user: User) -> dict[str, Any]:
     for row in rows:
         by_level[str(row.level)] = by_level.get(str(row.level), 0) + 1
         by_status[str(row.status)] = by_status.get(str(row.status), 0) + 1
+    lifecycle_rows = db.scalars(_scoped_stmt(db, user, select(Alert))).all()
+    scoped_alert_ids = _scoped_stmt(db, user, select(Alert.id))
+    lifecycle_actions = db.scalars(select(AlertAction).where(
+        AlertAction.alert_id.in_(scoped_alert_ids),
+        AlertAction.action_type.in_(("ack", "progress", "followup_close")),
+    ).order_by(AlertAction.action_at.asc(), AlertAction.id.asc())).all()
+    actions_by_alert: dict[int, list[AlertAction]] = {}
+    for action in lifecycle_actions:
+        actions_by_alert.setdefault(action.alert_id, []).append(action)
+    lifecycle_counts = {status: 0 for status in LIFECYCLE_STATUSES}
+    for alert in lifecycle_rows:
+        lifecycle_counts[_lifecycle(alert, actions_by_alert.get(alert.id, []))["lifecycle_status"]] += 1
     return {
         "total": total,
         "red_total": red_total,
@@ -1049,4 +1247,9 @@ def alert_stats(db: Session, user: User) -> dict[str, Any]:
         "false_alarm_rate": round(false_alarm / closed, 4) if closed else 0.0,
         "by_level": by_level,
         "by_status": by_status,
+        "lifecycle_open": total - lifecycle_counts["closed"], "lifecycle_closed": lifecycle_counts["closed"],
+        "referral_followup_pending": lifecycle_counts["awaiting_followup"],
+        "pending_unacknowledged": lifecycle_counts["unacknowledged"],
+        "pending_responded": lifecycle_counts["responded"] + lifecycle_counts["handling"],
+        "pending_handling": lifecycle_counts["handling"],
     }

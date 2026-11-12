@@ -456,6 +456,7 @@ table.data-table tr.row-muted td { color: #7a8794; }
 .mb-0 { margin-bottom: 0; } .mb-1 { margin-bottom: 10px; } .mb-2 { margin-bottom: 20px; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .hidden { display: none !important; }
+[hidden] { display: none !important; }
 
 /* ---------------- 响应式 ---------------- */
 @media (max-width: 1200px) {

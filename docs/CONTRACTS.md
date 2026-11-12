@@ -224,8 +224,8 @@ appt.status = new_status
 ### health（D）
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
-| POST | `/health/metrics` | 单条录入 | health:write |
-| POST | `/health/metrics/batch` | 批量/可穿戴上报 | health:write |
+| POST | `/health/metrics` | 单条录入，返回metric/alerts/alert_evaluation，区分新预警、未命中、冷却、无规则、评估失败 | health:write |
+| POST | `/health/metrics/batch` | 逐条校验和保存，results含原index与完整结果，failed含原index/reason/code | health:write |
 | GET | `/health/elders/{elder_id}/metrics` | 指标列表（code/时间范围） | health:read |
 | GET | `/health/elders/{elder_id}/series` | 趋势序列（按日聚合） | health:read |
 | GET/POST | `/health/devices` | 设备列表/绑定 | health:read / health:write |
@@ -233,13 +233,18 @@ appt.status = new_status
 ### alerts（D）
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
-| GET | `/alerts` | 列表（level/status/elder_id） | alert:read |
+| GET | `/alerts` | 列表（level/status/lifecycle_status/elder_id） | alert:read |
 | GET | `/alerts/{id}` | 详情 + 处置流水 | alert:read |
-| POST | `/alerts/{id}/handle` | 闭环 `{resolution_type, measure, note}` | alert:handle |
-| POST | `/alerts/{id}/ack` | 确认响应（记录响应时长） | alert:handle |
+| POST | `/alerts/report` | 人工异常 `{elder_id,summary,note,level}`，摘要与记录必填不超过255字 | health:write |
+| POST | `/alerts/{id}/handle` | 处置 `{resolution_type, measure, note}`，措施或备注至少一项；转诊进入待随访 | alert:handle |
+| POST | `/alerts/{id}/ack` | 幂等确认响应，保留首次响应时长；重复返回already_acknowledged | alert:handle |
+| POST | `/alerts/{id}/progress` | 待处置预警记录进展 `{note}`，必填不超过255字 | alert:handle |
+| POST | `/alerts/{id}/follow-up` | 转诊随访 `{note,close:false}`；close=true记录最终闭环 | alert:handle |
 | GET/POST/PUT | `/alerts/rules`、`/alerts/rules/{id}` | 规则查询/新建/编辑 | alert:read / alert:rule |
 | POST | `/alerts/scan` | 手动触发超时升级 + 静默检测 | alert:rule |
 | GET | `/alerts/stats` | 响应中位数、误报率等 | alert:read |
+
+健康预警2026-11-12补充：实际生命周期为`unacknowledged/responded/handling/awaiting_followup/closed`，详情与列表均返回`lifecycle_status/lifecycle_name/closed/first_responded_at/closed_at/closure_seconds/source`。保留旧`status=referred`及`resolved_at`作为转诊登记兼容字段，最终闭环以`closed`为准；统计使用`lifecycle_open/lifecycle_closed/referral_followup_pending`，旧`closed`是历史“已登记处置”口径，不能用于最终闭环计数。记录进展或直接处置会自动记录首次响应；已闭环不再接收新处置，重复响应不会新增流水。处置、响应、进展、随访和扫描失败时数据库副作用整体回滚；指标先独立保存，评估失败返回明确error，不得视作正常或重复录入。带时区输入转为UTC+8的无时区时间，缺省时间保留项目本地时钟（部署北京时间）。静默扫描执行启用的内置`SILENCE`规则；停用后不新增静默警，已有未闭环事项仍可超时升级；转诊待随访也参与未闭环追踪。
 
 ### quality（C）
 | 方法 | 路径 | 说明 | 权限 |

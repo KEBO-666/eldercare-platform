@@ -5,24 +5,24 @@
 {% block content %}
 <div class="grid grid-4">
     <div class="stat-card danger">
-        <div class="stat-label">🚨 待处置合计</div>
-        <div class="stat-value">{{ stats.pending }}</div>
-        <div class="stat-hint">红色 {{ stats.red }} · 黄色 {{ stats.yellow }} · 蓝色 {{ stats.blue }}</div>
+        <div class="stat-label">🚨 未闭环合计</div>
+        <div class="stat-value">{{ stats.lifecycle_open }}</div>
+        <div class="stat-hint">待处置 {{ stats.pending }} · 转诊待随访 {{ stats.referral_followup_pending }}</div>
     </div>
     <div class="stat-card danger">
         <div class="stat-label">🔴 红色预警</div>
         <div class="stat-value">{{ stats.red }}</div>
-        <div class="stat-hint">5 分钟内推送 · 30 分钟未处置升级街道</div>
+        <div class="stat-hint">按各条规则的时限推送 / 超时扫描升级，站内通知与模拟短信留痕</div>
     </div>
     <div class="stat-card warn">
-        <div class="stat-label">🟡 黄色预警</div>
-        <div class="stat-value">{{ stats.yellow }}</div>
-        <div class="stat-hint">连续异常 / 阈值越界</div>
+        <div class="stat-label">📞 响应追踪</div>
+        <div class="stat-value">{{ stats.pending_unacknowledged }}</div>
+        <div class="stat-hint">待响应 · 已响应（含处置中）{{ stats.pending_responded }} · 其中处置中 {{ stats.pending_handling }}</div>
     </div>
     <div class="stat-card ok">
         <div class="stat-label">✅ 已闭环</div>
         <div class="stat-value">{{ stats.resolved }}</div>
-        <div class="stat-hint">已处置 / 误报 / 转诊</div>
+        <div class="stat-hint">已处置 / 误报 / 已完成随访的转诊</div>
     </div>
 </div>
 
@@ -96,24 +96,17 @@
                 <td class="small">{{ alert.created_at|dt }}</td>
                 <td class="small">
                     {% if alert.deadline_at %}
-                        <span class="{{ 'badge badge-red' if (alert.status == 'pending' and alert.deadline_at < now) else 'muted' }}">{{ alert.deadline_at|short }}</span>
+                        <span class="{{ 'badge badge-red' if alert.overdue else 'muted' }}">{{ alert.deadline_at|short }}</span>
                     {% else %}-{% endif %}
                 </td>
                 <td>
-                    <span class="badge {{ 'badge-yellow' if alert.status == 'pending' else ('badge-green' if alert.status == 'resolved' else 'badge-gray') }}">
-                        {{ ALERT_STATUS_NAMES.get(alert.status, alert.status) }}
+                    <span class="badge {{ 'badge-green' if alert.closed else 'badge-yellow' }}">
+                        {{ alert.lifecycle_name }}
                     </span>
                     {% if alert.escalated_at %}<span class="badge badge-red">已升级</span>{% endif %}
                 </td>
                 <td class="actions">
-                    {% if can_handle and alert.status == 'pending' %}
-                        <button class="btn btn-secondary btn-sm" data-ack="{{ alert.id }}">确认响应</button>
-                        <button class="btn btn-primary btn-sm" data-handle="{{ alert.id }}"
-                                data-elder="{{ (elders.get(alert.elder_id).name if elders.get(alert.elder_id) else '')|mask_name }}"
-                                data-summary="{{ alert.summary or '' }}">处置</button>
-                    {% else %}
-                        <span class="small muted">{{ alert.resolution_note or '-' }}</span>
-                    {% endif %}
+                    <a class="btn {{ 'btn-primary' if can_handle and not alert.closed else 'btn-secondary' }} btn-sm" href="/alerts/{{ alert.id }}">{{ '响应 / 处置' if can_handle and not alert.closed else '查看追踪' }}</a>
                 </td>
             </tr>
             {% endfor %}
@@ -122,7 +115,7 @@
     </div>
     {{ pager(page, pages, total, '/alerts', 'level=' ~ level ~ '&status=' ~ status) }}
     {% else %}
-        {{ empty('暂无预警记录，一切正常 🎉', '✅') }}
+        {{ empty('当前筛选下暂无预警记录，可调整筛选或查看健康上报记录。', '📋') }}
     {% endif %}
 </section>
 
@@ -176,52 +169,7 @@
 {% block scripts %}
 <script>
     (function () {
-        function handleAlert(alertId, elderName, summary) {
-            App.modal({
-                title: "预警处置",
-                html: '<div class="notice">老人：<strong>' + App.esc(elderName || "-") + "</strong> · " + App.esc(summary || "") + "</div>" +
-                    '<div class="form-field mb-1"><label>处置结论</label><select id="h-type">' +
-                    '<option value="resolved">已处置（现场/电话核处）</option>' +
-                    '<option value="referred">已转诊（联系医疗机构）</option>' +
-                    '<option value="false_alarm">误报（设备/测量误差）</option>' +
-                    "</select></div>" +
-                    '<div class="form-field mb-1"><label>处置措施（必填）</label>' +
-                    '<textarea id="h-measure" placeholder="例如：电话核实老人服药后血压下降，已嘱咐家属观察"></textarea></div>' +
-                    '<div class="form-field"><label>补充说明</label><input id="h-note" type="text" placeholder="选填"></div>',
-                buttons: [
-                    { text: "取消", cls: "btn-secondary" },
-                    {
-                        text: "提交闭环", cls: "btn-success", onClick: function (modal, close) {
-                            var measure = (modal.querySelector("#h-measure").value || "").trim();
-                            if (!measure) { App.toast("请填写处置措施", "warn"); return true; }
-                            var submit = modal.querySelector(".modal-foot .btn-success");
-                            App.action(submit, "/alerts/" + alertId + "/handle", {
-                                resolution_type: modal.querySelector("#h-type").value,
-                                measure: measure,
-                                note: modal.querySelector("#h-note").value || undefined
-                            }, "预警已闭环", { reload: false }).then(function (result) {
-                                if (result) { close(); window.setTimeout(function () { window.location.reload(); }, 400); }
-                            });
-                            return true;
-                        }
-                    }
-                ]
-            });
-        }
-
         document.addEventListener("click", function (ev) {
-            var handleBtn = ev.target.closest("[data-handle]");
-            if (handleBtn) {
-                handleAlert(handleBtn.getAttribute("data-handle"),
-                    handleBtn.getAttribute("data-elder"),
-                    handleBtn.getAttribute("data-summary"));
-                return;
-            }
-            var ackBtn = ev.target.closest("[data-ack]");
-            if (ackBtn) {
-                App.action(ackBtn, "/alerts/" + ackBtn.getAttribute("data-ack") + "/ack", {}, "已确认响应，响应时长已记录");
-                return;
-            }
             var ruleBtn = ev.target.closest("[data-rule-new]");
             if (ruleBtn) {
                 App.modal({

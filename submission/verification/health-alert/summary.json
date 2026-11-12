@@ -1,0 +1,51 @@
+{
+  "verified_at_utc": "2026-11-12T12:25:29.664518+00:00",
+  "source_parent": "779e1671667ac573d1b768bef8ab5d3a9d436b75",
+  "request": "健康预警：异常上报、响应、处置、闭环追踪",
+  "validation": {
+    "pytest_tests": 577,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 356.627,
+    "coverage_percent": 89.87,
+    "lines_covered": 7150,
+    "lines_valid": 7956,
+    "frontend_tests": 115,
+    "edge_checks": 36,
+    "ruff": "passed"
+  },
+  "browser_report": "reports/health-alert-browser/20261112-202440/result.json",
+  "method": "isolated Edge and SQLite; all successful writes use actual backend endpoints",
+  "limits": [
+    "Synthetic isolated database for verification",
+    "SMS is simulated log, not external gateway delivery",
+    "Legacy referred status/resolved_at remain registration fields; final closure uses closed/closed_at",
+    "Only the enabled built-in SILENCE code is executed by silence scan",
+    "No guarantee of cross-process exactly-once writes",
+    "PDF/video remain earlier snapshots",
+    "No contest portal submission"
+  ],
+  "source_sha256": {
+    "README.md": "f9c4ad74c625a391a1ba25cb26567f985c8f1057c540113a5079729c0b9caa05",
+    "app/api/v1/alerts.py": "afd7406b932d584376c85486d94ba911a301855f44dabed8ca58e8dd6fcf8fa6",
+    "app/api/v1/health.py": "2972c4900332afb63a854a396ea063c2015e819d5834e1b2a8df18e2626974ef",
+    "app/services/alert_service.py": "0b192737182ce7c3cc528ee952efc0bcc7650e01c7519f86a38cf550efa54978",
+    "app/services/health_service.py": "2de08cc8b52935a41ab2d4b452291ce6d7c2ff9dd0bd5c9d9dc98b5ea1bf6d8b",
+    "app/static/css/app.css": "b39e53729fd25d4c2fc4fd4a6e504c1b78c71ef06c73f0a1b7f99cb4725e73fc",
+    "app/static/js/health-alert.js": "39fe5194687b6fc8d12b3694b1357a770ab631cb7f8d7071d0fba5674425d578",
+    "app/templates/alerts/index.html": "170733d8f73e8059bea2bf7d43e39328fa0347e568081dc3d69b5541c0002041",
+    "app/templates/alerts/detail.html": "22e5befb1060eee075b4cd11c8de59636ee30029df31d9008a1ba4973c1864a9",
+    "app/templates/health/detail.html": "86039d0e8c2f930dd9ec15fa98470fe2f81213f9a4c19ce6033cf39682aa711d",
+    "app/web/routes.py": "7d209cb35c93004259e8f1f753aac44d1d15bb979548fa41ff589da0ed14b0c0",
+    "docs/CONTRACTS.md": "c571d4f4f7ce87552e934b3c01293902be8985a32973ef200c9ee7d4a8b18d29",
+    "docs/chuanzhi/健康预警闭环.md": "38a7740b0751786536a42ebd823d07697439fde730f4f1b8e1c23ae2d05dcf86",
+    "docs/chuanzhi/AI协同与演进索引.md": "ee6af14ba74e993c2770e27fc6d7699b3fcc4091b886c91cef01e717bc5b6981",
+    "scripts/build_chuanzhi_submission.py": "a569ff623bf50a36aeb8b7a2f03a0bc99a2fc1e7bcff958736fa306010575871",
+    "tests/unit/test_health_alert.py": "d9242a38d302a5bed473cc1833985166dca0a5697c1162c13a13ad001bec83ea",
+    "tests/frontend/health_alert.test.cjs": "ebbb8325e809157464518c2b8e94cca6b3ae728289c67a67453a35ca8407f70b",
+    "tests/integration/test_alert_lifecycle_contract.py": "65ebdb2e05698033c32024d3d1b3d529fdeff37c288d039fd8e113414f0b9db3",
+    "tests/integration/test_health_reporting_contract.py": "46b6bd558566bd2b95f9e0b35beff89878bd837565d31828ae587cde9f3c3598",
+    "tests/integration/test_health_alert_pages.py": "ceb337c293f4d00cd4688e999a0032e5cb640da2fe44cfb99865912a31e4ad84"
+  }
+}

@@ -9,7 +9,10 @@
 - POST /alerts/scan                手动触发静默检测 + 超时升级
 - GET  /alerts/{alert_id}          详情 + 处置流水
 - POST /alerts/{alert_id}/ack      确认响应（记录 response_seconds）
-- POST /alerts/{alert_id}/handle   闭环处置（resolved / false_alarm / referred）
+- POST /alerts/report             人工异常上报
+- POST /alerts/{alert_id}/handle   处置结果（resolved / false_alarm / referred）
+- POST /alerts/{alert_id}/progress 处置进展
+- POST /alerts/{alert_id}/follow-up 转诊回访与最终闭环
 """
 from __future__ import annotations
 
@@ -28,8 +31,22 @@ router = APIRouter(tags=["分级预警与处置"])
 
 class HandleIn(BaseModel):
     resolution_type: str = Field(description="resolved / false_alarm / referred")
-    measure: str | None = Field(default=None, description="处置措施")
-    note: str | None = Field(default=None, description="处置备注")
+    measure: str | None = Field(default=None, max_length=2000, description="处置措施")
+    note: str | None = Field(default=None, max_length=255, description="处置备注")
+
+
+class ProgressIn(BaseModel):
+    note: str = Field(min_length=1, max_length=255)
+
+
+class FollowUpIn(ProgressIn):
+    close: bool = False
+
+
+class ReportIn(ProgressIn):
+    elder_id: int = Field(gt=0)
+    summary: str = Field(min_length=1, max_length=255)
+    level: str = "yellow"
 
 
 class RuleIn(BaseModel):
@@ -73,6 +90,7 @@ class RuleUpdateIn(BaseModel):
 def list_alerts(
     level: str | None = Query(default=None, description="red / yellow / blue"),
     status: str | None = Query(default=None, description="pending / resolved / false_alarm / referred"),
+    lifecycle_status: str | None = Query(default=None),
     elder_id: int | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=200),
@@ -80,7 +98,7 @@ def list_alerts(
     user: User = Depends(require("alert:read")),
 ):
     items, total = alert_service.list_alerts(
-        db, user, level=level, status=status, elder_id=elder_id, page=page, size=size
+        db, user, level=level, status=status, lifecycle_status=lifecycle_status, elder_id=elder_id, page=page, size=size
     )
     return paged(items, total, page, size)
 
@@ -135,6 +153,14 @@ def scan_alerts(
     return ok(alert_service.scan_alerts(db))
 
 
+@router.post("/alerts/report", summary="人工异常上报并生成待处置预警")
+def report_alert(
+    payload: ReportIn, request: Request, db: Session = Depends(get_db),
+    user: User = Depends(require("health:write")),
+):
+    return ok(alert_service.report_alert(db, user, **payload.model_dump(), request=request), "异常已上报，等待响应")
+
+
 @router.get("/alerts/{alert_id}", summary="预警详情（含处置流水）")
 def get_alert(
     alert_id: int,
@@ -154,7 +180,7 @@ def ack_alert(
     return ok(alert_service.ack_alert(db, user, alert_id, request=request))
 
 
-@router.post("/alerts/{alert_id}/handle", summary="预警闭环处置")
+@router.post("/alerts/{alert_id}/handle", summary="登记预警处置结果，转诊需回访闭环")
 def handle_alert(
     alert_id: int,
     payload: HandleIn,
@@ -173,3 +199,19 @@ def handle_alert(
             request=request,
         )
     )
+
+
+@router.post("/alerts/{alert_id}/progress", summary="记录处置进展，不改变原预警状态")
+def progress_alert(
+    alert_id: int, payload: ProgressIn, request: Request, db: Session = Depends(get_db),
+    user: User = Depends(require("alert:handle")),
+):
+    return ok(alert_service.record_progress(db, user, alert_id, note=payload.note, request=request))
+
+
+@router.post("/alerts/{alert_id}/follow-up", summary="转诊回访与最终闭环")
+def follow_up_alert(
+    alert_id: int, payload: FollowUpIn, request: Request, db: Session = Depends(get_db),
+    user: User = Depends(require("alert:handle")),
+):
+    return ok(alert_service.follow_up_alert(db, user, alert_id, **payload.model_dump(), request=request))

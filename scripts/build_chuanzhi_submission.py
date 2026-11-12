@@ -161,6 +161,15 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
         for path in consistency_runs[-1].iterdir():
             if path.name in {"result.json", "weights-A-report.json", "weights-B-report.json", "weights-A-dom.json", "weights-B-dom.json"} or path.suffix.lower() == ".png":
                 add(path)
+    for name in ("health-alert-summary.json", "health-alert-frontend.tap"):
+        add(reports / name)
+    for name in ("junit.xml", "coverage.xml"):
+        add(reports / "health-alert-full" / name)
+    health_runs = sorted(path.parent for path in (reports / "health-alert-browser").glob("*/result.json"))
+    if health_runs:
+        for path in health_runs[-1].iterdir():
+            if path.name in {"result.json", "api-snapshots.json", "dom-snapshots.json", "actual-closed-records.json"} or path.suffix.lower() == ".png":
+                add(path)
     ai_runs = sorted(path.parent for path in (reports / "chuanzhi-ai-recording").glob("*/result.json"))
     if ai_runs:
         ai_run = ai_runs[-1]

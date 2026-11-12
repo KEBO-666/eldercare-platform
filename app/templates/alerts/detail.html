@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+{% block title %}预警闭环追踪{% endblock %}
+{% block content %}
+<section class="card">
+    <div class="card-header"><span>预警 #{{ alert.id }} · {{ alert.elder_name|mask_name }}</span><span class="btn-row"><a href="/monitoring/{{ alert.elder_id }}" class="btn btn-ghost btn-sm">健康监测</a><a href="/alerts" class="btn btn-secondary btn-sm">返回预警看板</a></span></div>
+    <div class="card-body">
+        <div id="alert-state" aria-live="polite"><strong>{{ alert.summary }}</strong><p>{{ alert.lifecycle_name }} · {{ alert.level_name }}</p></div>
+        <button id="alert-refresh" type="button" class="btn btn-secondary">刷新追踪记录</button>
+        <div id="alert-feedback" class="notice" role="status" aria-live="polite" hidden></div>
+    </div>
+</section>
+{% if can_handle %}
+<section class="card">
+    <div class="card-header"><span>响应与处置</span><span class="sub">提交成功后更新下方流水</span></div>
+    <div class="card-body">
+        <form id="alert-work-form" onsubmit="return false;">
+            <p id="alert-operation-hint" class="notice">请先核对当前状态，再记录本次实际操作。</p>
+            <div class="form-field mb-1" id="alert-resolution-field"><label for="a-resolution">处置结论</label><select id="a-resolution"><option value="resolved">已处置 · 完成本次闭环</option><option value="referred">已转诊 · 等待随访闭环</option><option value="false_alarm">误报 · 记录核实依据并闭环</option></select></div>
+            <div class="form-field mb-1" id="alert-measure-field"><label for="a-measure">处置措施（处置时必填，最多2000字）</label><textarea id="a-measure" maxlength="2000" placeholder="记录已采取的措施、核实依据，转诊时记录接收方与交接情况"></textarea></div>
+            <div class="form-field mb-1"><label for="a-note">进展 / 随访记录（记录进展和随访时必填，最多255字）</label><textarea id="a-note" maxlength="255" placeholder="本次联系、观察、接收反馈或最终结果"></textarea></div>
+            <div class="btn-row">
+                <button type="button" class="btn btn-secondary" data-alert-operation="ack">确认响应</button>
+                <button type="button" class="btn btn-secondary" data-alert-operation="progress">记录处置进展</button>
+                <button type="button" class="btn btn-primary" data-alert-operation="handle">提交处置结论</button>
+                <button type="button" class="btn btn-secondary" data-alert-operation="followup">保存随访进展</button>
+                <button type="button" class="btn btn-success" data-alert-operation="close">确认随访完成并闭环</button>
+            </div>
+        </form>
+        <p class="small muted">转诊登记保留为“待随访”，有实际结果后才能完成闭环。紧急情况同时联系急救和家属。</p>
+    </div>
+</section>
+{% endif %}
+<section class="card">
+    <div class="card-header"><span>全过程追踪流水</span><span class="sub">触发 → 推送 → 响应 → 处置 → 随访 → 闭环</span></div>
+    <div id="alert-history" class="card-body" style="overflow-wrap:anywhere">
+        {% for action in alert.actions %}<p>{{ action.action_at|dt }} · {{ action.action_type }} · {{ action.note or '-' }}</p>{% else %}<p class="muted">暂无流水记录。</p>{% endfor %}
+    </div>
+</section>
+<script type="application/json" id="alert-snapshot">{{ alert|tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/health-alert.js"></script>
+<script>App.healthAlert.mountAlert();</script>
+{% endblock %}

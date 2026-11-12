@@ -18,6 +18,7 @@ from typing import Any
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Form, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import case, false, func, or_, select
@@ -43,6 +44,7 @@ from app.core.enums import (
     OrderStatus,
     RoleCode,
 )
+from app.core.exceptions import BizError
 from app.core.security import (
     create_access_token,
     decode_token,
@@ -1542,6 +1544,9 @@ def health_detail(
     if user is None:
         return _login_redirect(request)
 
+    if not _has_perm(user, "health:read"):
+        return _error_page(request, user, "无权查看", "您没有健康监测权限。", status_code=403)
+
     elder = None
     try:
         elder = db.get(Elder, elder_id)
@@ -1598,6 +1603,8 @@ def health_detail(
     )
     devices = _rows(db, select(Device).where(Device.elder_id == elder_id))
 
+    from app.services import alert_service, health_service
+
     ctx = _base_ctx(
         request,
         user,
@@ -1606,13 +1613,15 @@ def health_detail(
         breadcrumb=f"首页 / 健康监测 / {elder.code}",
         elder=elder,
         metrics=recent_metrics,
-        alerts=alerts,
+        alerts=[alert_service.serialize_alert(db, row) for row in alerts],
         devices=devices,
         vitals_json=json.dumps(vitals_spec, ensure_ascii=False),
         spo2_json=json.dumps(spo2_spec, ensure_ascii=False),
         steps_json=json.dumps(steps_spec, ensure_ascii=False),
         days=days,
         can_write=_has_perm(user, "health:write"),
+        metric_ranges=health_service.METRIC_RANGES,
+        health_rules=_rows(db, select(AlertRule).where(AlertRule.enabled.is_(True)).order_by(AlertRule.id)),
         metric_options=[(m.value, _METRICS.get(m.value, m.value)) for m in MetricCode],
     )
     return _render(request, "health/detail.html", ctx)
@@ -1633,6 +1642,8 @@ def alert_board(
 ) -> Response:
     if user is None:
         return _login_redirect(request)
+    if not _has_perm(user, "alert:read"):
+        return _error_page(request, user, "无权查看", "您没有预警查看权限。", status_code=403)
 
     visible = _visible_elder_ids(db, user)
     level_rank = case(
@@ -1674,13 +1685,18 @@ def alert_board(
     }
     all_rules = _rows(db, select(AlertRule).order_by(AlertRule.id.asc()))
 
+    from app.services import alert_service
+
+    lifecycle_stats = alert_service.alert_stats(db, user)
+    stats.update(lifecycle_stats)
+    stats["resolved"] = lifecycle_stats["lifecycle_closed"]
     ctx = _base_ctx(
         request,
         user,
         "alerts",
         "预警看板",
         breadcrumb="首页 / 预警看板",
-        alerts=rows,
+        alerts=[alert_service.serialize_alert(db, row) for row in rows],
         elders=elders,
         rules=rules,
         all_rules=all_rules,
@@ -1695,6 +1711,29 @@ def alert_board(
         can_rule=_has_perm(user, "alert:rule"),
     )
     return _render(request, "alerts/index.html", ctx)
+
+
+@router.get("/alerts/{alert_id}", response_class=HTMLResponse)
+def alert_detail(
+    request: Request,
+    alert_id: int,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(page_user),
+) -> Response:
+    if user is None:
+        return _login_redirect(request)
+    if not _has_perm(user, "alert:read"):
+        return _error_page(request, user, "无权查看", "您没有预警查看权限。", status_code=403)
+    from app.services import alert_service
+
+    try:
+        alert = alert_service.get_alert(db, user, alert_id, include_actions=True)
+    except BizError as exc:
+        return _error_page(request, user, "预警不可访问", exc.message, status_code=exc.http_status)
+    return _render(request, "alerts/detail.html", _base_ctx(
+        request, user, "alerts", f"预警追踪 · #{alert_id}", breadcrumb="首页 / 预警看板 / 闭环追踪",
+        alert=jsonable_encoder(alert), can_handle=_has_perm(user, "alert:handle"),
+    ))
 
 
 # ============================================================

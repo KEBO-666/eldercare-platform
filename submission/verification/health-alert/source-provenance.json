@@ -1,0 +1,28 @@
+{
+  "original_local_source_commit": "e96827ab9753014181dd59885f4cf967bc942a16",
+  "original_local_parent": "779e1671667ac573d1b768bef8ab5d3a9d436b75",
+  "public_parent": "b68a37335aae57e9d27d42f30a8ed45f2c7b9b06",
+  "changed_source_files": [
+    "README.md",
+    "app/api/v1/alerts.py",
+    "app/api/v1/health.py",
+    "app/services/alert_service.py",
+    "app/services/health_service.py",
+    "app/static/css/app.css",
+    "app/static/js/health-alert.js",
+    "app/templates/alerts/detail.html",
+    "app/templates/alerts/index.html",
+    "app/templates/health/detail.html",
+    "app/web/routes.py",
+    "docs/CONTRACTS.md",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/健康预警闭环.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/frontend/health_alert.test.cjs",
+    "tests/integration/test_alert_lifecycle_contract.py",
+    "tests/integration/test_health_alert_pages.py",
+    "tests/integration/test_health_reporting_contract.py",
+    "tests/unit/test_health_alert.py"
+  ],
+  "notice": "Actual user follow-up; source app/tests preserved byte-for-byte in Git; isolated synthetic verification only."
+}

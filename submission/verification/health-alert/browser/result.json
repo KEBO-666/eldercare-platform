@@ -1,0 +1,194 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "metric required value gives permanent focused error",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "metric out-of-range value is rejected visibly",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "metric no_match explicit persistent evaluation result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "normal metric really persists without claiming all-clear",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "metric created explicit persistent evaluation result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "threshold creates actual red alert and trace link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "metric cooldown explicit persistent evaluation result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cooldown saves second metric without duplicate alert",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cooldown links to existing alert rather than claiming no issue",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual detail identifies trigger source and unacknowledged state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ack records response while not closing alert",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ack repeat is idempotent and keeps first response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "progress requires an actual note with permanent feedback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "progress persists without prematurely closing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "referral remains awaiting follow-up rather than closed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "referral does not inflate completed closure stats",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "follow-up records progress while closure still pending",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "follow-up closure records time and original action history",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "closed tracking survives page reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px closed tracking page does not overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "closed alert rejects further state-changing progress",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manual report requires summary and on-site context",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manual report creates traced alert with report action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manual success remains visible and links to real tracking page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "resolved manual alert closes and auto-records first response",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "false alarm closes with documented verification basis",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "closed alert hides all write operations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px pending controls are reachable and follow-up controls hidden",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending response disables duplicates and freezes form",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual held response produces exactly one acknowledgment record",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unknown write keeps note and blocks automatic retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unknown outcome stays visible after toast duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "failed refresh preserves prior history and prevents stale writes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful server refresh unlocks safe operation and keeps note",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovered progress performs real write after state verification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unhandled browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "isolated Edge and SQLite; all successful writes use actual backend endpoints",
+  "fixtures": [
+    "seeded unrelated alerts aged beyond cooldown"
+  ],
+  "fault_injection": [
+    "held actual POST response for duplicate prevention",
+    "POST 500 unknown result",
+    "GET failure"
+  ]
+}

@@ -30,7 +30,7 @@
         <div class="card-body"><div class="chart" id="vitals-chart"></div></div>
     </section>
     <section class="card">
-        <div class="card-header"><span>🫁 血氧趋势</span><span class="sub">低于 90% 触发红色预警</span></div>
+        <div class="card-header"><span>🫁 血氧趋势</span><span class="sub">预警条件见当前启用规则</span></div>
         <div class="card-body"><div class="chart" id="spo2-chart"></div></div>
     </section>
 </div>
@@ -45,7 +45,7 @@
     <section class="card">
         <div class="card-header"><span>✍️ 录入健康指标</span><span class="sub">录入后自动触发规则引擎</span></div>
         <div class="card-body">
-            <form id="metric-form" onsubmit="return false;">
+            <form id="metric-form" novalidate data-elder-id="{{ elder.id }}" data-ranges='{{ metric_ranges|tojson }}'>
                 <div class="form-field mb-1">
                     <label for="metric_code">指标类型</label>
                     <select id="metric_code" required>
@@ -56,15 +56,17 @@
                 </div>
                 <div class="form-field mb-1">
                     <label for="metric_value">数值</label>
-                    <input id="metric_value" type="number" step="0.1" required placeholder="例如：收缩压 135">
+                    <input id="metric_value" type="number" step="any" required placeholder="例如：收缩压 135" aria-describedby="metric-range">
+                    <span id="metric-range" class="small muted"></span>
                 </div>
                 <div class="form-field mb-1">
                     <label for="measured_at">测量时间</label>
                     <input id="measured_at" type="datetime-local" required>
                 </div>
-                <button class="btn btn-primary btn-block" type="button" id="btn-metric">✓ 保存并检测预警</button>
+                <button class="btn btn-primary btn-block" type="submit" id="btn-metric">✓ 保存并检测预警</button>
+                <div id="metric-feedback" class="notice" role="status" aria-live="polite" hidden></div>
                 <div class="demo-tip">
-                    规则示例：收缩压 ≥180 或 ≤90 → 红色；血氧 &lt;90% → 红色；连续 3 次心率 &gt;100 → 黄色；48 小时无数据 → 蓝色。
+                    保存指标后按当前启用规则评估；未生成新预警也可能是冷却去重，请查看本次检测结果。规则和未处置事项见预警看板。
                 </div>
             </form>
         </div>
@@ -76,12 +78,30 @@
             <ul style="font-size:17px;line-height:1.9;padding-left:20px">
                 <li>血压建议每日同一时段测量，记录静息 5 分钟后的数值。</li>
                 <li>血氧低于 90% 请立即联系家属与社区医生。</li>
-                <li>连续 3 天数据缺失会自动触发蓝色预警，请保持设备充电。</li>
+                <li>数据缺失按启用的静默规则检测，请保持设备充电并查看预警看板。</li>
             </ul>
         </div>
     </section>
     {% endif %}
 </div>
+
+{% if can_write %}
+<section class="card">
+    <div class="card-header"><span>📣 人工异常上报</span><span class="sub">跌倒、身体不适等无法用单个指标描述的情况</span></div>
+    <div class="card-body">
+        <form id="report-form" novalidate data-elder-id="{{ elder.id }}">
+            <div class="form-grid">
+                <div class="form-field"><label for="report-summary">异常摘要（必填）</label><input id="report-summary" required maxlength="255" placeholder="例如：上门发现老人跌倒后无法起身"></div>
+                <div class="form-field"><label for="report-level">预警级别</label><select id="report-level"><option value="yellow">黄色 · 需要及时核实</option><option value="red">红色 · 紧急关注</option><option value="blue">蓝色 · 需要关注</option></select></div>
+            </div>
+            <div class="form-field mb-1"><label for="report-note">现场情况及已采取的措施（必填，最多255字）</label><textarea id="report-note" required maxlength="255" placeholder="记录发现时间、具体情况、已联系的人或采取的措施"></textarea></div>
+            <button id="btn-report" class="btn btn-primary" type="submit">提交异常并生成预警</button>
+            <div id="report-feedback" class="notice" role="status" aria-live="polite" hidden></div>
+        </form>
+        <p class="small muted">紧急情况请同时联系急救和家属。系统通知为站内留痕，短信为模拟记录。</p>
+    </div>
+</section>
+{% endif %}
 
 <div class="grid grid-2">
     <section class="card">
@@ -122,7 +142,7 @@
                         <td><span class="badge badge-{{ 'red' if a.level == 'red' else ('yellow' if a.level == 'yellow' else 'blue') }}">{{ ALERT_LEVEL_NAMES.get(a.level, a.level) }}</span></td>
                         <td class="small">{{ a.summary or '-' }}</td>
                         <td class="small">{{ a.created_at|short }}</td>
-                        <td class="small">{{ ALERT_STATUS_NAMES.get(a.status, a.status) }}</td>
+                        <td class="small"><a href="/alerts/{{ a.id }}">{{ a.lifecycle_name }} · 查看追踪</a></td>
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -138,46 +158,25 @@
 <script type="application/json" id="vitals-data">{{ vitals_json|safe }}</script>
 <script type="application/json" id="spo2-data">{{ spo2_json|safe }}</script>
 <script type="application/json" id="steps-data">{{ steps_json|safe }}</script>
+<section class="card">
+    <div class="card-header"><span>本页当前启用的预警规则</span><a href="/alerts">查看规则与处置队列</a></div>
+    <div class="card-body">
+        {% for rule in health_rules %}
+        <p class="small"><strong>{{ rule.name }}</strong>：{% if rule.rule_type == 'silence' %}{{ rule.silence_hours }}小时无数据{% if rule.code != 'SILENCE' %}（仅配置留存，当前扫描只执行SILENCE静默规则）{% endif %}{% elif rule.rule_type == 'consecutive' %}连续{{ rule.window_size }}次 {{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator }} {{ rule.threshold }}{% else %}{{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator }} {{ rule.threshold }}{% endif %} → {{ ALERT_LEVEL_NAMES.get(rule.level, rule.level) }}；冷却{{ rule.cooldown_minutes }}分钟，未闭环{{ rule.escalate_minutes }}分钟后可升级。</p>
+        {% else %}<p class="notice warn">当前没有启用的预警规则，请联系管理员检查。</p>{% endfor %}
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/health-alert.js"></script>
 <script>
     (function () {
-        var elderId = {{ elder.id }};
         AppChart.fromElement("vitals-chart", "vitals-data");
         AppChart.fromElement("spo2-chart", "spo2-data");
         AppChart.fromElement("steps-chart", "steps-data");
 
-        var form = document.getElementById("metric-form");
-        if (!form) { return; }
-
-        var now = new Date();
-        var pad = function (n) { return String(n).padStart(2, "0"); };
-        document.getElementById("measured_at").value =
-            now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate()) + "T" + pad(now.getHours()) + ":" + pad(now.getMinutes());
-
-        document.getElementById("btn-metric").addEventListener("click", function () {
-            var code = document.getElementById("metric_code").value;
-            var value = document.getElementById("metric_value").value;
-            var measured = document.getElementById("measured_at").value;
-            if (value === "" || !measured) { App.toast("请填写数值与测量时间", "warn"); return; }
-            var btn = this;
-            btn.disabled = true;
-            App.api.post("/health/metrics", {
-                elder_id: elderId,
-                metric_code: code,
-                value: Number(value),
-                measured_at: measured.replace("T", " ") + (measured.length === 16 ? ":00" : ""),
-                source: "visit"
-            }).then(function (res) {
-                var data = (res && res.data) || {};
-                var newAlerts = data.alerts || data.new_alerts || [];
-                App.toast("指标已保存" + (newAlerts.length ? "，触发 " + newAlerts.length + " 条预警" : ""), "success");
-                window.setTimeout(function () { window.location.reload(); }, 900);
-            }).catch(function (err) {
-                if (err && err.message !== "UNAUTHORIZED") { App.toast(err.message || "保存失败", "error"); }
-            }).finally(function () { btn.disabled = false; });
-        });
+        App.healthAlert.mountHealth();
     })();
 </script>
 {% endblock %}

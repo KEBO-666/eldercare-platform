@@ -1,9 +1,8 @@
 """健康指标与健康设备接入服务。
 
 约定：
-- 所有时间字段使用 naive datetime（与库表一致）；
-- 预警评估由 D2 的 ``app.services.alert_service.evaluate_metric`` 提供，
-  该模块尚未就绪或评估异常时**不影响指标入库**（指标优先落库）；
+- 所有时间字段使用北京时间的 naive datetime（与库表一致，部署主机使用北京时间）；
+- 指标优先独立落库，预警评估异常时保留指标并明确返回失败状态；
 - 业务异常统一抛 ``app.core.exceptions`` 子类，由 main.py 的 handler 统一转 JSON。
 """
 from __future__ import annotations
@@ -11,7 +10,7 @@ from __future__ import annotations
 import inspect
 import logging
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import func, select
@@ -19,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core.enums import MetricCode, MetricSource
 from app.core.exceptions import BizError, Conflict, NotFound, RuleViolation
-from app.models import Device, Elder, HealthMetric
+from app.models import Device, Elder, HealthMetric, WorkOrder
 
 logger = logging.getLogger(__name__)
 
@@ -45,21 +44,29 @@ METRIC_RANGES: dict[str, tuple[float, float]] = {
 
 DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 200
+PROJECT_TIMEZONE = timezone(timedelta(hours=8), name="Asia/Shanghai")
 
 
 # ---------------------------------------------------------------- 基础工具
 def naive_now() -> datetime:
-    """当前本地时间（naive）。"""
+    """当前服务器本地时间（部署约定为北京时间，与其他业务时钟一致）。"""
     return datetime.now()
 
 
-def to_naive(value: datetime | None) -> datetime | None:
-    """把可能带时区的时间统一转成 naive datetime。"""
+def to_naive(value: datetime | str | None) -> datetime | None:
+    """以北京时间入库；无时区输入沿用北京时间，带时区输入保留同一时刻。"""
     if value is None:
         return None
-    if value.tzinfo is not None:
-        return value.replace(tzinfo=None)
-    return value
+    try:
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+        if not isinstance(value, datetime):
+            raise ValueError("not a datetime")
+        if value.tzinfo is not None:
+            return value.astimezone(PROJECT_TIMEZONE).replace(tzinfo=None)
+        return value
+    except (ValueError, TypeError, OverflowError) as exc:
+        raise RuleViolation("测量时间必须是有效的 ISO 日期时间", http_status=422) from exc
 
 
 def normalize_metric_code(metric_code: str | MetricCode | None) -> str:
@@ -85,9 +92,11 @@ def normalize_source(source: str | MetricSource | None) -> str:
 
 def validate_value(metric_code: str, value: float) -> float:
     try:
+        if isinstance(value, bool):
+            raise ValueError("boolean is not a metric")
         number = float(value)
-    except (TypeError, ValueError) as exc:
-        raise RuleViolation(f"指标值必须是数字：{value}", http_status=422) from exc
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise RuleViolation("指标值必须是有限数字", http_status=422) from exc
     if not math.isfinite(number):
         raise RuleViolation("指标值不合法（NaN/Infinity）", http_status=422)
     low, high = METRIC_RANGES[metric_code]
@@ -96,8 +105,20 @@ def validate_value(metric_code: str, value: float) -> float:
     return number
 
 
+def _positive_id(value: Any, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise RuleViolation(f"{label}必须是正整数", http_status=422)
+    try:
+        number = int(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise RuleViolation(f"{label}必须是正整数", http_status=422) from exc
+    if number <= 0:
+        raise RuleViolation(f"{label}必须是正整数", http_status=422)
+    return number
+
+
 def get_elder_or_404(db: Session, elder_id: int) -> Elder:
-    elder = db.get(Elder, int(elder_id))
+    elder = db.get(Elder, _positive_id(elder_id, "老人 id"))
     if elder is None or elder.is_deleted:
         raise NotFound("老人档案不存在")
     return elder
@@ -135,84 +156,115 @@ def _call_evaluate_metric(db: Session, metric: HealthMetric, func: Any, operator
     return func(db, metric)
 
 
-def evaluate_metric_safe(db: Session, metric: HealthMetric, operator_id: int | None = None) -> list[dict]:
-    """调用预警评估；模块缺失或评估异常时降级为空列表（不影响指标入库）。"""
+def evaluate_metric_report_safe(
+    db: Session, metric: HealthMetric, operator_id: int | None = None,
+) -> dict[str, Any]:
+    """指标先独立保存；预警副作用独立提交，失败时返回可辨识的评估状态。"""
+    metric_id = metric.id
     try:
-        from app.services.alert_service import evaluate_metric  # D2 提供的函数
-    except Exception:  # noqa: BLE001 - 模块尚未就绪（D2 并行开发中）
-        logger.debug("alert_service 尚未就绪，跳过预警评估 metric_id=%s", metric.id)
-        return []
+        from app.services.alert_service import evaluate_metric_report
 
-    try:
-        alerts = _call_evaluate_metric(db, metric, evaluate_metric, operator_id) or []
+        with db.begin_nested():
+            report = _call_evaluate_metric(db, metric, evaluate_metric_report, operator_id)
+            briefs = [_alert_brief(alert) for alert in report["alerts"]]
+            evaluation = {key: value for key, value in report.items() if key != "alerts"}
         db.commit()
-    except Exception:  # noqa: BLE001 - 预警失败不能回滚已入库的指标
-        logger.exception("预警评估失败（指标已入库）metric_id=%s", metric.id)
-        try:
-            db.rollback()
-        except Exception:  # noqa: BLE001
-            logger.debug("预警评估失败后的 rollback 异常", exc_info=True)
-        return []
+    except Exception:  # noqa: BLE001 - 预警失败不能回滚已独立提交的指标
+        logger.exception("预警评估失败（指标已入库）metric_id=%s", metric_id)
+        db.rollback()
+        return {
+            "alerts": [],
+            "alert_evaluation": {
+                "status": "error",
+                "evaluated_rule_count": None,
+                "matched_rule_count": None,
+                "suppressed": [],
+                "message": "指标已保存，但预警评估失败，请联系管理员处理；请勿重复录入该指标。",
+            },
+        }
 
-    briefs: list[dict] = []
-    for alert in alerts:
-        try:
-            briefs.append(_alert_brief(alert))
-        except Exception:  # noqa: BLE001 - 单条序列化失败不影响整体
-            logger.debug("预警对象序列化失败", exc_info=True)
-    return briefs
+    messages = {
+        "created": "指标已保存，已生成预警。",
+        "no_match": "指标已保存，本次未命中已启用的预警规则。",
+        "cooldown": "指标已保存，已命中规则，冷却期内不重复生成预警。",
+        "no_rules": "指标已保存，此指标暂无已启用的预警规则。",
+    }
+    evaluation["message"] = messages[evaluation["status"]]
+    return {"alerts": briefs, "alert_evaluation": evaluation}
+
+
+def evaluate_metric_safe(db: Session, metric: HealthMetric, operator_id: int | None = None) -> list[dict]:
+    """兼容旧调用方的预警简表；新接口应读取完整评估状态。"""
+    return evaluate_metric_report_safe(db, metric, operator_id)["alerts"]
 
 
 # ---------------------------------------------------------------- 指标写入
-def create_metric(
+def create_metric_report(
     db: Session,
     *,
     elder_id: int,
     metric_code: str | MetricCode,
     value: float,
-    measured_at: datetime | None = None,
+    measured_at: datetime | str | None = None,
     source: str | MetricSource | None = None,
     unit: str | None = None,
     device_id: int | None = None,
     work_order_id: int | None = None,
     recorded_by: int | None = None,
     raw: dict | None = None,
-) -> tuple[HealthMetric, list[dict]]:
-    """写入单条健康指标并触发预警评估，返回 (指标, 预警简要列表)。"""
-    get_elder_or_404(db, elder_id)
+) -> dict[str, Any]:
+    """写入单条指标并返回保存结果与可辨识的预警评估状态。"""
+    elder = get_elder_or_404(db, elder_id)
     code = normalize_metric_code(metric_code)
     source_value = normalize_source(source)
     number = validate_value(code, value)
+    measured_time = to_naive(measured_at) or naive_now()
+    if unit is not None and (not isinstance(unit, str) or len(unit) > 16):
+        raise RuleViolation("单位必须是最多 16 字的字符串", http_status=422)
+    if raw is not None and not isinstance(raw, dict):
+        raise RuleViolation("原始数据必须是对象", http_status=422)
+    for label, model, reference_id in (
+        ("设备", Device, device_id), ("工单", WorkOrder, work_order_id),
+    ):
+        if reference_id is not None:
+            reference_id = _positive_id(reference_id, f"{label} id")
+            reference = db.get(model, reference_id)
+            if reference is None or reference.elder_id != elder.id:
+                raise RuleViolation(f"关联{label}不存在或不属于当前老人", http_status=422)
+            if model is Device:
+                device_id = reference_id
+            else:
+                work_order_id = reference_id
 
     metric = HealthMetric(
-        elder_id=int(elder_id),
+        elder_id=elder.id,
         metric_code=code,
         value=number,
         unit=unit if unit is not None else METRIC_UNITS.get(code),
         source=source_value,
         device_id=device_id,
         work_order_id=work_order_id,
-        measured_at=to_naive(measured_at) or naive_now(),
+        measured_at=measured_time,
         recorded_by=recorded_by,
         raw=raw,
     )
     db.add(metric)
     db.commit()
     db.refresh(metric)
-    metric_id = metric.id
+    result = {"metric_id": metric.id, "metric": metric_to_dict(metric)}
+    result.update(evaluate_metric_report_safe(db, metric, operator_id=recorded_by))
+    return result
 
-    alerts = evaluate_metric_safe(db, metric, operator_id=recorded_by)
 
-    try:  # 预警评估可能 commit 导致对象过期，尽量刷新，失败也不影响返回主键
-        db.refresh(metric)
-    except Exception:  # noqa: BLE001
-        logger.debug("健康指标刷新失败 metric_id=%s", metric_id, exc_info=True)
-    return metric, alerts
+def create_metric(db: Session, **kwargs: Any) -> tuple[HealthMetric, list[dict]]:
+    """兼容既有服务调用的 (指标, 新预警列表) 返回约定。"""
+    result = create_metric_report(db, **kwargs)
+    return db.get(HealthMetric, result["metric_id"]), result["alerts"]
 
 
 def create_metrics_batch(
     db: Session,
-    items: list[dict],
+    items: list[Any],
     *,
     operator_id: int | None = None,
     user: Any | None = None,
@@ -221,15 +273,18 @@ def create_metrics_batch(
     success = 0
     alerts_count = 0
     failed: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     for index, item in enumerate(items):
         try:
-            elder_id = int(item.get("elder_id"))
+            if not isinstance(item, dict):
+                raise RuleViolation("每条指标必须是对象", http_status=422)
+            elder_id = _positive_id(item.get("elder_id"), "老人 id")
             if user is not None:
                 from app.core.deps import ensure_elder_visible  # 延迟导入，避免循环依赖
 
                 ensure_elder_visible(db, user, elder_id)
-            _, alerts = create_metric(
+            result = create_metric_report(
                 db,
                 elder_id=elder_id,
                 metric_code=item.get("metric_code"),
@@ -243,14 +298,15 @@ def create_metrics_batch(
                 raw=item.get("raw"),
             )
             success += 1
-            alerts_count += len(alerts)
+            alerts_count += len(result["alerts"])
+            results.append({"index": index, **result})
         except BizError as exc:
             db.rollback()
-            failed.append({"index": index, "reason": exc.message})
-        except Exception as exc:  # noqa: BLE001 - 单条失败不阻断整批
+            failed.append({"index": index, "reason": exc.message, "code": exc.code})
+        except Exception:  # noqa: BLE001 - 单条失败不阻断整批
             db.rollback()
             logger.exception("批量写入健康指标失败 index=%s", index)
-            failed.append({"index": index, "reason": str(exc) or exc.__class__.__name__})
+            failed.append({"index": index, "reason": "指标保存失败，请联系管理员", "code": "SAVE_FAILED"})
 
     return {
         "success": success,
@@ -258,6 +314,7 @@ def create_metrics_batch(
         "alerts_count": alerts_count,
         # 兼容契约命名：created_alerts 与 alerts_count 同义
         "created_alerts": alerts_count,
+        "results": results,
     }
 
 

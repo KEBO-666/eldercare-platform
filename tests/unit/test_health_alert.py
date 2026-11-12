@@ -260,7 +260,7 @@ def test_handle_rejects_invalid_resolution_and_closes_with_duration(db, accounts
 def test_handle_other_resolution_types(db, accounts, code, status, action):
     elder = accounts["elder"]
     alert = _make_alert(db, elder.id)
-    data = alert_service.handle_alert(db, accounts["users"]["grid"], alert.id, resolution_type=code)
+    data = alert_service.handle_alert(db, accounts["users"]["grid"], alert.id, resolution_type=code, measure="已核实并记录处置结果")
     assert data["status"] == status
     db.refresh(alert)
     assert str(alert.status) == status
@@ -278,7 +278,7 @@ def test_ack_records_response_seconds(db, accounts):
     assert db.query(AlertAction).filter_by(alert_id=alert.id, action_type="ack").count() == 1
 
     # 已闭环预警不可再确认
-    alert_service.handle_alert(db, accounts["users"]["grid"], alert.id, resolution_type="resolved")
+    alert_service.handle_alert(db, accounts["users"]["grid"], alert.id, resolution_type="resolved", measure="已完成电话核实与处置")
     with pytest.raises(Exception) as exc_info:
         alert_service.ack_alert(db, accounts["users"]["grid"], alert.id)
     assert getattr(exc_info.value, "code", "") == "CONFLICT"
