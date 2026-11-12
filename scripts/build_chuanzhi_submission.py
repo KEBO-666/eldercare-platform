@@ -132,6 +132,14 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
         for path in iteration_runs[-1].iterdir():
             if path.name == "result.json" or path.suffix.lower() == ".png":
                 add(path)
+    for name in ("appointment-feedback-summary.json", "appointment-feedback-page-smoke.xml",
+                 "appointment-feedback-unit.tap"):
+        add(reports / name)
+    feedback_runs = sorted(path.parent for path in (reports / "appointment-feedback-browser").glob("*/result.json"))
+    if feedback_runs:
+        for path in feedback_runs[-1].iterdir():
+            if path.name == "result.json" or path.suffix.lower() == ".png":
+                add(path)
     ai_runs = sorted(path.parent for path in (reports / "chuanzhi-ai-recording").glob("*/result.json"))
     if ai_runs:
         ai_run = ai_runs[-1]

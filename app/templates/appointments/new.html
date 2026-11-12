@@ -95,14 +95,33 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/appointment-feedback.js"></script>
 <script>
     (function () {
+        var F = App.appointmentFeedback;
         var form = document.getElementById("appt-form");
         var tip = document.getElementById("form-tip");
         var previewButton = document.getElementById("btn-preview");
         var submitButton = document.getElementById("btn-submit");
         var previewStatus = document.getElementById("preview-status");
         var revision = 0;
+        var submissionLocked = false;
+        var draftKey = "eldercare-appointment-draft-{{ user.id }}";
+        var fieldIds = ["elder_id", "service_item_id", "desired_start", "cycle_rule", "remark"];
+
+        function freezeForm(frozen) {
+            fieldIds.forEach(function (id) { document.getElementById(id).disabled = frozen; });
+            form.setAttribute("aria-busy", frozen ? "true" : "false");
+        }
+
+        function saveLoginDraft() {
+            var values = {};
+            fieldIds.forEach(function (id) { values[id] = document.getElementById(id).value; });
+            try {
+                sessionStorage.setItem(draftKey, JSON.stringify({ savedAt: Date.now(), values: values }));
+                return true;
+            } catch (e) { return false; }
+        }
 
         // 默认时间：明天上午 9 点
         var d = new Date();
@@ -154,23 +173,59 @@
             revision += 1;
             previewStatus.className = "notice";
             previewStatus.textContent = "内容已更新，尚未检查当前时段。日期计划不会创建预约。";
-            tip.textContent = "提交后由网格员受理。校验失败不会创建预约，请调整时间或联系网格员协助。";
+            if (!submissionLocked) {
+                tip.className = "demo-tip";
+                tip.textContent = "提交后由网格员受理。请先检查当前时段，再提交预约。";
+            }
+            fieldIds.forEach(function (id) {
+                var field = document.getElementById(id);
+                if (field.validity.valid && field.value.trim()) { field.removeAttribute("aria-invalid"); }
+            });
             localSchedule();
         }
         form.addEventListener("input", invalidatePreview);
         form.addEventListener("change", invalidatePreview);
         localSchedule();
+        try {
+            var draft = JSON.parse(sessionStorage.getItem(draftKey) || "null");
+            sessionStorage.removeItem(draftKey);
+            if (draft && draft.values && Date.now() - draft.savedAt >= 0 && Date.now() - draft.savedAt < 30 * 60000) {
+                fieldIds.forEach(function (id) {
+                    var field = document.getElementById(id);
+                    if (field.type !== "hidden" && typeof draft.values[id] === "string") { field.value = draft.values[id]; }
+                });
+                localSchedule();
+                tip.textContent = "已恢复本账号登录过期前的预约草稿。本页尚未重新提交，请先核对预约列表，再检查时段。";
+            }
+        } catch (e) { /* 会话存储不可用时仍可正常填写 */ }
+
+        function noteLoginDraft(info, element) {
+            if (!info.login) { return; }
+            var note = document.createElement("p");
+            note.textContent = saveLoginDraft() ?
+                "本账号的当前草稿已临时保存 30 分钟；重新登录并返回本页后可恢复，请重新核对时段。" :
+                "浏览器无法临时保存草稿，请先记下当前填写内容，再重新登录。";
+            element.appendChild(note);
+        }
 
         function readPayload() {
             var elderId = document.getElementById("elder_id").value;
             var itemId = document.getElementById("service_item_id").value;
             var start = document.getElementById("desired_start").value;
-            if (!elderId || !itemId || !start) {
-                App.toast("请完整填写老人、服务项目与时间", "warn");
+            var firstInvalid = null;
+            ["elder_id", "service_item_id", "desired_start"].forEach(function (id) {
+                var field = document.getElementById(id);
+                if (!field.value.trim() || !field.validity.valid) {
+                    field.setAttribute("aria-invalid", "true");
+                    if (!firstInvalid) { firstInvalid = field; }
+                } else { field.removeAttribute("aria-invalid"); }
+            });
+            if (firstInvalid || !form.checkValidity()) {
+                F.show(tip, { title: "请补全预约信息", detail: "请完整填写服务老人、服务项目与有效的上门时间。", next: "检查标记的填写项后，再检查时段或提交预约。", tone: "danger" });
+                if (firstInvalid) { firstInvalid.focus(); }
                 form.reportValidity();
                 return null;
             }
-            if (!form.reportValidity()) { return null; }
             return {
                 elder_id: Number(elderId),
                 service_item_id: Number(itemId),
@@ -181,26 +236,30 @@
         }
 
         previewButton.addEventListener("click", function () {
-            if (previewButton.disabled || submitButton.disabled) { return; }
+            if (previewButton.disabled || submitButton.disabled || submissionLocked) { return; }
             var payload = readPayload();
             if (!payload) { return; }
             var requestedRevision = revision;
             previewButton.disabled = true;
             previewButton.setAttribute("aria-busy", "true");
             previewButton.textContent = "正在检查…";
-            previewStatus.textContent = "正在检查所选时段，尚未创建预约…";
-            App.api.post("/appointments/preview", payload).then(function (res) {
+            F.pending(previewStatus, "正在检查所选时段，尚未创建预约…");
+            F.post("preview", "/appointments/preview", payload).then(function (res) {
                 if (revision !== requestedRevision) { return; }
                 var data = res.data || {};
                 renderSchedule(data.occurrences || []);
-                previewStatus.className = "notice success";
-                previewStatus.textContent = "当前 " + (data.occurrence_count || 1) + " 次时段检查通过，尚未创建或锁定预约；提交时会再次校验。";
+                F.success(previewStatus, "当前 " + (data.occurrence_count || 1) + " 次时段检查通过。", "尚未创建或锁定预约；提交时会再次校验。");
             }).catch(function (err) {
-                if (revision !== requestedRevision || (err && err.message === "UNAUTHORIZED")) { return; }
-                previewStatus.className = "notice danger";
-                previewStatus.textContent = "检查未通过：" + (err.message || "请重试") + "。本次未创建预约，请调整时间或联系网格员。";
+                if (revision !== requestedRevision) { return; }
+                var info = F.failure(previewStatus, err, "preview");
+                noteLoginDraft(info, previewStatus);
+                if (info.login) {
+                    submissionLocked = true;
+                    submitButton.disabled = true;
+                    F.failure(tip, err, "preview");
+                }
             }).finally(function () {
-                previewButton.disabled = false;
+                previewButton.disabled = submissionLocked || form.getAttribute("aria-busy") === "true";
                 previewButton.removeAttribute("aria-busy");
                 previewButton.textContent = "检查时段";
             });
@@ -208,34 +267,43 @@
 
         submitButton.addEventListener("click", function () {
             var btn = this;
-            if (btn.disabled) { return; }
+            if (btn.disabled || submissionLocked) { return; }
             var payload = readPayload();
             if (!payload) { return; }
             revision += 1;
+            freezeForm(true);
             btn.disabled = true;
             btn.setAttribute("aria-busy", "true");
             btn.textContent = "正在提交…";
-            App.api.post("/appointments", payload).then(function (res) {
+            F.pending(previewStatus, "正在提交并重新校验时段，先前检查结果不代表本次提交结果。");
+            F.pending(tip, "正在提交预约，请稍候。填写内容已暂时锁定，避免重复提交。");
+            F.post("create", "/appointments", payload).then(function (res) {
                 var data = res.data || {};
                 var count = data.occurrence_count || 1;
                 var successMessage = count > 1 ? "已创建 " + count + " 次预约，每次独立受理与取消；取消本次不影响其余预约。" : "预约提交成功，等待网格员受理。";
-                App.toast(successMessage, "success");
-                try { sessionStorage.setItem("eldercare-appointment-feedback", JSON.stringify({ message: successMessage, createdAt: Date.now() })); } catch (e) { /* 本页提示仍可见 */ }
-                tip.textContent = successMessage + " 正在跳转列表…";
-                window.setTimeout(function () { window.location.href = "/appointments"; }, 900);
-            }).catch(function (err) {
-                if (err && err.message !== "UNAUTHORIZED") {
-                    var payloadErr = err.payload || {};
-                    var msg = payloadErr.message || err.message;
-                    var rejected = err.status >= 400 && err.status < 500;
-                    var failure = rejected ? ((payload.cycle_rule === "weekly" ? "四次预约均未创建。" : "本次预约未创建。") + "请调整时间或联系网格员协助。") :
-                        "提交结果尚未确认，请先查看预约列表，避免重复提交；需要时联系网格员。";
-                    tip.innerHTML = '<span style="color:#a11616;font-weight:700">提交失败：' + App.esc(msg) + "。" + App.esc(failure) + "</span>";
-                    App.toast(msg, "error");
-                }
-                btn.disabled = false;
+                submissionLocked = true;
+                form.removeAttribute("aria-busy");
+                F.remember(successMessage);
+                F.success(tip, successMessage, "本次提交已完成，请查看预约列表。为避免重复创建，本页不再提交。若列表暂时无法打开，以上结果仍已确认。");
+                F.success(previewStatus, "预约已经创建。", "请通过预约列表查看各次预约的最新状态。");
+                btn.textContent = "已提交预约";
                 btn.removeAttribute("aria-busy");
-                btn.textContent = "✓ 提交预约";
+                previewButton.disabled = true;
+            }).catch(function (err) {
+                var info = F.failure(tip, err, "create");
+                F.failure(previewStatus, err, "create");
+                noteLoginDraft(info, tip);
+                submissionLocked = info.uncertain || info.login;
+                if (info.uncertain) {
+                    var note = document.createElement("p");
+                    note.textContent = "为避免重复创建，本页已暂停提交。请先查看预约列表核对本次结果，再决定是否重新填写。";
+                    tip.appendChild(note);
+                }
+                freezeForm(false);
+                btn.disabled = submissionLocked;
+                btn.removeAttribute("aria-busy");
+                btn.textContent = submissionLocked ? "请先核对结果或重新登录" : "✓ 提交预约";
+                previewButton.disabled = submissionLocked;
             });
         });
     })();

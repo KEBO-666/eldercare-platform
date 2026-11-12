@@ -1,0 +1,220 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "required item has permanent message and focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile required form has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real weekly preview success remains read-only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recheck pending clears old green success",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stale preview cannot overwrite changed form",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 403 FORBIDDEN permanent and retryable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 404 NOT_FOUND permanent and retryable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 409 CONFLICT permanent and retryable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 422 NEEDS_MANUAL permanent and retryable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "rejection persists after toast duration",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 422 VALIDATION_ERROR permanent and retryable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 429 RATE_LIMIT is uncertain and locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 429 lock survives editing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 500 INTERNAL_ERROR is uncertain and locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 500 lock survives editing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 200 text/html is uncertain and locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 200 lock survives editing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 200 invalid data is uncertain and locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create 200 lock survives editing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "network failure is Chinese uncertain result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "timeout ends busy state but locks ambiguous retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending create freezes inputs and one POST",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "conflict after successful preview removes green and preserves four dates",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "confirmed weekly create stays visible without automatic navigation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manual list link restores confirmed outcome",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "single create succeeds when storage unavailable",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "expired login navigates and scopes saved draft",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "different account does not restore another draft",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "same account restores 401 draft and requires recheck",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real accept confirmed and row locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real to-dispatch confirmed and row locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cancel required reason is permanent focused accessible",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "trusted cancellation failure keeps reason and permits retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cancel pending sends once and retains modal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "uncertain cancellation keeps reason but blocks duplicate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "uncertain modal can close while row remains locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real cancellation confirms actual fee and released count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cancel success remains permanent and old row actions disabled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cancel one keeps other three occurrences",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "manual refresh restores cancellation fact and actual row status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unhandled browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "isolated Edge browser; isolated SQLite; real endpoints plus labelled HTTP fault injection",
+  "injections": [
+    "business HTTP errors",
+    "network failure",
+    "shortened timeout",
+    "malformed successful responses",
+    "held response",
+    "unavailable sessionStorage",
+    "expired authentication"
+  ]
+}

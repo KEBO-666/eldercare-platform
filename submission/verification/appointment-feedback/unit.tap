@@ -1,0 +1,364 @@
+TAP version 13
+# Subtest: opt-in request timeout aborts transport and produces REQUEST_TIMEOUT
+ok 1 - opt-in request timeout aborts transport and produces REQUEST_TIMEOUT
+  ---
+  duration_ms: 20.8071
+  type: 'test'
+  ...
+# Subtest: timeout covers a response body that stalls after headers
+ok 2 - timeout covers a response body that stalls after headers
+  ---
+  duration_ms: 0.9889
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on success
+ok 3 - request clears its timeout on success
+  ---
+  duration_ms: 0.7826
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on http-error
+ok 4 - request clears its timeout on http-error
+  ---
+  duration_ms: 0.6791
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on network-error
+ok 5 - request clears its timeout on network-error
+  ---
+  duration_ms: 1.6155
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on body-error
+ok 6 - request clears its timeout on body-error
+  ---
+  duration_ms: 0.6503
+  type: 'test'
+  ...
+# Subtest: requests without timeout options retain existing transport behavior
+ok 7 - requests without timeout options retain existing transport behavior
+  ---
+  duration_ms: 0.8037
+  type: 'test'
+  ...
+# Subtest: cleanup also clears a valid timer handle of zero
+ok 8 - cleanup also clears a valid timer handle of zero
+  ---
+  duration_ms: 1.581
+  type: 'test'
+  ...
+# Subtest: 401 preserves unauthorized status, login redirect and clears the request timer
+ok 9 - 401 preserves unauthorized status, login redirect and clears the request timer
+  ---
+  duration_ms: 1.0633
+  type: 'test'
+  ...
+# Subtest: known 403/FORBIDDEN is a confirmed rejection
+ok 10 - known 403/FORBIDDEN is a confirmed rejection
+  ---
+  duration_ms: 1.1582
+  type: 'test'
+  ...
+# Subtest: known 404/NOT_FOUND is a confirmed rejection
+ok 11 - known 404/NOT_FOUND is a confirmed rejection
+  ---
+  duration_ms: 1.0957
+  type: 'test'
+  ...
+# Subtest: known 409/INVALID_TRANSITION is a confirmed rejection
+ok 12 - known 409/INVALID_TRANSITION is a confirmed rejection
+  ---
+  duration_ms: 0.687
+  type: 'test'
+  ...
+# Subtest: known 409/CONFLICT is a confirmed rejection
+ok 13 - known 409/CONFLICT is a confirmed rejection
+  ---
+  duration_ms: 0.6341
+  type: 'test'
+  ...
+# Subtest: known 422/NEEDS_MANUAL is a confirmed rejection
+ok 14 - known 422/NEEDS_MANUAL is a confirmed rejection
+  ---
+  duration_ms: 0.5673
+  type: 'test'
+  ...
+# Subtest: known 422/VALIDATION_ERROR is a confirmed rejection
+ok 15 - known 422/VALIDATION_ERROR is a confirmed rejection
+  ---
+  duration_ms: 0.7074
+  type: 'test'
+  ...
+# Subtest: known 400/RULE_VIOLATION is a confirmed rejection
+ok 16 - known 400/RULE_VIOLATION is a confirmed rejection
+  ---
+  duration_ms: 0.8239
+  type: 'test'
+  ...
+# Subtest: rate-limit keeps write outcome unknown and preview explicitly read-only
+ok 17 - rate-limit keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.7474
+  type: 'test'
+  ...
+# Subtest: http-timeout keeps write outcome unknown and preview explicitly read-only
+ok 18 - http-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6108
+  type: 'test'
+  ...
+# Subtest: rate-limit-with-known-code keeps write outcome unknown and preview explicitly read-only
+ok 19 - rate-limit-with-known-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5963
+  type: 'test'
+  ...
+# Subtest: http-timeout-with-known-code keeps write outcome unknown and preview explicitly read-only
+ok 20 - http-timeout-with-known-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5263
+  type: 'test'
+  ...
+# Subtest: server-error keeps write outcome unknown and preview explicitly read-only
+ok 21 - server-error keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6032
+  type: 'test'
+  ...
+# Subtest: unavailable keeps write outcome unknown and preview explicitly read-only
+ok 22 - unavailable keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6003
+  type: 'test'
+  ...
+# Subtest: gateway-timeout keeps write outcome unknown and preview explicitly read-only
+ok 23 - gateway-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5451
+  type: 'test'
+  ...
+# Subtest: offline keeps write outcome unknown and preview explicitly read-only
+ok 24 - offline keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5437
+  type: 'test'
+  ...
+# Subtest: client-timeout keeps write outcome unknown and preview explicitly read-only
+ok 25 - client-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5652
+  type: 'test'
+  ...
+# Subtest: invalid-success keeps write outcome unknown and preview explicitly read-only
+ok 26 - invalid-success keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6005
+  type: 'test'
+  ...
+# Subtest: unrecognized-client-error keeps write outcome unknown and preview explicitly read-only
+ok 27 - unrecognized-client-error keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 1.6852
+  type: 'test'
+  ...
+# Subtest: mismatched-status-and-code keeps write outcome unknown and preview explicitly read-only
+ok 28 - mismatched-status-and-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6311
+  type: 'test'
+  ...
+# Subtest: code-without-status keeps write outcome unknown and preview explicitly read-only
+ok 29 - code-without-status keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.4768
+  type: 'test'
+  ...
+# Subtest: inherited-property-code keeps write outcome unknown and preview explicitly read-only
+ok 30 - inherited-property-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.7524
+  type: 'test'
+  ...
+# Subtest: malformed validation details cannot suppress the visible rejection feedback
+ok 31 - malformed validation details cannot suppress the visible rejection feedback
+  ---
+  duration_ms: 0.6637
+  type: 'test'
+  ...
+# Subtest: non-array validation details (null) retain usable feedback
+ok 32 - non-array validation details (null) retain usable feedback
+  ---
+  duration_ms: 0.6309
+  type: 'test'
+  ...
+# Subtest: non-array validation details ({}) retain usable feedback
+ok 33 - non-array validation details ({}) retain usable feedback
+  ---
+  duration_ms: 0.7583
+  type: 'test'
+  ...
+# Subtest: non-array validation details ("proxy detail") retain usable feedback
+ok 34 - non-array validation details ("proxy detail") retain usable feedback
+  ---
+  duration_ms: 0.9359
+  type: 'test'
+  ...
+# Subtest: preview accepts a confirmed contract and uses the feedback timeout
+ok 35 - preview accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 2.3324
+  type: 'test'
+  ...
+# Subtest: create accepts a confirmed contract and uses the feedback timeout
+ok 36 - create accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 0.7865
+  type: 'test'
+  ...
+# Subtest: cancel accepts a confirmed contract and uses the feedback timeout
+ok 37 - cancel accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 0.6037
+  type: 'test'
+  ...
+# Subtest: weekly preview and create require four confirmed occurrences
+ok 38 - weekly preview and create require four confirmed occurrences
+  ---
+  duration_ms: 1.4809
+  type: 'test'
+  ...
+# Subtest: weekly create cannot claim four successes by repeating the same appointment id
+ok 39 - weekly create cannot claim four successes by repeating the same appointment id
+  ---
+  duration_ms: 0.7098
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (2027-01-01T09:00:00)
+ok 40 - preview rejects an empty, inverted or invalid interval (2027-01-01T09:00:00)
+  ---
+  duration_ms: 0.946
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (2027-01-01T08:59:00)
+ok 41 - preview rejects an empty, inverted or invalid interval (2027-01-01T08:59:00)
+  ---
+  duration_ms: 0.6963
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (not a date)
+ok 42 - preview rejects an empty, inverted or invalid interval (not a date)
+  ---
+  duration_ms: 0.5891
+  type: 'test'
+  ...
+# Subtest: cancel rejects a response for a different appointment id
+ok 43 - cancel rejects a response for a different appointment id
+  ---
+  duration_ms: 0.6927
+  type: 'test'
+  ...
+# Subtest: no-show rejects a response for a different appointment id
+ok 44 - no-show rejects a response for a different appointment id
+  ---
+  duration_ms: 0.5869
+  type: 'test'
+  ...
+# Subtest: accept rejects a response for a different appointment id
+ok 45 - accept rejects a response for a different appointment id
+  ---
+  duration_ms: 0.6179
+  type: 'test'
+  ...
+# Subtest: to-dispatch rejects a response for a different appointment id
+ok 46 - to-dispatch rejects a response for a different appointment id
+  ---
+  duration_ms: 0.5887
+  type: 'test'
+  ...
+# Subtest: 200 HTML cannot become a successful appointment operation
+ok 47 - 200 HTML cannot become a successful appointment operation
+  ---
+  duration_ms: 0.7391
+  type: 'test'
+  ...
+# Subtest: 200 empty-body cannot become a successful appointment operation
+ok 48 - 200 empty-body cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6577
+  type: 'test'
+  ...
+# Subtest: 200 null cannot become a successful appointment operation
+ok 49 - 200 null cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6382
+  type: 'test'
+  ...
+# Subtest: 200 missing-data cannot become a successful appointment operation
+ok 50 - 200 missing-data cannot become a successful appointment operation
+  ---
+  duration_ms: 0.7009
+  type: 'test'
+  ...
+# Subtest: 200 wrong-code cannot become a successful appointment operation
+ok 51 - 200 wrong-code cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6589
+  type: 'test'
+  ...
+# Subtest: 200 nonzero-code cannot become a successful appointment operation
+ok 52 - 200 nonzero-code cannot become a successful appointment operation
+  ---
+  duration_ms: 0.8337
+  type: 'test'
+  ...
+# Subtest: cancel missing-fee cannot report success or default to a zero fee
+ok 53 - cancel missing-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6987
+  type: 'test'
+  ...
+# Subtest: cancel string-fee cannot report success or default to a zero fee
+ok 54 - cancel string-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6335
+  type: 'test'
+  ...
+# Subtest: cancel negative-fee cannot report success or default to a zero fee
+ok 55 - cancel negative-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6175
+  type: 'test'
+  ...
+# Subtest: cancel missing-release-count cannot report success or default to a zero fee
+ok 56 - cancel missing-release-count cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.5803
+  type: 'test'
+  ...
+# Subtest: cancel wrong-status cannot report success or default to a zero fee
+ok 57 - cancel wrong-status cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6727
+  type: 'test'
+  ...
+# Subtest: cancel missing-id cannot report success or default to a zero fee
+ok 58 - cancel missing-id cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6372
+  type: 'test'
+  ...
+# Subtest: server-supplied feedback is rendered as inert text, with an alert and safe navigation
+ok 59 - server-supplied feedback is rendered as inert text, with an alert and safe navigation
+  ---
+  duration_ms: 0.8286
+  type: 'test'
+  ...
+1..59
+# tests 59
+# suites 0
+# pass 59
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 164.3534

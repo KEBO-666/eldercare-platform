@@ -105,17 +105,31 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/appointment-feedback.js"></script>
 <script>
     (function () {
+        var F = App.appointmentFeedback;
         var feedback = document.getElementById("appointment-feedback");
-        try {
-            var saved = JSON.parse(sessionStorage.getItem("eldercare-appointment-feedback") || "null");
-            sessionStorage.removeItem("eldercare-appointment-feedback");
-            if (saved && typeof saved.message === "string" && Date.now() - saved.createdAt < 60000) {
-                feedback.textContent = saved.message;
-                feedback.classList.remove("hidden");
+        F.restore(feedback);
+
+        function lockRow(target, message) {
+            var row = target.closest("tr");
+            row.querySelectorAll("button[data-act]").forEach(function (button) { button.disabled = true; });
+            var note = row.querySelector("[data-operation-result]");
+            if (!note) {
+                note = document.createElement("p");
+                note.setAttribute("data-operation-result", "true");
+                note.setAttribute("role", "status");
+                row.querySelector(".actions").appendChild(note);
             }
-        } catch (e) { /* 没有可用会话存储时，列表仍展示状态与实际费用 */ }
+            note.textContent = message;
+        }
+
+        function confirmed(target, message) {
+            F.remember(message);
+            F.success(feedback, message, "此操作已经完成。当前表格尚未刷新，请查看预约列表核对最新状态；若列表暂时无法打开，以上结果仍已确认。");
+            lockRow(target, "操作已完成，请刷新列表查看最新状态。");
+        }
 
         document.addEventListener("click", function (ev) {
             var target = ev.target.closest("[data-act]");
@@ -126,49 +140,58 @@
                 if (document.querySelector('[data-appointment-dialog="' + id + '"]')) { return; }
                 var noShow = act === "no-show";
                 var pending = false;
+                var locked = false;
                 var reasonLabel = noShow ? "爽约原因" : "取消原因";
                 var dialog = App.modal({
                     title: noShow ? "登记爽约" : "取消预约",
                     html: '<p>此操作仅影响本次预约，周期中的其他预约保持不变。</p><p>' +
                         (noShow ? '登记爽约不计费，并释放关联工单的时段。请填写核实原因：' : '取消将释放关联工单的时段；距服务开始不足 {{ cancel_free_hours }} 小时可能计费，实际费用以操作结果为准。请填写原因：') + '</p>' +
                         '<div class="form-field"><label for="cancel-reason">' + reasonLabel + '（必填）</label>' +
-                        '<input id="cancel-reason" type="text" maxlength="255" placeholder="例如：老人临时住院"></div>' +
+                        '<input id="cancel-reason" type="text" required aria-describedby="cancel-feedback" maxlength="255" placeholder="例如：老人临时住院"></div>' +
                         '<div id="cancel-feedback" class="mt-1" role="status" aria-live="polite"></div>',
                     buttons: [
                         { text: "返回", cls: "btn-secondary" },
                         {
                             text: noShow ? "确认爽约" : "确认取消本次", cls: "btn-danger", onClick: function (modal, close) {
-                                if (pending) { return true; }
-                                var reason = (modal.querySelector("#cancel-reason").value || "").trim();
-                                if (!reason) { App.toast("请填写" + reasonLabel, "warn"); return true; }
+                                if (pending || locked) { return true; }
+                                var reasonInput = modal.querySelector("#cancel-reason");
+                                var status = modal.querySelector("#cancel-feedback");
+                                var reason = (reasonInput.value || "").trim();
+                                if (!reason) {
+                                    reasonInput.setAttribute("aria-invalid", "true");
+                                    F.show(status, { title: "请填写" + reasonLabel, detail: "原因不能为空或只有空格。", next: "填写核实原因后，再确认本次操作。", tone: "danger" });
+                                    reasonInput.focus();
+                                    return true;
+                                }
+                                reasonInput.removeAttribute("aria-invalid");
                                 pending = true;
                                 target.disabled = true;
                                 var buttons = Array.from(modal.querySelectorAll("button"));
                                 buttons.forEach(function (button) { button.disabled = true; });
+                                reasonInput.disabled = true;
                                 modal.setAttribute("aria-busy", "true");
-                                var status = modal.querySelector("#cancel-feedback");
-                                status.textContent = "正在处理，请稍候…";
-                                App.api.post("/appointments/" + id + "/" + act, { reason: reason }).then(function (res) {
+                                F.pending(status, "正在处理本次预约，请稍候…");
+                                F.post(act, "/appointments/" + id + "/" + act, { reason: reason }).then(function (res) {
                                     var data = res.data || {};
                                     var message = noShow ? "已登记本次爽约，不计费。" : "本次预约已取消，实际取消费用 " + App.money(data.cancellation_fee) + " 元。";
                                     if (typeof data.released_order_count === "number") {
                                         message += " 已释放 " + data.released_order_count + " 个关联工单的时段。";
                                     }
                                     message += " 周期中的其余预约不受影响。";
-                                    try { sessionStorage.setItem("eldercare-appointment-feedback", JSON.stringify({ message: message, createdAt: Date.now() })); } catch (e) { /* 页面即时反馈仍可用 */ }
-                                    feedback.textContent = message;
-                                    feedback.classList.remove("hidden");
-                                    App.toast(message, "success");
+                                    confirmed(target, message);
                                     close();
-                                    window.setTimeout(function () { window.location.reload(); }, 900);
                                 }).catch(function (err) {
-                                    if (err && err.message !== "UNAUTHORIZED") {
-                                        status.textContent = "操作未完成：" + (err.message || "请重试") + "。已保留原因；如网络中断，请先核对列表状态。";
-                                        App.toast(err.message || "操作失败", "error");
-                                    }
+                                    var info = F.failure(status, err, act);
+                                    F.failure(feedback, err, act);
+                                    locked = info.uncertain || info.login;
                                     pending = false;
-                                    target.disabled = false;
+                                    target.disabled = locked;
                                     buttons.forEach(function (button) { button.disabled = false; });
+                                    reasonInput.disabled = false;
+                                    if (locked) {
+                                        modal.querySelector(".btn-danger").disabled = true;
+                                        lockRow(target, info.login ? "请重新登录后查看预约最新状态。" : "本次结果尚未确认，请先查看最新列表，勿重复操作。");
+                                    }
                                     modal.removeAttribute("aria-busy");
                                 });
                                 return true;
@@ -177,6 +200,9 @@
                     ]
                 });
                 dialog.el.setAttribute("data-appointment-dialog", id);
+                dialog.el.querySelector("#cancel-reason").addEventListener("input", function () {
+                    if (this.value.trim()) { this.removeAttribute("aria-invalid"); }
+                });
                 dialog.el.addEventListener("keydown", function (event) {
                     if (pending && event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); }
                 }, true);
@@ -185,10 +211,26 @@
                 }, true);
                 return;
             }
-            if (act === "accept") {
-                App.action(target, "/appointments/" + id + "/accept", {}, "已受理预约");
-            } else if (act === "to-dispatch") {
-                App.action(target, "/appointments/" + id + "/to-dispatch", {}, "已转待派单");
+            if (act === "accept" || act === "to-dispatch") {
+                var originalText = target.textContent;
+                var rowButtons = Array.from(target.closest("tr").querySelectorAll("button[data-act]"));
+                rowButtons.forEach(function (button) { button.disabled = true; });
+                target.textContent = "正在处理…";
+                target.setAttribute("aria-busy", "true");
+                F.pending(feedback, act === "accept" ? "正在受理本次预约，请稍候…" : "正在将本次预约转为待派单，请稍候…");
+                F.post(act, "/appointments/" + id + "/" + act, {}).then(function () {
+                    confirmed(target, act === "accept" ? "本次预约已受理。" : "本次预约已转为待派单。");
+                }).catch(function (err) {
+                    var info = F.failure(feedback, err, act);
+                    if (info.uncertain || info.login) {
+                        lockRow(target, info.login ? "请重新登录后查看最新状态。" : "本次结果尚未确认，请先查看最新列表，勿重复操作。");
+                    } else {
+                        rowButtons.forEach(function (button) { button.disabled = false; });
+                    }
+                }).finally(function () {
+                    target.textContent = originalText;
+                    target.removeAttribute("aria-busy");
+                });
             }
         });
     })();

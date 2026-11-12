@@ -65,11 +65,19 @@
                 init.body = JSON.stringify(body);
             }
         }
+        var controller, timeout, timedOut = false;
+        if (opts.timeoutMs > 0) {
+            controller = new AbortController();
+            init.signal = controller.signal;
+            timeout = window.setTimeout(function () { timedOut = true; controller.abort(); }, opts.timeoutMs);
+        }
         return fetch(full, init).then(function (resp) {
             if (resp.status === 401) {
                 toast("登录已过期，请重新登录", "warn");
                 window.setTimeout(goLogin, 600);
-                throw new Error("UNAUTHORIZED");
+                var unauthorized = new Error("UNAUTHORIZED");
+                unauthorized.status = 401;
+                throw unauthorized;
             }
             return resp.text().then(function (text) {
                 var data = {};
@@ -84,12 +92,21 @@
                 }
                 return data;
             });
+        }).catch(function (err) {
+            if (timedOut) {
+                var timeoutError = new Error("请求超时");
+                timeoutError.code = "REQUEST_TIMEOUT";
+                throw timeoutError;
+            }
+            throw err;
+        }).finally(function () {
+            if (timeout !== undefined) { window.clearTimeout(timeout); }
         });
     }
 
     App.api = {
         get: function (url) { return request("GET", url); },
-        post: function (url, body) { return request("POST", url, body === undefined ? {} : body); },
+        post: function (url, body, opts) { return request("POST", url, body === undefined ? {} : body, opts); },
         put: function (url, body) { return request("PUT", url, body === undefined ? {} : body); },
         del: function (url) { return request("DELETE", url); },
         upload: function (url, formData) { return request("POST", url, formData); }

@@ -1,0 +1,49 @@
+{
+  "verified_at_utc": "2026-11-12T11:00:21.590104+00:00",
+  "source_parent": "abebc0a5941ec59f9a9daa0eab9c0b8b0d8fe461",
+  "user_request": "正常与异常场景都有清楚反馈",
+  "scope": "Appointment frontend feedback and opt-in API timeout; backend business logic unchanged",
+  "current_validation": {
+    "page_tests": 23,
+    "node_tests": 59,
+    "edge_checks": 41,
+    "failures": 0,
+    "skipped": 0
+  },
+  "browser_report": "reports/appointment-feedback-browser/20261112-185832/result.json",
+  "browser_method": "isolated Edge browser; isolated SQLite; real endpoints plus labelled HTTP fault injection",
+  "fault_injections": [
+    "business HTTP errors",
+    "network failure",
+    "shortened timeout",
+    "malformed successful responses",
+    "held response",
+    "unavailable sessionStorage",
+    "expired authentication"
+  ],
+  "previous_backend_snapshot": {
+    "tests": 438,
+    "coverage_percent": 89.17,
+    "rerun_this_iteration": false
+  },
+  "outcomes": [
+    "Persistent confirmed success; manual navigation",
+    "Trusted business refusal explains cause and permits retry",
+    "Uncertain write result requires list verification; duplicate action locked",
+    "15-second timeout covers response and body",
+    "Required errors focus inputs; 401 draft scoped to account and expires in 30 minutes"
+  ],
+  "artifact_limit": "Existing PDF and MP4 remain earlier snapshots; no contest portal upload",
+  "prompt_evidence_limit": "Actual follow-up in the appointment chain; not three independent complete human prompt chains",
+  "changed_source_sha256": {
+    "README.md": "b949162f67ba9a666f4a76f49aca641b468f5806111afacaa6952d4aa9c4a98d",
+    "app/static/js/app.js": "dfc3e430a4b14c694a24d3c8f5eec7aac00411f35091ab353d03f7f81afaf694",
+    "app/static/js/appointment-feedback.js": "21851b5ade81093967b5c8af9efca4824e4591b2c8f84f595fcc9076bb74cb0d",
+    "app/templates/appointments/new.html": "22ee36f633df8d71acc95cd1cf80c90f2993fc9a422d06b0aae658a560018139",
+    "app/templates/appointments/list.html": "6fb772ef34968fc29d0813c74ea8962a7e94cbc46a85bfcc2d20dba8a341956f",
+    "tests/frontend/appointment_feedback.test.cjs": "eabbcfb9859b9200fcb22df7d9474907e81edc575c4d3d2d3304bacf08027325",
+    "scripts/build_chuanzhi_submission.py": "bf9638102169e91cd7024288c8894fff25a225db1261ebb16cc67613ccde7bf4",
+    "docs/chuanzhi/预约反馈完善.md": "6033e2f416b76847a32490d14bff2df2abd6add1e53d5a37b88f46b3d0048e1f",
+    "docs/chuanzhi/AI协同与演进索引.md": "a4612c5c6b9ba32a27a0382f9df4583eabb5a55cfa01eea2a1b8bd86ccb975d5"
+  }
+}

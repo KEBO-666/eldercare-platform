@@ -1,0 +1,23 @@
+{
+  "recorded_at_utc": "2026-11-12T11:01:06.122667+00:00",
+  "original_local_source_commit": "b8fd6dde09b817b9b2694333226c11beccae81cd",
+  "original_local_parent": "abebc0a5941ec59f9a9daa0eab9c0b8b0d8fe461",
+  "public_parent": "2f4192d08b07b3c51875582b18ae7f4cb30aa6c1",
+  "notice": "Actual new user-guided feedback iteration. Original history preserved; no database/cache export.",
+  "changed_source_files": [
+    "README.md",
+    "app/static/js/app.js",
+    "app/static/js/appointment-feedback.js",
+    "app/templates/appointments/list.html",
+    "app/templates/appointments/new.html",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/预约反馈完善.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/frontend/appointment_feedback.test.cjs"
+  ],
+  "page_tests": 23,
+  "node_tests": 59,
+  "edge_checks": 41,
+  "previous_backend_full_tests": 438,
+  "backend_full_tests_rerun": false
+}
