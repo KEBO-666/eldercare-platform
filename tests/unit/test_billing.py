@@ -438,6 +438,48 @@ def test_create_refund_without_bill_detail_never_raises(db):
     assert "未生成账单明细" in result["reason"]
 
 
+def test_repeated_refunds_never_exceed_original_or_any_payer(db, accounts, make_order):
+    order = make_order()
+    data = billing_service.generate_bills(db, period=PERIOD, user=accounts["users"]["super"])
+    original_id = data["bill"]["id"]
+    for amount in ("0.01", "0.01", "19.99", "50.00", "999.00"):
+        result = billing_service.create_refund(db, order.id, Decimal(amount), "分次退费")
+        assert result["ok"], result
+        red = db.get(Bill, result["bill_id"])
+        assert red.subsidy_amount + red.ltc_amount + red.self_pay_amount == red.total_amount
+    again = billing_service.create_refund(db, order.id, Decimal("1.00"), "重复点击")
+    assert again["ok"] is False
+    assert "已全额退费" in again["reason"]
+    details = db.query(BillDetail).filter(BillDetail.work_order_id == order.id).all()
+    for attr in ("amount", "subsidy_amount", "ltc_amount", "self_pay_amount"):
+        assert sum(getattr(detail, attr) for detail in details) == Decimal("0.00")
+    assert db.get(Bill, original_id).total_amount == Decimal("120.00")
+
+
+def test_partial_refund_blocks_double_full_reversal(db, accounts, make_order):
+    order = make_order()
+    data = billing_service.generate_bills(db, period=PERIOD, user=accounts["users"]["super"])
+    bill_id = data["bill"]["id"]
+    bill = db.get(Bill, bill_id)
+    bill.status = "confirmed"
+    db.commit()
+    result = billing_service.create_refund(db, order.id, Decimal("20.00"), "先退一部分")
+    assert result["ok"] is True
+    with pytest.raises(Conflict):
+        billing_service.reverse_bill(db, bill_id, user=accounts["users"]["super"])
+    with pytest.raises(RuleViolation):
+        billing_service.reverse_bill(db, result["bill_id"], user=accounts["users"]["super"])
+    assert billing_service.create_refund(db, order.id)["amount"] == -100.0
+
+
+@pytest.mark.parametrize("amount", [Decimal("0"), Decimal("-10")])
+def test_nonpositive_refund_is_rejected(db, accounts, make_order, amount):
+    order = make_order()
+    billing_service.generate_bills(db, period=PERIOD, user=accounts["users"]["super"])
+    assert billing_service.create_refund(db, order.id, amount)["ok"] is False
+    assert db.query(Bill).count() == 1
+
+
 # ---------------------------------------------------------------- 差异处理
 def test_handle_diff_updates_status(db, accounts, make_order):
     make_order(status=OrderStatus.IN_SERVICE)

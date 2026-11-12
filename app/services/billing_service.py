@@ -14,6 +14,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 from decimal import Decimal
+from types import SimpleNamespace
 from typing import Any
 
 from fastapi import Request
@@ -28,17 +29,20 @@ from app.core.audit import write_audit
 from app.core.config import settings
 from app.core.deps import (
     apply_scope,
+    effective_scope,
     get_elder_of_user,
     visible_elder_ids,
 )
 from app.core.enums import (
     AuditAction,
     BillStatus,
+    DataScope,
     DiffStatus,
     OrderStatus,
     RoleCode,
 )
 from app.core.exceptions import BadRequest, Conflict, Forbidden, NotFound, RuleViolation
+from app.core.export import safe_cell
 from app.core.state_machine import BILL
 from app.db.base import utcnow
 from app.models import (
@@ -203,6 +207,32 @@ def serialize_bill(bill: Bill) -> dict[str, Any]:
     }
 
 
+def bill_view(db: Session, bill: Bill, user: User | None) -> dict[str, Any]:
+    """本人/网格视角只汇总可见老人，不能由同社区账单泄露其他老人的费用。"""
+    data = serialize_bill(bill)
+    if user is None or effective_scope(user) not in (DataScope.SELF, DataScope.GRID):
+        return data
+    ids = visible_elder_ids(db, user) or []
+    details = db.scalars(select(BillDetail).where(BillDetail.bill_id == bill.id, BillDetail.elder_id.in_(ids))).all()
+    for attr in ("total_amount", "subsidy_amount", "ltc_amount", "self_pay_amount"):
+        column = "amount" if attr == "total_amount" else attr
+        data[attr] = _num(sum((money(getattr(row, column)) for row in details), ZERO))
+    diff_amount = db.scalar(select(func.coalesce(func.sum(ReconciliationDiff.amount), 0)).where(
+        ReconciliationDiff.bill_id == bill.id, ReconciliationDiff.elder_id.in_(ids),
+    ))
+    data["diff_amount"] = _num(diff_amount)
+    data["diff_ratio"] = float(money(diff_amount) / money(data["total_amount"])) if data["total_amount"] else 0.0
+    data["view_scope"] = "visible_elders"
+    return data
+
+
+def _visible_details(rows: list, db: Session, user: User | None) -> list:
+    if user is None:
+        return rows
+    ids = visible_elder_ids(db, user)
+    return rows if ids is None else [row for row in rows if row.elder_id in ids]
+
+
 def serialize_detail(
     detail: BillDetail,
     elder: Elder | None = None,
@@ -304,7 +334,7 @@ def list_bills(
         .offset(max(0, (page - 1) * size))
         .limit(size)
     ).scalars().all()
-    return [serialize_bill(bill) for bill in rows], total
+    return [bill_view(db, bill, user) for bill in rows], total
 
 
 def get_bill_detail(db: Session, bill_id: int, user: User | None = None) -> dict[str, Any]:
@@ -319,6 +349,10 @@ def get_bill_detail(db: Session, bill_id: int, user: User | None = None) -> dict
         select(PaymentRecord).where(PaymentRecord.bill_id == bill.id).order_by(PaymentRecord.id.asc())
     ).scalars().all()
 
+    details = _visible_details(details, db, user)
+    diffs = _visible_details(diffs, db, user)
+    if user is not None and effective_scope(user) in (DataScope.SELF, DataScope.GRID):
+        payments = []  # 社区统一缴费凭证不能作为个人或网格缴费明细公开。
     elder_ids = {d.elder_id for d in details} | {d.elder_id for d in diffs if d.elder_id}
     order_ids = {d.work_order_id for d in details if d.work_order_id} | {
         d.work_order_id for d in diffs if d.work_order_id
@@ -334,7 +368,7 @@ def get_bill_detail(db: Session, bill_id: int, user: User | None = None) -> dict
         else {}
     )
 
-    payload = serialize_bill(bill)
+    payload = bill_view(db, bill, user)
     payload["details"] = [
         serialize_detail(d, elders.get(d.elder_id), orders.get(d.work_order_id)) for d in details
     ]
@@ -1028,6 +1062,7 @@ def _build_red_bill(
     source_detail: BillDetail | None = None,
     reason: str = "",
     operator_id: int | None = None,
+    components: tuple[Decimal, Decimal, Decimal] | None = None,
 ) -> Bill:
     """生成负数红冲账单（原单金额与状态由调用方处理，本函数只负责新单）。"""
     if amount is not None:
@@ -1049,6 +1084,10 @@ def _build_red_bill(
         ltc_abs = money(abs(money(source.ltc_amount)) * scale)
 
     subsidy, ltc, self_pay = _red_components(total_abs, subsidy_abs, ltc_abs)
+    if components is not None:
+        subsidy, ltc, self_pay = (-money(value) for value in components)
+    if money(subsidy + ltc + self_pay) != -total_abs:
+        raise RuleViolation("红冲分账金额与退费总额不一致")
     now = utcnow()
     red = Bill(
         code=_next_red_code(db, source.period),
@@ -1123,6 +1162,14 @@ def reverse_bill(
 ) -> dict[str, Any]:
     """红冲：原单状态置 reversed、金额不变；同时生成负数红冲新单。"""
     bill = get_bill_or_404(db, bill_id, user)
+    if money(bill.total_amount) <= 0:
+        raise RuleViolation("负数红冲单不能再次红冲")
+    order_ids = select(BillDetail.work_order_id).where(BillDetail.bill_id == bill.id)
+    refunded = db.scalar(select(func.count(BillDetail.id)).where(
+        BillDetail.work_order_id.in_(order_ids), BillDetail.amount < 0,
+    ))
+    if refunded:
+        raise Conflict("账单已有工单退费，请逐工单退还剩余金额，避免重复红冲")
     target = BILL.next(str(bill.status), "reverse")
     before = {
         "status": str(bill.status),
@@ -1175,6 +1222,7 @@ def create_refund(
                 .join(Bill, BillDetail.bill_id == Bill.id)
                 .where(
                     BillDetail.work_order_id == work_order_id,
+                    BillDetail.amount > 0,
                     Bill.status != BillStatus.REVERSED.value,
                 )
                 .order_by(BillDetail.id.desc())
@@ -1196,11 +1244,18 @@ def create_refund(
                     "reason": "原账单不存在",
                 }
 
-            detail_amount = money(abs(money(detail.amount)))
-            refund_amount = money(abs(money(amount))) if amount is not None else detail_amount
-            # 防御：退费金额不得超过原明细金额，避免超额红冲
-            if refund_amount > detail_amount:
-                refund_amount = detail_amount
+            # 原明细只能退一次总额；负数明细绝不能被再次用作退费来源。
+            previous = db.execute(select(
+                func.coalesce(func.sum(BillDetail.amount), 0),
+                func.coalesce(func.sum(BillDetail.subsidy_amount), 0),
+                func.coalesce(func.sum(BillDetail.ltc_amount), 0),
+                func.coalesce(func.sum(BillDetail.self_pay_amount), 0),
+            ).where(BillDetail.work_order_id == work_order_id, BillDetail.amount < 0)).one()
+            remaining = money(detail.amount + money(previous[0]))
+            if remaining <= 0:
+                return {"ok": False, "bill_id": None, "work_order_id": work_order_id, "reason": "该工单已全额退费"}
+            requested = money(amount) if amount is not None else remaining
+            refund_amount = min(requested, remaining)
             if refund_amount <= 0:
                 return {
                     "ok": False,
@@ -1209,6 +1264,23 @@ def create_refund(
                     "reason": "退费金额必须大于 0",
                 }
 
+            remaining_parts = [money(getattr(detail, attr) + money(previous[index + 1]))
+                               for index, attr in enumerate(("subsidy_amount", "ltc_amount", "self_pay_amount"))]
+            # 按剩余各方金额分摊；最后一次精确退尽各方余额，避免累计分币误差。
+            if refund_amount == remaining:
+                parts = remaining_parts
+            else:
+                gov = min(remaining_parts[0], money(refund_amount * remaining_parts[0] / remaining))
+                ltc = min(remaining_parts[1], refund_amount - gov,
+                          money(refund_amount * remaining_parts[1] / remaining))
+                personal = money(refund_amount - gov - ltc)
+                if personal > remaining_parts[2]:
+                    shift = personal - remaining_parts[2]
+                    extra_gov = min(shift, remaining_parts[0] - gov)
+                    gov += extra_gov
+                    ltc += shift - extra_gov
+                    personal -= shift
+                parts = [gov, ltc, personal]
             red = _build_red_bill(
                 db,
                 source,
@@ -1216,6 +1288,7 @@ def create_refund(
                 source_detail=detail,
                 reason=reason,
                 operator_id=operator_id,
+                components=tuple(parts),
             )
             user = db.get(User, operator_id) if operator_id else None
             write_audit(
@@ -1318,9 +1391,9 @@ def build_bill_workbook(
     row = 3
     for left_key, left_value, right_key, right_value in info:
         sheet.cell(row=row, column=1, value=left_key).font = Font(bold=True)
-        sheet.cell(row=row, column=2, value=left_value)
+        sheet.cell(row=row, column=2, value=safe_cell(left_value))
         sheet.cell(row=row, column=4, value=right_key).font = Font(bold=True)
-        sheet.cell(row=row, column=5, value=right_value)
+        sheet.cell(row=row, column=5, value=safe_cell(right_value))
         row += 1
 
     header_row = row + 1
@@ -1348,7 +1421,7 @@ def build_bill_workbook(
             _num(detail.self_pay_amount),
         ]
         for index, value in enumerate(values, start=1):
-            cell = sheet.cell(row=row, column=index, value=value)
+            cell = sheet.cell(row=row, column=index, value=safe_cell(value))
             if index >= 4:
                 cell.number_format = "#,##0.00"
         row += 1
@@ -1396,6 +1469,7 @@ def export_bill_xlsx(
         .scalars()
         .all()
     )
+    details = _visible_details(details, db, user)
     elder_ids = {d.elder_id for d in details}
     order_ids = {d.work_order_id for d in details if d.work_order_id}
     elders = (
@@ -1408,7 +1482,7 @@ def export_bill_xlsx(
         if order_ids
         else {}
     )
-    content = build_bill_workbook(bill, details, elders, orders)
+    content = build_bill_workbook(SimpleNamespace(**bill_view(db, bill, user)), details, elders, orders)
     write_audit(
         db,
         user=user,

@@ -40,6 +40,7 @@ from app.core.enums import (
     RoleCode,
 )
 from app.core.exceptions import RuleViolation
+from app.core.export import safe_cell
 from app.db.base import utcnow
 from app.models import (
     Alert,
@@ -954,7 +955,7 @@ def export_report(
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
     writer.writerow(headers)
-    writer.writerows(rows)
+    writer.writerows([safe_cell(value) for value in row] for row in rows)
     content = buffer.getvalue().encode("utf-8-sig")
     filename = f"stats_{report_type}_{start:%Y%m%d}_{end:%Y%m%d}.csv"
 

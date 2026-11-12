@@ -1,99 +1,66 @@
 # 测试报告
 
-> 生成方式：`pytest -q --cov=app --cov-report=term-missing`
-> 运行环境：Windows / Python 3.12.14 / SQLite（内存库，StaticPool）/ pytest 8.3.0
-> 测试代码：`tests/unit`（纯函数、状态机、加密、算法边界）+ `tests/integration`（接口、数据范围、六条流程端到端）+ `tests/integration/test_web_smoke.py`（页面冒烟）
+验证日期：2026-11-12。环境：Windows、Python 3.12.14、pytest 8.3.0、SQLite 内存测试库。
 
----
+## 最终结果
 
-## 1. 总体结果（本轮最终运行）
+数据来自 `reports/junit.xml` 和 `reports/coverage.xml`。
 
-| 指标 | 数值 |
-|---|---|
-| 测试用例数 | 340 |
-| 通过 | 340 |
-| 失败 / 错误 | 0 / 0 |
-| 跳过 | 0 |
-| 总耗时 | 约 256 秒 |
-| 语句覆盖率 | **89%**（7401 条语句，841 条未覆盖） |
+| 指标 | 结果 |
+|---|---:|
+| 用例总数 / 通过 | 410 / 410 |
+| 失败 / 错误 / 跳过 | 0 / 0 / 0 |
+| pytest 耗时 | 264.870 秒 |
+| app 语句覆盖率 | 89.14% |
+| 可执行语句 / 已覆盖 | 7553 / 6733 |
+| Ruff | 通过 |
+| JS 语法检查 | node --check app/static/js/app.js 通过 |
+| Git 补丁空白检查 | 通过 |
+| Docker Compose 配置 | 校验通过；引擎未运行，未验证构建部署 |
 
-> 覆盖率明细见运行输出；`app/models/*` 与 `app/core/enums.py` 为 100%，`app/services/billing_service.py`、`stats_service.py` 均在 90% 左右，`archive_service.py` 89%、`appointment_service.py` 88%。
+主要模块覆盖率：派单算法 92%、派单服务 92%、档案服务 96%、预约服务 89%、结算服务 92%、工单服务 90%、质量服务 88%、统计服务 94%、数据范围依赖 94%、页面路由 76%。完整 HTML 明细：`reports/htmlcov/index.html`。
 
-覆盖率较低的模块与原因（可接受）：
-- `app/tasks/scheduler.py`（0%）：APScheduler 调度器只在进程启动时装配，单测不启动后台线程；任务函数本身（`alert_timeout` / `backup_daily` / `billing_monthly`）已单独覆盖 85% / 88% / 56%。
-- `app/web/routes.py`（73%→）：页面路由以页面冒烟测试 + 手工页面验证覆盖，未逐行构造异常分支。
+## 新增回归
 
----
+| 文件 | 用例数 | 验证重点 |
+|---|---:|---|
+| integration/test_competition_regressions.py | 32 | 四周周期预约与整组回滚、派单/改派硬约束、服务日负荷、29分59秒/30分钟超时、自动换候选及人工协调、取消/爽约释放时段、价格快照、跨网格读写、未绑定账号、本人预约授权、合并账单隔离、照片授权、机构越权授权、可穿戴黄红预警、30天评分窗口、禁止重开终态 |
+| unit/test_competition_safety.py | 18 | 非法权重、贡献与降权、CSV/XLSX 公式转义、保持数字类型、EXIF 清理与旋转、像素和原图大小限制 |
+| unit/test_billing.py 新增部分 | 4 | 分币累计退费精确归零、重复退费拒绝、部分退费后整单红冲拒绝、零/负金额拒绝 |
 
-## 2. 按模块统计
+既有预约、派单、预警、执行、质量、结算、审计和备份用例仍全部通过。旧用例按赛题修正：超时从派单时刻起算；日负荷对应服务日期；评分对比使用真实评价记录；无关老人的预约使用有权限的账号创建。
 
-| 模块 | 测试文件 | 用例数 | 覆盖重点 |
-|---|---|---|---|
-| 基座（安全/状态机/审计） | `unit/test_foundation.py` | 10 | JWT、AES-GCM、脱敏、哈希链篡改检测、状态机非法跳转 |
-| 认证与系统管理 | `unit/test_auth_admin.py` / `integration/test_auth_api.py` / `integration/test_admin_api.py` | 18 + 9 + 12 | 登录/失败审计、Cookie、RBAC、组织层级、备份恢复核对 |
-| 备份 | `unit/test_backup.py` | 7 | 在线备份、快照行数、30 版保留、恢复回滚、损坏备份拒绝 |
-| 老人档案 | `unit/test_archive.py` / `integration/test_elders_api.py` | 9 + 9 | 密文落库、摘要检索、脱敏、越权 403、二次授权过期、变更日志 |
-| 服务目录 | `unit/test_catalog.py` / `integration/test_catalog_api.py` | 8 + 6 | 价格版本化、调价不影响历史工单 |
-| 预约 | `unit/test_appointment.py` / `integration/test_appointment_api.py` | 15 + 13 | 三重校验、119/121 分钟取消计费、状态机 |
-| 派单 | `unit/test_dispatch.py` / `integration/test_dispatch_api.py` | 9 + 14 | 四因子、Top3、权重覆盖、技能/半径/负荷/冲突过滤、30 分钟顺延 |
-| 执行与质量 | `unit/test_order.py` / `unit/test_quality.py` / `integration/test_orders_api.py` / `integration/test_quality_api.py` | 22 + 17 + 16 + 11 | 199/201 米签到、第 4 张照片、29/31 分钟时长、≤3 星 48h 回访、投诉 3 次降权 |
-| 健康与预警 | `unit/test_health_service.py` / `unit/test_alert_rules.py` / `integration/test_health_api.py` / `integration/test_alerts_api.py` | 9 + 21 + 9 + 20 | 指标入库、趋势聚合、179/180 边界、连续 3 次、47.9/48.1 小时静默、冷却、升级 |
-| 结算与统计 | `unit/test_billing.py` / `unit/test_stats_service.py` / `integration/test_billing_api.py` / `integration/test_stats_api.py` | 23 + 7 + 11 + 5 | 补贴上限、差异率 0.9/1.0/1.1%、红冲、收入占比、趋势同比、分布占比 |
-| 端到端 | `integration/test_flows_e2e.py` | 7 | 六条业务流程 + 权限/审计/备份 |
-| 页面冒烟 | `integration/test_web_smoke.py` | 23 | 登录/未登录跳转、角色菜单、13 个业务页面渲染、静态资源、/health 不被遮挡 |
+## 端到端和真实 HTTP 验收
 
----
+`integration/test_flows_e2e.py` 的 7 个用例全部通过，覆盖预约派单执行评价、健康预警闭环、超时升级、低分回访投诉退费、结算差异缴费红冲、权限审计、备份恢复。
 
-## 3. 赛题关键边界覆盖清单
+另执行 `python -m scripts.verify_demo`，报告为 `reports/demo-smoke.json`：
 
-| 赛题要求 | 边界用例 | 结果 |
-|---|---|---|
-| 取消 <2 小时计费 | 119 分钟 → 计费；121 分钟 → 免费 | ✅ |
-| 签到 200 米阈值 | 199 米通过；201 米无说明 400；201 米有说明通过 | ✅ |
-| 照片 ≤3 张 | 第 4 张 400；压缩后落盘且尺寸受限 | ✅ |
-| 时长偏差 30 分钟 | 29 分钟不标记；31 分钟标记异常 | ✅ |
-| 血压越界阈值 | 179 不触发 / 180 触发红；91 不触发 / 89、90 触发红 | ✅ |
-| 连续异常 | 第 2 次不触发 / 第 3 次触发黄色 | ✅ |
-| 静默 48 小时 | 47.9 小时不触发 / 48.1 小时触发蓝 | ✅ |
-| 红色预警升级 | 31 分钟后 scan → escalated_at + 升级动作留痕 | ✅ |
-| 补贴月度上限 | 跨明细累计截断（第 6 笔补贴 0），跨账单累计 | ✅ |
-| 差异率 1% | 0.9% 不复核 / 1.0% 不复核（严格 >）/ 1.1% needs_review 且 confirm 拦截 | ✅ |
-| 时长 3 倍拦截 | 恰好 180 分钟不拦截 / 181 分钟拦截 | ✅ |
-| 红冲 | 原单金额与状态不变，新单负数 | ✅ |
-| 派单 Top3 与权重 | 权重改序后排序变化，四因子明细齐全 | ✅ |
-| 越权数据范围 | grid2 查 grid1 老人 403 / 列表为空 | ✅ |
-| 审计不可篡改 | 篡改任一记录 → verify_chain 返回断点 | ✅ |
-| 备份恢复 | 恢复后记录数回到备份点，输出 before/after 核对报告 | ✅ |
+- 独立临时数据库和上传目录，两次执行种子脚本后 40 张表记录数一致。
+- 实际启动 uvicorn，经 /health 检查后登录 super、street、orgadmin、grid1、nurse1、elder1 六类账号。
+- 13 次关键页面访问均返回 200，覆盖首页、统计、审计、账单、预约、派单、质量和工单。
+- 结束后关闭验收服务、清理临时库。曾发现 Windows 下记录数查询连接未显式关闭造成临时库占用；修复后已重新通过真实启动验收。
 
----
+## 复现命令
 
-## 4. 静态检查
-
-```
-ruff check app tests  →  All checks passed!
-```
-
----
-
-## 5. 手动验证（真实服务冒烟）
-
-启动 `uvicorn app.main:app`（真实 SQLite 种子库，37 张表 / 1535 行演示数据）后验证：
-
-| 检查项 | 结果 |
-|---|---|
-| `GET /health` | 200，JSON `{"status":"healthy"}` |
-| `GET /login` | 200，登录页 2.2KB |
-| `GET /docs` | 200，OpenAPI 文档可访问 |
-| `POST /api/v1/auth/login`（grid1） | 200，role=grid，16 项权限 |
-| `GET /api/v1/elders`（grid1） | 200，total=3（本网格可见） |
-| `GET /monitoring`（带 Cookie） | 200，页面渲染正常 |
-
----
-
-## 6. 复现命令
+在项目根目录执行：
 
 ```powershell
-Set-Location 'D:\Program Files (x86)\巅峰\python\eldercare-platform'
-$env:TEMP=(Join-Path $PWD 'data\tmp'); $env:TMP=$env:TEMP; $env:PYTHONIOENCODING='utf-8'
-& '.\.venv\Scripts\python.exe' -m pytest tests -q --cov=app --cov-report=term-missing
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1
 ```
+
+依次运行 Ruff、全量 pytest 与覆盖率、真实 HTTP 演示验收。也可以分别运行：
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m pytest tests -q --tb=short --junitxml=reports/junit.xml --cov=app --cov-report=xml:reports/coverage.xml --cov-report=html:reports/htmlcov
+.\.venv\Scripts\python.exe -m scripts.verify_demo
+```
+
+## 验证范围
+
+测试和覆盖率针对 Python 应用逻辑；脚本、CSS、JS 不计入 app 覆盖率。页面通过服务器渲染与真实 HTTP 检查，未完成浏览器视觉检查、移动端尺寸测量或键盘可访问性人工验收。
+
+未验证 PostgreSQL/Docker 实际运行、高并发一致性、多实例调度、真实短信送达、生产备份恢复和真实监管抽样。调度器装配不在单测中启动，tasks/scheduler.py 覆盖率为 0%；备份、月结及预警任务函数已有独立用例，不能据此推断实际到点调度已验收。
+
+完整能力边界和提交事项见 [赛题验收优化说明](赛题验收优化说明.md)。

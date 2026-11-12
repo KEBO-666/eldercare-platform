@@ -20,11 +20,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import write_audit
-from app.core.deps import effective_scope, get_elder_of_user, get_staff, visible_elder_ids
+from app.core.deps import ensure_elder_visible, scope_condition, visible_elder_ids
 from app.core.enums import (
     CallbackStatus,
     ComplaintStatus,
-    DataScope,
     OrderStatus,
     RoleCode,
 )
@@ -161,37 +160,11 @@ def _notify(db: Session, user_ids: list[int], *, title: str, content: str,
 
 # ---------------------------------------------------------------- 数据范围
 def _evaluation_scope_condition(db: Session, user: User):
-    role_code = user.role.code if user.role else None
-    scope = effective_scope(user)
-    if role_code in (RoleCode.SUPER, RoleCode.STREET) or scope == DataScope.STREET:
-        return None
-    if role_code == RoleCode.NURSE:
-        staff = get_staff(db, user)
-        return Evaluation.nurse_id == (staff.id if staff is not None else -1)
-    if role_code == RoleCode.ELDER:
-        elder = get_elder_of_user(db, user)
-        return Evaluation.elder_id == (elder.id if elder is not None else -1)
-    community_id = _resolve_community_org_id(db, user.org_id)
-    if community_id is not None:
-        return Evaluation.work_order_id.in_(select(WorkOrder.id).where(WorkOrder.community_org_id == community_id))
-    return None
+    return scope_condition(Evaluation, user, db)
 
 
 def _complaint_scope_condition(db: Session, user: User):
-    role_code = user.role.code if user.role else None
-    scope = effective_scope(user)
-    if role_code in (RoleCode.SUPER, RoleCode.STREET) or scope == DataScope.STREET:
-        return None
-    if role_code == RoleCode.NURSE:
-        staff = get_staff(db, user)
-        return Complaint.nurse_id == (staff.id if staff is not None else -1)
-    if role_code == RoleCode.ELDER:
-        elder = get_elder_of_user(db, user)
-        return Complaint.elder_id == (elder.id if elder is not None else -1)
-    community_id = _resolve_community_org_id(db, user.org_id)
-    if community_id is not None:
-        return Complaint.elder_id.in_(select(Elder.id).where(Elder.community_org_id == community_id))
-    return None
+    return scope_condition(Complaint, user, db)
 
 
 # ---------------------------------------------------------------- 序列化
@@ -502,6 +475,7 @@ def finish_callback(
     callback = db.get(CallbackTask, callback_id)
     if callback is None:
         raise NotFound("回访任务不存在")
+    ensure_elder_visible(db, user, callback.elder_id)
     if str(callback.status) != CallbackStatus.PENDING:
         raise RuleViolation("该回访任务已完成，不能重复处理")
     if result not in ("improve", "to_complaint"):
@@ -557,9 +531,18 @@ def _create_complaint(
     elder = db.get(Elder, elder_id)
     if elder is None:
         raise NotFound("老人档案不存在")
+    if user is not None:
+        ensure_elder_visible(db, user, elder_id)
     order = db.get(WorkOrder, work_order_id) if work_order_id else None
     if work_order_id and order is None:
         raise NotFound("关联工单不存在")
+    if order is not None:
+        if user is not None:
+            ensure_order_visible(db, user, order)
+        if order.elder_id != elder_id:
+            raise RuleViolation("关联工单与投诉老人不一致")
+        if nurse_id is not None and nurse_id != order.nurse_id:
+            raise RuleViolation("被投诉护理员与工单不一致")
     if nurse_id is None and order is not None:
         nurse_id = order.nurse_id
     complaint = Complaint(
@@ -666,11 +649,17 @@ def assign_complaint(
     complaint = db.get(Complaint, complaint_id)
     if complaint is None:
         raise NotFound("投诉单不存在")
+    ensure_elder_visible(db, user, complaint.elder_id)
     handler = db.get(User, handler_id)
     if handler is None:
         raise NotFound("处置人不存在")
     if not handler.is_active:
         raise RuleViolation("处置人账号已停用")
+    from app.core.deps import has_permission
+
+    if not has_permission(handler, "quality:handle"):
+        raise RuleViolation("处置人缺少投诉处理权限")
+    ensure_elder_visible(db, handler, complaint.elder_id)
     before = {"status": str(complaint.status), "handler_id": complaint.handler_id}
     complaint.status = COMPLAINT.next(complaint.status, "assign")
     complaint.handler_id = handler.id
@@ -778,6 +767,7 @@ def conclude_complaint(
     complaint = db.get(Complaint, complaint_id)
     if complaint is None:
         raise NotFound("投诉单不存在")
+    ensure_elder_visible(db, user, complaint.elder_id)
     clean_conclusion = (conclusion or "").strip()
     if not clean_conclusion:
         raise RuleViolation("投诉结论不能为空")

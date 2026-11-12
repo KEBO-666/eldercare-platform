@@ -21,12 +21,14 @@ from app.algorithms.dispatch import (
 )
 from app.core.audit import write_audit
 from app.core.config import settings
+from app.core.deps import apply_scope
 from app.core.enums import (
     AuditAction,
     ItemStatus,
     NotificationChannel,
     NotificationStatus,
     OrderStatus,
+    RoleCode,
 )
 from app.core.exceptions import Conflict, NotFound, RuleViolation
 from app.core.state_machine import APPOINTMENT, ORDER
@@ -34,7 +36,9 @@ from app.models import (
     Appointment,
     ConfigItem,
     Elder,
+    Evaluation,
     Notification,
+    Role,
     ServiceItem,
     Staff,
     User,
@@ -151,7 +155,7 @@ def _ensure_nurse_available(
     now: datetime | None = None,
     exclude_order_id: int | None = None,
 ) -> None:
-    today_count = count_today_orders(db, staff.id, now)
+    today_count = count_today_orders(db, staff.id, start)
     daily_limit = int(settings.order_daily_limit)
     if today_count >= daily_limit:
         raise Conflict(f"护理员「{staff.name}」当日已派 {today_count} 单，已达上限 {daily_limit} 单")
@@ -160,6 +164,42 @@ def _ensure_nurse_available(
         raise Conflict(
             f"护理员「{staff.name}」在 {busy.scheduled_start:%Y-%m-%d %H:%M} 已有在途工单 {busy.code}，时段冲突"
         )
+
+
+def _ensure_eligible(db: Session, staff: Staff, elder: Elder | None, item: ServiceItem | None) -> None:
+    """手工派单与改派同样必须满足推荐算法的硬约束。"""
+    if not is_item_available(item):
+        raise RuleViolation("服务项目已下架或不存在，不可派单")
+    if elder is None or elder.is_deleted:
+        raise NotFound("老人档案不存在")
+    missing = set(item.required_skills or []) - set(staff.skills or [])
+    if missing:
+        raise RuleViolation("护理员缺少必需技能：" + "、".join(sorted(missing)))
+    distance = haversine(elder.lat, elder.lng, staff.base_lat, staff.base_lng)
+    radius = min(float(settings.service_radius_km), float(staff.service_radius_km or 0))
+    if distance > radius:
+        raise RuleViolation("护理员超出服务半径或缺少定位坐标")
+
+
+def _notify_family_and_grid(db: Session, appointment: Appointment, *, title: str, content: str) -> None:
+    elder = db.get(Elder, appointment.elder_id)
+    if elder is None:
+        return
+    recipients = set(db.scalars(
+        select(User.id).join(Role, User.role_id == Role.id).where(
+            User.is_active.is_(True),
+            User.org_id == elder.grid_org_id,
+            Role.code == RoleCode.GRID.value,
+        )
+    ).all())
+    if elder.user_id:
+        recipients.add(elder.user_id)
+    for recipient in sorted(recipients):
+        db.add(Notification(
+            user_id=recipient, elder_id=elder.id,
+            channel=NotificationChannel.INAPP.value, title=title, content=content,
+            status=NotificationStatus.SENT.value, related_type="appointment", related_id=appointment.id,
+        ))
 
 
 def _notify_nurse(db: Session, staff: Staff, *, title: str, content: str, related_id: int | None) -> None:
@@ -210,21 +250,25 @@ def order_to_dict(db: Session, order: WorkOrder) -> dict[str, Any]:
 def get_candidates(
     db: Session,
     appointment_id: int,
-    user: User,
+    user: User | None,
     *,
     limit: int | None = None,
     now: datetime | None = None,
+    exclude_nurse_ids: set[int] | None = None,
 ) -> list[dict[str, Any]]:
     """返回 TopN 候选护理员及四项因子明细（按 score 倒序）。"""
     appointment = appt_service.get_or_404(db, appointment_id)
-    appt_service.ensure_visible(db, user, appointment)
+    if user is not None:
+        appt_service.ensure_visible(db, user, appointment)
     if str(appointment.status) in appt_service.TERMINAL_APPOINTMENT_STATUSES:
         raise Conflict("预约单已结束，无法推荐候选护理员")
 
     elder = db.get(Elder, appointment.elder_id)
     item = db.get(ServiceItem, appointment.service_item_id)
-    if elder is None:
+    if elder is None or elder.is_deleted:
         raise NotFound("老人档案不存在")
+    if not is_item_available(item):
+        raise RuleViolation("服务项目已下架或不存在，不可派单")
     duration = item_duration(item)
     start = appointment.desired_start
     end = start + duration
@@ -236,19 +280,34 @@ def get_candidates(
     radius = float(settings.service_radius_km)
 
     staffs = db.execute(select(Staff).where(Staff.status == "active").order_by(Staff.id.asc())).scalars().all()
+    # 近 30 天评分实时聚合，避免缓存评分过期后影响推荐。
+    ratings = dict(db.execute(
+        select(Evaluation.nurse_id, func.avg(Evaluation.avg_score))
+        .where(Evaluation.created_at >= now - timedelta(days=30), Evaluation.created_at <= now)
+        .group_by(Evaluation.nurse_id)
+    ).all())
+    day_start, day_end = _day_window(start)
+    loads = dict(db.execute(
+        select(WorkOrder.nurse_id, func.count(WorkOrder.id)).where(
+            WorkOrder.scheduled_start >= day_start, WorkOrder.scheduled_start < day_end,
+            WorkOrder.status != OrderStatus.CANCELLED.value,
+        ).group_by(WorkOrder.nurse_id)
+    ).all())
     raw_candidates: list[dict[str, Any]] = []
     for staff in staffs:
+        if staff.id in (exclude_nurse_ids or set()):
+            continue
         distance = haversine(elder.lat, elder.lng, staff.base_lat, staff.base_lng)
         raw_candidates.append(
             {
                 "staff_id": staff.id,
                 "name": staff.name,
                 "distance_km": None if distance == float("inf") else distance,
-                "today_count": count_today_orders(db, staff.id, now),
+                "today_count": loads.get(staff.id, 0),
                 "skills": list(staff.skills or []),
-                "rating": staff.rating_cached,
+                "rating": ratings.get(staff.id),
                 "is_focus": bool(staff.is_focus),
-                "service_radius_km": float(staff.service_radius_km or radius),
+                "service_radius_km": float(staff.service_radius_km or 0),
                 "status": staff.status,
                 "daily_limit": daily_limit,
             }
@@ -281,6 +340,7 @@ def assign_order(
     user: User | None,
     request: Request | None = None,
     remark: str | None = None,
+    commit: bool = True,
 ) -> dict[str, Any]:
     appointment = appt_service.get_or_404(db, appointment_id)
     if user is not None:
@@ -293,6 +353,7 @@ def assign_order(
         raise RuleViolation(f"护理员「{staff.name}」已停用，不可派单")
 
     item = db.get(ServiceItem, appointment.service_item_id)
+    _ensure_eligible(db, staff, db.get(Elder, appointment.elder_id), item)
     duration = item_duration(item)
     start = appointment.desired_start
     end = start + duration
@@ -344,6 +405,10 @@ def assign_order(
         content=f"{start:%Y-%m-%d %H:%M} 上门服务工单 {order.code}，请在 {settings.accept_timeout_minutes} 分钟内接单",
         related_id=order.id,
     )
+    _notify_family_and_grid(
+        db, appointment, title="预约已派单",
+        content=f"预约 {appointment.code} 已安排 {staff.name}，上门时间 {start:%Y-%m-%d %H:%M}",
+    )
     data = order_to_dict(db, order)
     write_audit(
         db,
@@ -356,7 +421,8 @@ def assign_order(
         detail=f"派单：预约 {appointment.code} → 工单 {order.code}，护理员 {staff.name}",
         request=request,
     )
-    db.commit()
+    if commit:
+        db.commit()
     return order_to_dict(db, order)
 
 
@@ -395,6 +461,7 @@ def reassign_order(
         raise RuleViolation("改派护理员不能与原工单相同")
 
     item = db.get(ServiceItem, order.service_item_id)
+    _ensure_eligible(db, staff, db.get(Elder, order.elder_id), item)
     duration = item_duration(item)
     start = order.scheduled_start
     end = order.scheduled_end or (start + duration)
@@ -443,6 +510,10 @@ def reassign_order(
             related_id=order.id,
         )
     if order.appointment_id:
+        _notify_family_and_grid(
+            db, appointment, title="服务护理员已变更",
+            content=f"预约 {appointment.code} 改派给 {staff.name}，原因：{reason_text}",
+        )
         appt_service.write_log(
             db,
             appointment,
@@ -481,30 +552,33 @@ def scan_accept_timeout(
     now: datetime | None = None,
     timeout_minutes: int | None = None,
     operator_id: int | None = None,
+    user: User | None = None,
 ) -> dict[str, Any]:
-    """扫描接单超时的工单：距服务开始不足 accept_timeout_minutes 仍未接单 → 顺延。
-
-    动作：工单置 cancelled，预约回 pending_dispatch，写审计/状态日志。
-    返回 {scanned, requeued, requeued_orders, timeout_minutes}；供定时任务与手动接口复用。
-    """
+    """从派单创建时刻计时；超时后顺延至未尝试候选，无人可派则通知人工协调。"""
     now = now or datetime.now()
     minutes = int(settings.accept_timeout_minutes if timeout_minutes is None else timeout_minutes)
-    threshold = now + timedelta(minutes=minutes)
+    if minutes <= 0:
+        raise RuleViolation("接单超时分钟数必须大于 0")
+    threshold = now - timedelta(minutes=minutes)
 
+    stmt = select(WorkOrder).where(
+        WorkOrder.status == OrderStatus.PENDING_ACCEPT.value,
+        WorkOrder.created_at <= threshold,
+    ).order_by(WorkOrder.id.asc())
+    if user is None and operator_id is not None:
+        user = db.get(User, operator_id)
+        if user is None:
+            raise NotFound("操作人不存在")
+    if user is not None:
+        stmt = apply_scope(stmt, WorkOrder, user, db)
     orders = (
-        db.execute(
-            select(WorkOrder)
-            .where(
-                WorkOrder.status == OrderStatus.PENDING_ACCEPT.value,
-                WorkOrder.scheduled_start < threshold,
-            )
-            .order_by(WorkOrder.id.asc())
-        )
+        db.execute(stmt)
         .scalars()
         .all()
     )
     requeued_ids: list[int] = []
     requeued_orders: list[dict[str, Any]] = []
+    reassigned_orders: list[dict[str, Any]] = []
     for order in orders:
         old_status = order.status
         order.status = ORDER.next(old_status, "cancel")
@@ -519,6 +593,24 @@ def scan_accept_timeout(
                 operator_id=operator_id,
             )
             requeued_ids.append(appointment.id)
+            attempted = set(db.scalars(select(WorkOrder.nurse_id).where(
+                WorkOrder.appointment_id == appointment.id,
+                WorkOrder.nurse_id.is_not(None),
+            )).all())
+            candidates = get_candidates(
+                db, appointment.id, user, limit=1, now=now, exclude_nurse_ids=attempted,
+            ) if is_item_available(db.get(ServiceItem, appointment.service_item_id)) else []
+            if candidates and appointment.desired_start > now:
+                replacement = assign_order(
+                    db, appointment.id, candidates[0]["staff_id"], user=user,
+                    remark=f"工单 {order.code} 接单超时自动顺延", commit=False,
+                )
+                reassigned_orders.append(replacement)
+            else:
+                _notify_family_and_grid(
+                    db, appointment, title="派单需人工协调",
+                    content=f"预约 {appointment.code} 接单超时，暂无可用新候选或已过预约时间，请网格员协调。",
+                )
         requeued_orders.append(
             {
                 "order_id": order.id,
@@ -532,7 +624,7 @@ def scan_accept_timeout(
         )
         write_audit(
             db,
-            user=None,
+            user=user,
             action=AuditAction.UPDATE.value,
             entity_type="work_order",
             entity_id=order.id,
@@ -546,6 +638,7 @@ def scan_accept_timeout(
         "requeued": requeued_ids,
         "requeued_orders": requeued_orders,
         "timeout_minutes": minutes,
+        "reassigned_orders": reassigned_orders,
         "now": now,
     }
 

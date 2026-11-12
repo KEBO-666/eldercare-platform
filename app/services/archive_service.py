@@ -28,6 +28,7 @@ from app.core.enums import (
     AuditAction,
 )
 from app.core.exceptions import BizError, Conflict, Forbidden, NotFound, RuleViolation
+from app.core.export import safe_cell
 from app.core.security import (
     decrypt_field,
     encrypt_field,
@@ -870,7 +871,7 @@ def export_csv(
     writer.writerow(EXPORT_HEADERS)
     for elder in rows:
         writer.writerow(
-            [
+            [safe_cell(value) for value in [
                 elder.code,
                 mask_name(elder.name),
                 GENDER_TEXT.get(elder.gender, elder.gender),
@@ -884,7 +885,7 @@ def export_csv(
                 elder.address_masked or mask_address(_plain(elder, "address")),
                 "、".join(TAG_TEXT.get(t, t) for t in tags.get(elder.id, [])),
                 _iso(elder.created_at) or "",
-            ]
+            ]]
         )
 
     content = b"\xef\xbb\xbf" + buffer.getvalue().encode("utf-8")

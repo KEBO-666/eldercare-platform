@@ -31,7 +31,7 @@ class AppointmentCreate(BaseModel):
     elder_id: int | None = Field(None, description="老人 id（老人/家属账号可省略，默认本人绑定档案）")
     address: str | None = Field(None, max_length=255, description="服务地址（可省略，默认复用老人地址）")
     remark: str | None = None
-    cycle_rule: str | None = Field(None, max_length=32, description="周期规则，如 weekly")
+    cycle_rule: str | None = Field(None, max_length=32, description="weekly：一次提交连续 4 周的同一时段预约")
 
 
 class CancelRequest(BaseModel):
@@ -126,3 +126,16 @@ def cancel_appointment(
         db, appointment_id, reason=payload.reason, user=user, request=request
     )
     return ok(data, "已取消")
+
+
+@router.post("/{appointment_id}/no-show", summary="登记爽约并释放护理员时段")
+def no_show_appointment(
+    appointment_id: int,
+    payload: CancelRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require("appointment:accept")),
+) -> dict:
+    return ok(appointment_service.no_show_appointment(
+        db, appointment_id, user=user, reason=payload.reason, request=request,
+    ), "已登记爽约")

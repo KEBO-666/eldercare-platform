@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import write_audit
 from app.core.config import settings
-from app.core.deps import effective_scope, get_elder_of_user, get_staff
+from app.core.deps import effective_scope, ensure_elder_visible, get_elder_of_user, get_staff, scope_condition
 from app.core.enums import (
     AppointmentStatus,
     AuditAction,
@@ -27,9 +27,9 @@ from app.core.enums import (
     OrderStatus,
     RoleCode,
 )
-from app.core.exceptions import Conflict, Forbidden, NeedsManual, NotFound, RuleViolation
+from app.core.exceptions import Forbidden, NeedsManual, NotFound, RuleViolation
 from app.core.security import decrypt_field, encrypt_field, mask_address
-from app.core.state_machine import APPOINTMENT
+from app.core.state_machine import APPOINTMENT, ORDER
 from app.models import Appointment, AppointmentLog, Elder, Org, ServiceItem, User, WorkOrder
 from app.services import catalog_service
 
@@ -166,24 +166,9 @@ def allowed_community_ids(db: Session, user: User) -> set[int] | None:
 
 
 def scope_conditions(db: Session, user: User) -> list[Any]:
-    """预约单数据范围过滤条件（Appointment 只有 community_org_id，需按角色展开）。"""
-    role_code = user.role.code if user.role else None
-    scope = effective_scope(user)
-    if role_code in (RoleCode.SUPER, RoleCode.STREET) or scope == DataScope.STREET:
-        return []
-    if role_code == RoleCode.NURSE:
-        staff = get_staff(db, user)
-        if staff is None:
-            return [Appointment.id == -1]
-        subquery = select(WorkOrder.appointment_id).where(WorkOrder.nurse_id == staff.id)
-        return [Appointment.id.in_(subquery)]
-    if role_code == RoleCode.ELDER:
-        bound = get_elder_of_user(db, user)
-        return [Appointment.elder_id == bound.id] if bound is not None else [Appointment.id == -1]
-    org_ids = _org_ids_of_user(db, user)
-    if not org_ids:
-        return [Appointment.id == -1]
-    return [Appointment.community_org_id.in_(sorted(org_ids))]
+    """预约与档案、工单共用数据范围规则。"""
+    condition = scope_condition(Appointment, user, db)
+    return [] if condition is None else [condition]
 
 
 def apply_scope(stmt: Select, db: Session, user: User) -> Select:
@@ -215,6 +200,8 @@ def _resolve_elder(db: Session, user: User | None, elder_id: int | None) -> Elde
     elder = db.get(Elder, elder_id)
     if elder is None or elder.is_deleted:
         raise NotFound("老人档案不存在")
+    if user is not None:
+        ensure_elder_visible(db, user, elder.id)
     return elder
 
 
@@ -358,7 +345,40 @@ def create_appointment(
     user: User | None = None,
     request: Request | None = None,
 ) -> dict[str, Any]:
-    """提交预约：三重校验 → 创建 pending_accept 预约单 → 写状态日志 + 审计。"""
+    """每周固定预约一次生成 4 周，每次独立校验，任一次失败则整组回滚。"""
+    rule = str(cycle_rule or "").strip() or None
+    if rule not in (None, "weekly"):
+        raise RuleViolation("周期规则仅支持 weekly（每周固定，连续 4 周）")
+    occurrences = []
+    with db.begin_nested():
+        for week in range(4 if rule == "weekly" else 1):
+            occurrences.append(_create_single_appointment(
+                db, service_item_id=service_item_id,
+                desired_start=desired_start + timedelta(weeks=week),
+                elder_id=elder_id, address=address, remark=remark, cycle_rule=rule,
+                user=user, request=request,
+            ))
+    db.commit()
+    data = dict(occurrences[0])
+    if rule == "weekly":
+        data["occurrences"] = occurrences
+        data["occurrence_count"] = len(occurrences)
+    return data
+
+
+def _create_single_appointment(
+    db: Session,
+    *,
+    service_item_id: int,
+    desired_start: datetime,
+    elder_id: int | None,
+    address: str | None,
+    remark: str | None,
+    cycle_rule: str | None,
+    user: User | None,
+    request: Request | None,
+) -> dict[str, Any]:
+    """单次预约与状态、审计日志在调用者事务内写入。"""
     start = to_naive(desired_start)
     if start is None:
         raise RuleViolation("预约时间 desired_start 必填")
@@ -407,7 +427,6 @@ def create_appointment(
         detail=f"提交预约 {appointment.code}",
         request=request,
     )
-    db.commit()
     return data
 
 
@@ -523,15 +542,16 @@ def no_show_appointment(
     reason: str | None = None,
     request: Request | None = None,
 ) -> dict[str, Any]:
-    """标记爽约（dispatched → no_show）；不计费，但记录状态日志与审计。
-
-    冻结路由表未包含该动作的独立接口，此函数供工单执行（C 模块）或后续前端复用。
-    """
+    """标记爽约并释放关联工单，不计费，记录状态日志与审计。"""
+    reason = str(reason or "").strip()
+    if not reason:
+        raise RuleViolation("爽约原因必填")
     appointment = get_or_404(db, appointment_id)
     if user is not None:
         ensure_visible(db, user, appointment)
     before = {"status": appointment.status}
     transition_appointment(db, appointment, "no_show", user=user, remark=reason or "老人爽约")
+    _cancel_linked_orders(db, appointment, user=user, reason=f"爽约：{reason}", request=request)
     write_audit(
         db,
         user=user,
@@ -557,7 +577,7 @@ def cancel_appointment(
 ) -> dict[str, Any]:
     """取消预约：reason 必填；距服务开始 < cancel_free_hours 小时则计费。
 
-    计费金额取项目**当前价格版本**的单价；否则为 0。
+    已派单取工单价格快照；未派单取当前项目价格。
     """
     reason_text = str(reason or "").strip()
     if not reason_text:
@@ -571,6 +591,12 @@ def cancel_appointment(
     free_hours = float(settings.cancel_free_hours)
     chargeable = hours_left < free_hours
     fee = catalog_service.current_price(db, item) if (chargeable and item is not None) else Decimal("0.00")
+    active_order = db.scalars(select(WorkOrder).where(
+        WorkOrder.appointment_id == appointment.id,
+        WorkOrder.status != OrderStatus.CANCELLED.value,
+    ).order_by(WorkOrder.id.desc())).first()
+    if chargeable and active_order is not None:
+        fee = catalog_service.q2(active_order.amount)
 
     before = {
         "status": appointment.status,
@@ -582,6 +608,7 @@ def cancel_appointment(
     appointment.cancellation_fee = fee
     appointment.cancel_reason = reason_text[:255]
     to_status = transition_appointment(db, appointment, "cancel", user=user, remark=reason_text)
+    _cancel_linked_orders(db, appointment, user=user, reason=reason_text, request=request)
     write_audit(
         db,
         user=user,
@@ -611,6 +638,22 @@ def cancel_appointment(
 
 
 # ---------------- 供其它模块复用 ----------------
+def _cancel_linked_orders(
+    db: Session, appointment: Appointment, *, user: User | None, reason: str, request: Request | None,
+) -> None:
+    orders = db.scalars(select(WorkOrder).where(
+        WorkOrder.appointment_id == appointment.id,
+        WorkOrder.status != OrderStatus.CANCELLED.value,
+    )).all()
+    for order in orders:
+        previous = order.status
+        order.status = ORDER.next(previous, "cancel")
+        order.summary = f"预约结束：{reason}"
+        write_audit(db, user=user, action=AuditAction.UPDATE.value, entity_type="work_order",
+                    entity_id=order.id, before={"status": previous}, after={"status": order.status},
+                    detail=f"预约 {appointment.code} 结束，释放护理员时段：{reason}", request=request)
+
+
 def requeue_appointment(
     db: Session,
     appointment: Appointment,
@@ -618,19 +661,11 @@ def requeue_appointment(
     reason: str,
     operator_id: int | None = None,
 ) -> None:
-    """把已派单预约回退到 pending_dispatch（超时顺延在途工单时使用）。
-
-    注意：基座 `app/core/state_machine.py` 的 APPOINTMENT 未定义 dispatched→pending_dispatch
-    的回退动作（该文件由 Lead 冻结，本模块不得修改），因此这里在状态机拒绝时按需求
-    直接回退，并补写状态日志以保留完整轨迹。
-    """
+    """把已派单预约按状态机回退到待派单，禁止重开已结束的预约。"""
     if str(appointment.status) == AppointmentStatus.PENDING_DISPATCH.value:
         return
     from_status = appointment.status
-    try:
-        to_status = APPOINTMENT.next(from_status, "requeue")
-    except Conflict:
-        to_status = AppointmentStatus.PENDING_DISPATCH.value
+    to_status = APPOINTMENT.next(from_status, "requeue")
     appointment.status = to_status
     write_log(
         db,

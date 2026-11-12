@@ -35,7 +35,7 @@ def scan_accept_timeout(
     db: Session = Depends(get_db),
     user: User = Depends(require("order:dispatch")),
 ) -> dict:
-    data = dispatch_service.scan_accept_timeout(db, operator_id=getattr(user, "id", None))
+    data = dispatch_service.scan_accept_timeout(db, operator_id=user.id, user=user)
     return ok(data, "超时扫描完成")
 
 

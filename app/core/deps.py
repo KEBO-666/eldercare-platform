@@ -13,14 +13,14 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import Depends, Request
-from sqlalchemy import Select, select
+from sqlalchemy import Select, false, select
 from sqlalchemy.orm import Session
 
 from app.core.enums import DataScope, RoleCode
 from app.core.exceptions import Forbidden, Unauthorized
 from app.core.security import decode_token
 from app.db.session import get_db
-from app.models import Elder, Staff, User, WorkOrder
+from app.models import Elder, Org, Staff, User, WorkOrder
 
 
 # ---------------- 认证 ----------------
@@ -100,19 +100,25 @@ def scope_condition(model: Any, user: User, db: Session):
     org_col = getattr(model, "org_id", None)
     elder_col = getattr(model, "elder_id", None)
 
-    if scope == DataScope.ORG:
+    if scope in (DataScope.ORG, DataScope.GRID):
+        if user.org_id is None:
+            return false()
+        # 没有网格列的工单、预约、评价等，通过老人档案收窄，不能放大到整个社区。
+        if scope == DataScope.GRID:
+            elder_filter = Elder.grid_org_id == user.org_id
+            if grid_col is not None:
+                return grid_col == user.org_id
+        else:
+            elder_filter = Elder.community_org_id == user.org_id
+        if elder_col is not None:
+            return elder_col.in_(select(Elder.id).where(elder_filter))
         if community_col is not None:
-            return community_col == user.org_id
+            return community_col == user.org_id if scope == DataScope.ORG else false()
         if org_col is not None:
             return org_col == user.org_id
-        return None
-
-    if scope == DataScope.GRID:
-        if grid_col is not None:
-            return grid_col == user.org_id
-        if community_col is not None:
-            return community_col == user.org_id
-        return None
+        if model is Org:
+            return Org.id == user.org_id
+        return false()
 
     # SELF
     if role_code == RoleCode.NURSE:
@@ -127,13 +133,13 @@ def scope_condition(model: Any, user: User, db: Session):
                 return Elder.id.in_(served_ids)
             if elder_col is not None:
                 return elder_col.in_(served_ids)
-        return None
+        return false()
     elder = get_elder_of_user(db, user)
     if elder is not None and elder_col is not None:
         return elder_col == elder.id
     if elder is not None and model is Elder:
         return Elder.id == elder.id
-    return None
+    return false()
 
 
 def apply_scope(stmt: Select, model: Any, user: User, db: Session) -> Select:

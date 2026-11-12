@@ -55,7 +55,7 @@ def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
 def _normalize(weight_values: Iterable[float]) -> tuple[float, float, float, float]:
     values = [float(v) for v in weight_values]
     total = sum(values)
-    if len(values) != 4 or total <= 0:
+    if len(values) != 4 or not math.isfinite(total) or total <= 0 or any(v < 0 for v in values):
         return DEFAULT_WEIGHTS
     return (values[0] / total, values[1] / total, values[2] / total, values[3] / total)
 
@@ -155,7 +155,7 @@ def parse_weights(
                 ordered.append(float(matched))
             except (TypeError, ValueError):
                 return _normalize(fallback)
-        return _normalize(ordered)
+        return parse_weights(ordered, fallback)
 
     if isinstance(values, (str, bytes)) or not isinstance(values, Iterable):
         return _normalize(fallback)
@@ -163,7 +163,9 @@ def parse_weights(
         seq = [float(v) for v in values]
     except (TypeError, ValueError):
         return _normalize(fallback)
-    return _normalize(seq) if len(seq) == 4 else _normalize(fallback)
+    if len(seq) != 4 or any(not math.isfinite(v) or v < 0 for v in seq) or sum(seq) <= 0:
+        return _normalize(fallback)
+    return _normalize(seq)
 
 
 def weighted_score(
@@ -281,6 +283,11 @@ def score_candidates(
                 "distance_km": round(distance, SCORE_DIGITS),
                 "score": round(score, SCORE_DIGITS),
                 "factors": factors,
+                "contributions": {
+                    name: round(factors[name] * parsed_weights[index], SCORE_DIGITS)
+                    for index, name in enumerate(FACTOR_NAMES)
+                },
+                "penalty": FOCUS_PENALTY if is_focus else 1.0,
                 "reason": _build_reason(
                     required=required,
                     distance_km=distance,

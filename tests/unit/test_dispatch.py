@@ -144,10 +144,10 @@ def _prepare_dispatched_order(db, accounts, desired_start: datetime):
 def test_scan_accept_timeout_requeues(db, accounts):
     with freeze_time("2026-10-15 09:00:00"):
         appointment_id, order_id = _prepare_dispatched_order(db, accounts, datetime(2026, 10, 15, 9, 40))
-        # 距服务开始 40 分钟 > 30 分钟阈值：不触发
+        # 从派单时刻起计时，不按预约临近程度计算。
         assert dispatch_service.scan_accept_timeout(db)["scanned"] == 0
 
-    with freeze_time("2026-10-15 09:15:00"):
+    with freeze_time("2026-10-15 09:30:00"):
         result = dispatch_service.scan_accept_timeout(db)
     assert result["scanned"] == 1
     assert result["requeued"] == [appointment_id]
@@ -164,6 +164,8 @@ def test_scan_accept_timeout_requeues(db, accounts):
 def test_scan_accept_timeout_reports_logged(db, accounts):
     with freeze_time("2026-10-15 09:00:00"):
         appointment_id, _ = _prepare_dispatched_order(db, accounts, datetime(2026, 10, 15, 9, 20))
+        assert dispatch_service.scan_accept_timeout(db)["scanned"] == 0
+    with freeze_time("2026-10-15 09:31:00"):
         result = dispatch_service.scan_accept_timeout(db)
     assert result["scanned"] == 1
     detail = appointment_service.get_appointment_detail(db, appointment_id, accounts["users"]["grid"])

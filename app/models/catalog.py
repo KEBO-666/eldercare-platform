@@ -24,7 +24,9 @@ class ServiceItem(SoftCommonMixin, Base):
     is_subsidized: Mapped[bool] = mapped_column(Boolean, default=True)
     subsidy_ratio: Mapped[float] = mapped_column(Float, default=0.0)      # 基础补贴比例
     status: Mapped[str] = mapped_column(String(8), default=ItemStatus.ON, index=True)
-    current_price_version_id: Mapped[int | None] = mapped_column(ForeignKey("service_price_version.id"), nullable=True)
+    current_price_version_id: Mapped[int | None] = mapped_column(
+        ForeignKey("service_price_version.id", use_alter=True, name="fk_item_current_price"), nullable=True,
+    )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 

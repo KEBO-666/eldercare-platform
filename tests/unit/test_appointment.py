@@ -8,7 +8,7 @@ import pytest
 from freezegun import freeze_time
 
 from app.core.enums import AbilityLevel
-from app.core.exceptions import Conflict, NeedsManual, RuleViolation
+from app.core.exceptions import Conflict, Forbidden, NeedsManual, RuleViolation
 from app.models import Appointment, WorkOrder
 from app.services import appointment_service, catalog_service, dispatch_service
 
@@ -69,17 +69,18 @@ def test_duplicate_with_existing_work_order_needs_manual(db, accounts):
 
 
 def test_ability_level_mismatch_needs_manual(db, accounts, make_elder):
-    elder = make_elder(ability_level=AbilityLevel.INTACT.value)
+    elder = accounts["elder"]
+    elder.ability_level = AbilityLevel.INTACT.value
+    db.commit()
     with pytest.raises(NeedsManual) as exc:
         _create(db, accounts, datetime(2026, 10, 16, 10, 0), elder_id=elder.id)
     assert "能力等级" in exc.value.message
 
 
-def test_community_scope_mismatch_needs_manual(db, accounts, orgs, make_elder):
+def test_unrelated_elder_is_forbidden_before_business_validation(db, accounts, orgs, make_elder):
     elder = make_elder(community_org_id=orgs["community2"].id, grid_org_id=orgs["grid3"].id)
-    with pytest.raises(NeedsManual) as exc:
+    with pytest.raises(Forbidden):
         _create(db, accounts, datetime(2026, 10, 16, 10, 0), elder_id=elder.id)
-    assert "可服务范围" in exc.value.message
 
 
 def test_off_shelf_item_rejected(db, accounts):

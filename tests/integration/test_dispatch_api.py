@@ -7,14 +7,14 @@ import pytest
 from freezegun import freeze_time
 
 from app.core.enums import AbilityLevel
-from app.models import AuditLog, ConfigItem, WorkOrder
+from app.models import AuditLog, ConfigItem, Evaluation, WorkOrder
 
 
 def _create_appointment(client, headers, accounts, desired_start: str, elder_id: int | None = None) -> int:
     payload = {"service_item_id": accounts["item"].id, "desired_start": desired_start}
     if elder_id is not None:
         payload["elder_id"] = elder_id
-    resp = client.post("/api/v1/appointments", json=payload, headers=headers("elder"))
+    resp = client.post("/api/v1/appointments", json=payload, headers=headers("super" if elder_id is not None else "elder"))
     assert resp.status_code == 200, resp.text
     return resp.json()["data"]["id"]
 
@@ -65,7 +65,7 @@ def test_candidates_exclude_staff_missing_required_skill(client, headers, accoun
 
 def test_candidates_exclude_staff_over_daily_limit(client, headers, accounts, make_staff, db):
     busy_staff = make_staff(name="满负荷护理", base_lat=31.2311, base_lng=121.4741)
-    today = datetime.now().date()
+    today = datetime(2026, 10, 16).date()
     for index in range(6):
         db.add(
             WorkOrder(
@@ -73,7 +73,7 @@ def test_candidates_exclude_staff_over_daily_limit(client, headers, accounts, ma
                 elder_id=accounts["elder"].id,
                 service_item_id=accounts["item"].id,
                 nurse_id=busy_staff.id,
-                scheduled_start=datetime.combine(today, time(hour=8 + index)),
+                scheduled_start=datetime.combine(today, time(hour=index)),
                 status="pending_accept",
                 community_org_id=accounts["elder"].community_org_id,
             )
@@ -112,6 +112,18 @@ def test_candidates_exclude_staff_with_time_conflict(client, headers, accounts, 
 def test_config_weights_override_changes_ranking(client, headers, accounts, make_staff, db):
     near_staff = make_staff(name="近距离", base_lat=31.2310, base_lng=121.4740, rating_cached=3.0)
     far_staff = make_staff(name="远距离高评分", base_lat=31.2561, base_lng=121.4740, rating_cached=5.0)
+    for staff, rating in ((near_staff, 3.0), (far_staff, 5.0)):
+        rated_order = WorkOrder(
+            code=f"RATED-{staff.id}", elder_id=accounts["elder"].id,
+            service_item_id=accounts["item"].id, nurse_id=staff.id,
+            scheduled_start=datetime(2026, 9, 1), status="completed",
+            community_org_id=accounts["elder"].community_org_id,
+        )
+        db.add(rated_order)
+        db.flush()
+        db.add(Evaluation(work_order_id=rated_order.id, elder_id=accounts["elder"].id,
+                          nurse_id=staff.id, avg_score=rating))
+    db.commit()
     appointment_id = _create_appointment(client, headers, accounts, "2026-10-16T10:00:00")
     _to_pending_dispatch(client, headers, appointment_id)
 
@@ -276,7 +288,7 @@ def test_scan_timeout_requeues_appointment(client, headers, accounts):
         assert not_yet.status_code == 200, not_yet.text
         assert not_yet.json()["data"]["scanned"] == 0
 
-    with freeze_time("2026-10-15 09:15:00"):
+    with freeze_time("2026-10-15 09:30:00"):
         scanned = client.post("/api/v1/dispatch/scan-timeout", headers=headers("grid"))
     assert scanned.status_code == 200, scanned.text
     data = scanned.json()["data"]

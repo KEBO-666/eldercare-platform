@@ -37,8 +37,10 @@ def test_duplicate_appointment_returns_needs_manual(client, headers, accounts):
     assert "已存在预约单" in second.json()["message"]
 
 
-def test_ability_mismatch_returns_needs_manual(client, headers, accounts, make_elder):
-    elder = make_elder(ability_level=AbilityLevel.INTACT.value)
+def test_ability_mismatch_returns_needs_manual(client, headers, accounts, db):
+    elder = accounts["elder"]
+    elder.ability_level = AbilityLevel.INTACT.value
+    db.commit()
     resp = _post_create(client, headers, accounts, "2026-10-16T10:00:00", elder_id=elder.id)
     assert resp.status_code == 422
     assert resp.json()["code"] == "NEEDS_MANUAL"

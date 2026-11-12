@@ -32,7 +32,7 @@ def _backup_job() -> None:
 
 
 def _dispatch_timeout_job() -> None:
-    """30 分钟无人接单的工单自动顺延（回退预约到待派单）。"""
+    """派单后 30 分钟无人接单，自动尝试下一候选。"""
     from app.db.session import SessionLocal
     from app.services.dispatch_service import scan_accept_timeout
 

@@ -12,6 +12,8 @@ venv/
 # 数据与运行时产物
 data/*.db
 data/*.sqlite3
+data/*.db-wal
+data/*.db-shm
 data/uploads/*
 data/backups/*
 data/tmp/
@@ -37,3 +39,6 @@ Thumbs.db
 *.zip
 dist/
 build/
+reports/
+/pytest-of-*/
+/tmp????????

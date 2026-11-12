@@ -131,6 +131,14 @@ def _operator_is_admin(operator: User) -> bool:
 def _ensure_can_assign_role(operator: User, role: Role) -> None:
     if role.code == RoleCode.SUPER.value and not _operator_is_admin(operator):
         raise Forbidden("无权分配超级管理员角色")
+    if operator.role and operator.role.code == RoleCode.ORG_ADMIN.value and role.code == RoleCode.STREET.value:
+        raise Forbidden("机构管理员无权分配街道监管角色")
+
+
+def _ensure_can_assign_scope(operator: User, scope: str) -> None:
+    ranks = {DataScope.SELF.value: 0, DataScope.GRID.value: 1, DataScope.ORG.value: 2, DataScope.STREET.value: 3}
+    if not _operator_is_admin(operator) and ranks[scope] > ranks.get(effective_scope(operator), 0):
+        raise Forbidden("不能分配超出本人范围的数据权限")
 
 
 def _ensure_org_in_scope(operator: User, org_id: Any) -> None:
@@ -230,6 +238,7 @@ def create_user(
     org_id = _validate_org(db, payload.get("org_id"))
     _ensure_org_in_scope(operator, org_id)
     data_scope = _validate_scope(payload.get("data_scope") or role.data_scope)
+    _ensure_can_assign_scope(operator, data_scope)
     real_name = str(payload.get("real_name") or "").strip() or username
     phone = payload.get("phone")
 
@@ -285,7 +294,9 @@ def update_user(
         _ensure_org_in_scope(operator, org_id)
         target.org_id = org_id
     if payload.get("data_scope"):
-        target.data_scope = _validate_scope(payload["data_scope"])
+        scope = _validate_scope(payload["data_scope"])
+        _ensure_can_assign_scope(operator, scope)
+        target.data_scope = scope
     if payload.get("is_active") is not None:
         is_active = bool(payload["is_active"])
         if not is_active and target.id == operator.id:

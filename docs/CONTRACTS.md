@@ -180,12 +180,13 @@ appt.status = new_status
 ### appointments（B）
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
-| POST | `/appointments` | 提交预约（三重校验） | appointment:create |
+| POST | `/appointments` | 提交预约（三重校验）；weekly 原子生成连续四周 | appointment:create |
 | GET | `/appointments` | 列表（status/elder_id/日期） | appointment:read |
 | GET | `/appointments/{id}` | 详情（含状态日志） | appointment:read |
 | POST | `/appointments/{id}/accept` | 受理 | appointment:accept |
 | POST | `/appointments/{id}/cancel` | 取消 `{reason}`（2 小时计费规则） | appointment:cancel |
 | POST | `/appointments/{id}/to-dispatch` | 转待派单 | appointment:accept |
+| POST | `/appointments/{id}/no-show` | 登记爽约 `{reason}` 并取消关联工单 | appointment:accept |
 
 ### dispatch（B）
 | 方法 | 路径 | 说明 | 权限 |
@@ -193,7 +194,7 @@ appt.status = new_status
 | GET | `/dispatch/{appointment_id}/candidates` | 前 N 候选 + 四项因子明细 | order:dispatch |
 | POST | `/dispatch/{appointment_id}/assign` | 派单 `{nurse_id}` → 生成工单 | order:dispatch |
 | POST | `/dispatch/orders/{order_id}/reassign` | 改派 `{nurse_id, reason}` | order:reassign |
-| POST | `/dispatch/scan-timeout` | 手动触发 30 分钟未接单顺延 | order:dispatch |
+| POST | `/dispatch/scan-timeout` | 从派单创建时刻满 30 分钟后顺延，限操作者范围；增加 reassigned_orders | order:dispatch |
 
 ### orders（C）
 | 方法 | 路径 | 说明 | 权限 |
@@ -207,6 +208,7 @@ appt.status = new_status
 | POST | `/orders/{id}/photos` | 上传照片（multipart file，≤3 张，压缩） | order:execute |
 | POST | `/orders/{id}/checkout` | 签退 `{summary, metrics?}` → 时长异常判定 | order:execute |
 | POST | `/orders/{id}/anomaly` | 上报异常 `{anomaly_type,description}` | order:execute |
+| POST | `/orders/anomalies/{id}/handle` | 处置异常 `{handle_note}`，校验数据范围 | order:dispatch / order:reassign 任一 |
 
 ### health（D）
 | 方法 | 路径 | 说明 | 权限 |

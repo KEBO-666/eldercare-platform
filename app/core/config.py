@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     checkin_distance_threshold_m: int = 200
     photo_limit: int = 3
     photo_max_kb: int = 2048
+    photo_upload_max_mb: int = 10
+    photo_max_pixels: int = 20_000_000
     accept_timeout_minutes: int = 30
     cancel_free_hours: int = 2
     duration_anomaly_minutes: int = 30

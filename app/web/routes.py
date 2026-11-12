@@ -20,7 +20,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import case, false, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.audit import write_audit
@@ -515,7 +515,8 @@ def _scoped(stmt: Any, model: Any, user: User, db: Session) -> Any:
         if cond is not None:
             stmt = stmt.where(cond)
     except Exception:  # noqa: BLE001
-        logger.debug("数据范围过滤失败，降级为全量", exc_info=True)
+        logger.exception("数据范围过滤失败，拒绝返回数据")
+        stmt = stmt.where(false())
     return stmt
 
 
@@ -525,7 +526,7 @@ def _visible_elder_ids(db: Session, user: User) -> list[int] | None:
 
         return visible_elder_ids(db, user)
     except Exception:  # noqa: BLE001
-        return None
+        return []
 
 
 def _rows(db: Session, stmt: Any) -> list[Any]:
@@ -1743,13 +1744,19 @@ def billing_page(
     if user is None:
         return _login_redirect(request)
 
-    stmt = _scoped(select(Bill), Bill, user, db)
+    from types import SimpleNamespace
+
+    from app.services import billing_service
+
+    stmt = billing_service._bill_scope(select(Bill), user, db)
     if period:
         stmt = stmt.where(Bill.period == period)
     if status:
         stmt = stmt.where(Bill.status == status)
     stmt = stmt.order_by(Bill.period.desc(), Bill.id.desc())
     rows, total, page, pages = _paged(db, stmt, page, size)
+    visible_bills = [billing_service.bill_view(db, bill, user) for bill in _rows(db, stmt)]
+    rows = [SimpleNamespace(**billing_service.bill_view(db, bill, user)) for bill in rows]
 
     org_ids = {b.community_org_id for b in rows}
     orgs = _id_name_map(db, Org, org_ids) if org_ids else {}
@@ -1765,22 +1772,27 @@ def billing_page(
         else []
     )
     open_diffs = _rows(
-        db, select(ReconciliationDiff).where(ReconciliationDiff.status == "open").order_by(ReconciliationDiff.id.desc()).limit(30)
+        db, _scoped(select(ReconciliationDiff), ReconciliationDiff, user, db)
+        .where(ReconciliationDiff.status == "open").order_by(ReconciliationDiff.id.desc()).limit(30)
     )
+    diffs = billing_service._visible_details(diffs, db, user)
     diff_elder_ids = {d.elder_id for d in open_diffs if d.elder_id}
     diff_elders = _elder_map(db, _rows(db, select(Elder).where(Elder.id.in_(diff_elder_ids)))) if diff_elder_ids else {}
 
     totals = {
-        "amount": _scalar(db, select(func.coalesce(func.sum(Bill.total_amount), 0)), 0),
-        "subsidy": _scalar(db, select(func.coalesce(func.sum(Bill.subsidy_amount), 0)), 0),
-        "self_pay": _scalar(db, select(func.coalesce(func.sum(Bill.self_pay_amount), 0)), 0),
-        "diff": _scalar(db, select(func.coalesce(func.sum(Bill.diff_amount), 0)), 0),
+        "amount": sum(bill["total_amount"] for bill in visible_bills),
+        "subsidy": sum(bill["subsidy_amount"] for bill in visible_bills),
+        "self_pay": sum(bill["self_pay_amount"] for bill in visible_bills),
+        "diff": sum(bill["diff_amount"] for bill in visible_bills),
     }
-    periods = sorted({b.period for b in _rows(db, select(Bill).limit(200))}, reverse=True)
+    periods = sorted({b.period for b in _rows(db, billing_service._bill_scope(select(Bill), user, db))}, reverse=True)
 
     # 账单明细 / 缴费记录：供"查看明细"弹窗本地渲染（接口未就绪时也可展示）
     details = _rows(db, select(BillDetail).where(BillDetail.bill_id.in_(bill_ids))) if bill_ids else []
+    details = billing_service._visible_details(details, db, user)
     payments = _rows(db, select(PaymentRecord).where(PaymentRecord.bill_id.in_(bill_ids))) if bill_ids else []
+    if user.data_scope in (DataScope.SELF, DataScope.GRID):
+        payments = []
     detail_elder_ids = {d.elder_id for d in details}
     detail_elders = (
         _elder_map(db, _rows(db, select(Elder).where(Elder.id.in_(detail_elder_ids)))) if detail_elder_ids else {}
@@ -2211,15 +2223,28 @@ def admin_config(
 # 十五、上传文件访问（服务照片等，需登录）
 # ============================================================
 @router.get("/files/{filename}")
-def serve_upload_file(filename: str, user: User | None = Depends(page_user)) -> Response:
+def serve_upload_file(
+    filename: str, user: User | None = Depends(page_user), db: Session = Depends(get_db),
+) -> Response:
     if user is None:
         return RedirectResponse("/login", status_code=303)
+    if not _has_perm(user, "order:read"):
+        return Response("无权查看服务照片", status_code=403)
+    from app.services.order_service import ensure_order_visible, get_order
+
+    photo = db.scalars(select(WorkOrderPhoto).where(
+        WorkOrderPhoto.path.endswith("/" + filename, autoescape=True),
+    )).first()
+    if photo is None:
+        return Response("文件不存在", status_code=404)
+    ensure_order_visible(db, user, get_order(db, photo.work_order_id))
     base = settings.upload_path.resolve()
-    target = (base / Path(filename).name).resolve()
+    path = Path(photo.path)
+    target = (path if path.is_absolute() else BASE_DIR / path).resolve()
     try:
         target.relative_to(base)
     except ValueError:
         return Response("非法文件路径", status_code=400, media_type="text/plain; charset=utf-8")
     if not target.is_file():
         return Response("文件不存在", status_code=404, media_type="text/plain; charset=utf-8")
-    return FileResponse(str(target))
+    return FileResponse(str(target), headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})

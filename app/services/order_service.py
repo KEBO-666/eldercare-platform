@@ -24,10 +24,9 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import write_audit
 from app.core.config import BASE_DIR, settings
-from app.core.deps import effective_scope, get_elder_of_user, get_staff
+from app.core.deps import get_staff, scope_condition
 from app.core.enums import (
     AnomalyType,
-    DataScope,
     MetricCode,
     MetricSource,
     OrderStatus,
@@ -81,16 +80,25 @@ def haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
 
 def compress_image(raw: bytes) -> tuple[bytes, int, int]:
     """压缩图片：最长边 1280、JPEG quality 80，返回 (字节, 宽, 高)。"""
-    from PIL import Image
+    from PIL import Image, ImageOps
 
     try:
+        if len(raw) > settings.photo_upload_max_mb * 1024 * 1024:
+            raise RuleViolation(f"原始照片不能超过 {settings.photo_upload_max_mb}MB")
         image = Image.open(io.BytesIO(raw))
+        if image.width * image.height > settings.photo_max_pixels:
+            raise RuleViolation("图片像素过大，请缩小后上传")
         image.load()
+        image = ImageOps.exif_transpose(image)
+    except RuleViolation:
+        raise
     except Exception as exc:  # noqa: BLE001 - 任何解析失败都视为非法图片
         raise RuleViolation("无法解析上传的图片文件") from exc
     if image.mode != "RGB":
         image = image.convert("RGB")
     image.thumbnail((PHOTO_MAX_EDGE, PHOTO_MAX_EDGE), Image.LANCZOS)
+    # 重建像素图，移除 EXIF/GPS/XMP 等来源元数据。
+    image = Image.frombytes("RGB", image.size, image.tobytes())
     buffer = io.BytesIO()
     image.save(buffer, format="JPEG", quality=PHOTO_JPEG_QUALITY, optimize=True)
     return buffer.getvalue(), image.width, image.height
@@ -113,22 +121,7 @@ def resolve_community_org_id(db: Session, org_id: int | None) -> int | None:
 
 def order_scope_condition(db: Session, user: User):
     """工单数据范围条件；None 表示不受限。"""
-    role_code = user.role.code if user.role else None
-    scope = effective_scope(user)
-    if role_code in (RoleCode.SUPER, RoleCode.STREET) or scope == DataScope.STREET:
-        return None
-    if role_code == RoleCode.NURSE:
-        staff = get_staff(db, user)
-        return WorkOrder.nurse_id == (staff.id if staff is not None else -1)
-    if role_code == RoleCode.ELDER:
-        elder = get_elder_of_user(db, user)
-        return WorkOrder.elder_id == (elder.id if elder is not None else -1)
-    community_id = resolve_community_org_id(db, user.org_id)
-    if community_id is not None:
-        return WorkOrder.community_org_id == community_id
-    if scope == DataScope.ORG:
-        return WorkOrder.community_org_id == user.org_id
-    return None
+    return scope_condition(WorkOrder, user, db)
 
 
 def get_order(db: Session, order_id: int) -> WorkOrder:
@@ -1052,6 +1045,13 @@ def handle_anomaly(
     report = db.get(AnomalyReport, anomaly_id)
     if report is None:
         raise NotFound("异常报告不存在")
+    from app.core.deps import ensure_elder_visible, has_permission
+
+    if not has_permission(user, "order:dispatch") and not has_permission(user, "order:reassign"):
+        raise Forbidden("缺少异常处置权限")
+    ensure_elder_visible(db, user, report.elder_id)
+    if report.work_order_id is not None:
+        ensure_order_visible(db, user, get_order(db, report.work_order_id))
     if str(report.status) == "handled":
         raise RuleViolation("该异常已处置完成")
     clean_note = (handle_note or "").strip()

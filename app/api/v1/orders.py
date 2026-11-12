@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.deps import require
 from app.core.exceptions import RuleViolation
 from app.core.response import ok, paged
@@ -122,7 +123,7 @@ def handle_anomaly(
     payload: AnomalyHandleIn,
     request: Request,
     db: Session = Depends(get_db),
-    user: User = Depends(require("order:read", "order:dispatch", "order:reassign", any_of=True)),
+    user: User = Depends(require("order:dispatch", "order:reassign", any_of=True)),
 ):
     data = order_service.handle_anomaly(db, user, anomaly_id, handle_note=payload.handle_note, request=request)
     return ok(data)
@@ -194,7 +195,9 @@ async def upload_photo(
     db: Session = Depends(get_db),
     user: User = Depends(require("order:execute")),
 ):
-    raw = await file.read()
+    raw = await file.read(settings.photo_upload_max_mb * 1024 * 1024 + 1)
+    if len(raw) > settings.photo_upload_max_mb * 1024 * 1024:
+        raise RuleViolation(f"原始照片不能超过 {settings.photo_upload_max_mb}MB")
     if not raw:
         raise RuleViolation("上传文件为空")
     data = order_service.save_photo(
