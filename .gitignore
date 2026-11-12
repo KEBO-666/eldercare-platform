@@ -40,5 +40,6 @@ Thumbs.db
 dist/
 build/
 reports/
+output/
 /pytest-of-*/
 /tmp????????

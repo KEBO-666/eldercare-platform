@@ -1,0 +1,7 @@
+# Optional artifact/review tooling, separate from application requirements.txt.
+reportlab==5.1.0
+pypdf==7.0.1
+pymupdf==2.1
+Pillow==13.0.0
+imageio-ffmpeg==0.8.1
+playwright==1.65.1

@@ -1,0 +1,46 @@
+{
+  "generated_at_utc": "2026-11-12T09:05:36.876044+00:00",
+  "source_path": "C:\\Users\\Administrator\\.codex\\sessions\\2026\\11\\12\\rollout-2026-11-12T09-48-14-01a1cd70-f4d1-7980-98af-5c4c14bf743d.jsonl",
+  "source_sha256": "55d94e37058a595c4077d2cc53a905d54537f0009cabd0eb30ae6b64babc159f",
+  "source_bytes": 2551439,
+  "source_cwd": "D:\\Program Files (x86)\\巅峰\\python",
+  "source_session_id": "01a1cd70-f4d1-7980-98af-5c4c14bf743d",
+  "selected_lines": [
+    32,
+    534
+  ],
+  "exported_records": 142,
+  "record_types": {
+    "message": 12,
+    "custom_tool_call": 65,
+    "custom_tool_call_output": 65
+  },
+  "user_messages": 1,
+  "source_replacement_characters": 242,
+  "exclusions": {
+    "event_msg": 227,
+    "token_usage_record": 65,
+    "reasoning": 69
+  },
+  "redactions": {
+    "jwt": 0,
+    "api_key": 0,
+    "private_key": 0
+  },
+  "files": {
+    "visible-conversation.jsonl": {
+      "sha256": "cdae047bf23c930ecf4b6c1559b4a532c0c2b645b03f23095c304b073ae2b6be",
+      "bytes": 807611
+    },
+    "visible-conversation.md": {
+      "sha256": "b674834624dbfc1c5f40934c7c7a157336e755e1d5ab2c6e519c39c81a0966f2",
+      "bytes": 735754
+    }
+  },
+  "limitations": [
+    "Filtered visible copy; original raw session is not bundled.",
+    "Three subject indexes from one user request do not prove three independent prompt chains.",
+    "Original user text contains replacement characters; retained without reconstruction.",
+    "Transcript evidence does not create missing fine-grained Git history."
+  ]
+}

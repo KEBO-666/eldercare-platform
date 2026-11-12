@@ -1,0 +1,53 @@
+{
+  "generated_at_utc": "2026-11-12T09:36:30.588792+00:00",
+  "source_path": "C:\\Users\\Administrator\\.codex\\sessions\\2026\\11\\12\\rollout-2026-11-12T17-02-30-01a1cefe-8968-7072-b457-fc580844c9f9.jsonl",
+  "source_sha256": "a70c2a5b695da8cfc8f9b94f3c96aa2f4da6484aa1c103c018015b9b6e253700",
+  "source_bytes": 1119922,
+  "source_cwd": "D:\\Program Files (x86)\\巅峰\\python",
+  "source_session_id": "01a1cefe-8968-7072-b457-fc580844c9f9",
+  "selected_lines": [
+    59,
+    457
+  ],
+  "exported_records": 122,
+  "record_types": {
+    "custom_tool_call": 40,
+    "custom_tool_call_output": 40,
+    "function_call": 19,
+    "function_call_output": 19,
+    "message": 4
+  },
+  "user_messages": 0,
+  "source_replacement_characters": 30,
+  "exclusions": {
+    "agent_message": 10,
+    "token_usage_record": 63,
+    "event_msg": 168,
+    "reasoning": 24,
+    "inter_agent_communication_metadata": 9,
+    "turn_context": 3
+  },
+  "redactions": {
+    "jwt": 0,
+    "api_key": 0,
+    "private_key": 0,
+    "unavailable_encrypted_text": 18
+  },
+  "files": {
+    "visible-conversation.jsonl": {
+      "sha256": "f3be4882e476edb88572e76303e185879177d1d828d21937548cee05146cdf19",
+      "bytes": 220934
+    },
+    "visible-conversation.md": {
+      "sha256": "16d9357865fe8dfc18f87f7018ccd9d4b66ce6b95b66b90c5f11e29b937667e6",
+      "bytes": 186340
+    }
+  },
+  "limitations": [
+    "Filtered visible copy; original raw session is not bundled.",
+    "Subject indexes or agent delegated tasks do not prove independent human prompt chains.",
+    "Replacement characters, if present in source text, are retained without reconstruction.",
+    "Transcript evidence does not create missing fine-grained Git history.",
+    "Encrypted inter-agent text cannot be recovered and is omitted, never reconstructed as raw evidence."
+  ]
+}

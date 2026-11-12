@@ -1,0 +1,11 @@
+{
+  "result": "passed",
+  "run": "reports/chuanzhi-browser/20261112-171450/result.json",
+  "checks": 28,
+  "scope": "Edge automated browser on isolated SQLite application",
+  "video": "reports/chuanzhi-browser/20261112-171450/video/page@63b5fc046e22996672fe0bf6c1374f37.webm",
+  "video_note": "real automated run; not a claim of manual development or original AI conversation",
+  "screenshots": "reports/chuanzhi-browser/20261112-171450/",
+  "injected_checks": ["409 appointment failure", "500 alert handling failure", "non-default dispatch weights", "incomplete action duplicate-click probe"],
+  "limitations": ["no manual browser QA", "no real GPS", "no production deployment", "no concurrent scheduling test"]
+}

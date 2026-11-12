@@ -1,0 +1,47 @@
+{
+  "notice": "真实可见证据摘录。属于同一个用户发起的优化轮；不能当成3条独立完整Prompt链。",
+  "source_visible_copy": "2026-11-12-optimization\\visible-conversation.jsonl",
+  "source_visible_sha256": "cdae047bf23c930ecf4b6c1559b4a532c0c2b645b03f23095c304b073ae2b6be",
+  "excerpts": [
+    {
+      "title": "周期预约：明确事务边界",
+      "source_line": 173,
+      "timestamp": "2026-11-12T01:56:18.413Z",
+      "source_record_sha256": "50177896d6a73add3d703e271a5e17b7f518b75ca18bb91e8e60501ea413fbe8",
+      "presentation_transformation": "将工具输入中的JSON字符串解码为原补丁文本，截取连续行。",
+      "text": "+    with db.begin_nested():\n+        for week in range(4 if rule == \"weekly\" else 1):\n+            occurrences.append(_create_single_appointment(\n+                db, service_item_id=service_item_id,\n+                desired_start=desired_start + timedelta(weeks=week),\n+                elder_id=elder_id, address=address, remark=remark, cycle_rule=rule,\n+                user=user, request=request,\n+            ))\n+    db.commit()\n+    data = dict(occurrences[0])\n+    if rule == \"weekly\":\n+        data[\"occurrences\"] = occurrences\n+        data[\"occurrence_count\"] = len(occurrences)\n+    return data"
+    },
+    {
+      "title": "派单：助手说明约束缺口",
+      "source_line": 114,
+      "timestamp": "2026-11-12T01:53:16.235Z",
+      "source_record_sha256": "3c8ae24d366d40d7e7c604e860a36ba488545fbfa592222d47155766c6949a6f",
+      "presentation_transformation": "助手可见回复原文，未改写。",
+      "text": "派单部分还有两处缺口：手工派单能绕过技能和距离限制，超时后也只退回待派单。我正在统一手工与自动派单的校验，补齐“超时换下一候选、无人可派则通知人工协调”的流程；同时收紧跨网格访问和异常处置权限。\n"
+    },
+    {
+      "title": "真实失败：旧超时语义与负荷测试未通过",
+      "source_line": 185,
+      "timestamp": "2026-11-12T01:56:34.926Z",
+      "source_record_sha256": "c30369d1b0081e680d80c56d15e0dd1dd4a50313deb85c927935bab361af8db1",
+      "presentation_transformation": "从工具输出JSON解码后筛选含FAILED的原始行。",
+      "text": "FAILED tests/unit/test_dispatch.py::test_scan_accept_timeout_requeues - asser...\nFAILED tests/unit/test_dispatch.py::test_scan_accept_timeout_reports_logged\nFAILED tests/integration/test_dispatch_api.py::test_candidates_exclude_staff_over_daily_limit\nFAILED tests/integration/test_dispatch_api.py::test_config_weights_override_changes_ranking\nFAILED tests/integration/test_dispatch_api.py::test_scan_timeout_requeues_appointment"
+    },
+    {
+      "title": "修复说明：Windows SQLite连接占用",
+      "source_line": 477,
+      "timestamp": "2026-11-12T02:16:06.234Z",
+      "source_record_sha256": "c2bea519e24c679be541798ad18bff0b80a11b02a93803514fa5458d3ae025ba",
+      "presentation_transformation": "助手可见回复原文，未改写。",
+      "text": "全量业务测试已全部通过，覆盖率为 89%。验收脚本最后发现一处 Windows 文件占用问题：统计记录数后未显式关闭 SQLite 连接，导致临时目录清理失败。我已修复，并重新通过真实启动验收，现在整理最终报告和源码包。\n"
+    },
+    {
+      "title": "最终验证：410项通过",
+      "source_line": 496,
+      "timestamp": "2026-11-12T02:17:37.622Z",
+      "source_record_sha256": "10c5b50734d1f5d93b4b84d25cfedd80fde0fa904e5baf0524ad3f7b375492fd",
+      "presentation_transformation": "从工具输出JSON解码后筛选测试与覆盖率结果原始行。",
+      "text": "Updated verified test report: 410 passed"
+    }
+  ]
+}
