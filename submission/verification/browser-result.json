@@ -1,0 +1,639 @@
+{
+  "started_at": "2026-11-12T17:14:50.100722",
+  "method": "automated Edge / Playwright",
+  "checks": [
+    {
+      "name": "public toast helper",
+      "passed": true,
+      "detail": "function"
+    },
+    {
+      "name": "appointment responsive width",
+      "passed": true,
+      "detail": [
+        {
+          "viewport": 1440,
+          "font": "standard",
+          "width": 1440,
+          "scroll": 1440,
+          "bodyFont": "18px"
+        },
+        {
+          "viewport": 1440,
+          "font": "large",
+          "width": 1440,
+          "scroll": 1440,
+          "bodyFont": "21px"
+        },
+        {
+          "viewport": 1440,
+          "font": "extra",
+          "width": 1440,
+          "scroll": 1440,
+          "bodyFont": "24px"
+        },
+        {
+          "viewport": 390,
+          "font": "standard",
+          "width": 390,
+          "scroll": 390,
+          "bodyFont": "18px"
+        },
+        {
+          "viewport": 390,
+          "font": "large",
+          "width": 390,
+          "scroll": 390,
+          "bodyFont": "21px"
+        },
+        {
+          "viewport": 390,
+          "font": "extra",
+          "width": 390,
+          "scroll": 390,
+          "bodyFont": "24px"
+        }
+      ]
+    },
+    {
+      "name": "font preference persists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "required-field feedback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "feedback is visually displayed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "failed appointment restores submit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "action prevents repeated click and shows loading",
+      "passed": true,
+      "detail": {
+        "requests": 1,
+        "disabled": true,
+        "busy": "true",
+        "label": "处理中…",
+        "restored": true
+      }
+    },
+    {
+      "name": "elder creates appointment",
+      "passed": true,
+      "detail": {
+        "code": 0,
+        "message": "预约提交成功",
+        "data": {
+          "id": 31,
+          "code": "AP202611120001",
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "elder_code": "E0001",
+          "service_item_id": 10,
+          "item_name": "健康监测",
+          "item_code": "S010",
+          "desired_start": "2026-12-12T09:00:00",
+          "status": "pending_accept",
+          "status_name": "待受理",
+          "address_masked": "上海市幸福社****",
+          "remark": "传智杯隔离浏览器验收",
+          "cycle_rule": null,
+          "cancel_reason": null,
+          "cancellation_fee": 0.0,
+          "is_chargeable_cancel": false,
+          "community_org_id": 2,
+          "created_by": 14,
+          "accepted_by": null,
+          "created_at": "2026-11-12T17:14:58.461766",
+          "updated_at": "2026-11-12T17:14:58.461766",
+          "logs": [
+            {
+              "id": 37,
+              "from_status": null,
+              "to_status": "pending_accept",
+              "action": "create",
+              "operator_id": 14,
+              "remark": "提交预约",
+              "created_at": "2026-11-12T17:14:58.463788"
+            }
+          ],
+          "available_actions": [
+            "accept",
+            "cancel",
+            "to_manual"
+          ]
+        }
+      }
+    },
+    {
+      "name": "modal focus inside",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "modal forward tab loop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "modal backward tab loop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "modal escape and focus restore",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate uses response weights instead of fixed defaults",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate explains actual weights and contributions",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "candidate dispatch succeeds",
+      "passed": true,
+      "detail": {
+        "code": 0,
+        "message": "派单成功",
+        "data": {
+          "id": 121,
+          "code": "WO202611120001",
+          "appointment_id": 31,
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "service_item_id": 10,
+          "item_name": "健康监测",
+          "nurse_id": 7,
+          "nurse_name": "周建平",
+          "status": "pending_accept",
+          "status_name": "待接单",
+          "scheduled_start": "2026-12-12T09:00:00",
+          "scheduled_end": "2026-12-12T09:30:00",
+          "price_version_id": 13,
+          "unit_price": 80.0,
+          "quantity": 1.0,
+          "amount": 80.0,
+          "community_org_id": 2,
+          "created_by": 4,
+          "created_at": "2026-11-12T17:15:02.873090",
+          "summary": null
+        }
+      }
+    },
+    {
+      "name": "nurse checkout with abnormal metrics",
+      "passed": true,
+      "detail": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": 121,
+          "code": "WO202611120001",
+          "status": "pending_evaluation",
+          "available_actions": [
+            "complete",
+            "report_anomaly"
+          ],
+          "appointment_id": 31,
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "elder_address": "上海市幸福社****",
+          "nurse_id": 7,
+          "nurse_name": "周建平",
+          "service_item_id": 10,
+          "service_item_name": "健康监测",
+          "standard_duration_min": 30,
+          "scheduled_start": "2026-12-12T09:00:00",
+          "scheduled_end": "2026-12-12T09:30:00",
+          "accepted_at": "2026-11-12T17:15:03.600796",
+          "checkin_at": "2026-11-12T17:15:04.573364",
+          "checkin_lat": 31.233143,
+          "checkin_lng": 121.473983,
+          "checkin_distance_m": 0.0,
+          "checkin_note": null,
+          "checkout_at": "2026-11-12T17:15:05.732715",
+          "duration_min": 0,
+          "duration_anomaly": false,
+          "summary": "浏览器隔离验收：完成健康监测，异常数据用于规则演示。",
+          "price_version_id": 13,
+          "unit_price": 80.0,
+          "quantity": 1.0,
+          "amount": 80.0,
+          "community_org_id": 2,
+          "completed_at": null,
+          "rating": null,
+          "created_at": "2026-11-12T17:15:02.873090",
+          "items": [],
+          "photos": [],
+          "tracks": [
+            {
+              "id": 198,
+              "kind": "checkin",
+              "lat": 31.233143,
+              "lng": 121.473983,
+              "distance_m": 0.0,
+              "note": null,
+              "created_at": "2026-11-12T17:15:04.575373"
+            },
+            {
+              "id": 199,
+              "kind": "checkout",
+              "lat": null,
+              "lng": null,
+              "distance_m": null,
+              "note": "浏览器隔离验收：完成健康监测，异常数据用于规则演示。",
+              "created_at": "2026-11-12T17:15:05.734715"
+            }
+          ],
+          "anomalies": [],
+          "anomaly_reports": [],
+          "elder": {
+            "id": 1,
+            "name": "张建国",
+            "gender": "male",
+            "address_masked": "上海市幸福社****",
+            "lat": 31.233143,
+            "lng": 121.473983,
+            "ability_level": "severe",
+            "grid_org_id": 5,
+            "community_org_id": 2
+          },
+          "nurse": {
+            "id": 7,
+            "name": "周建平",
+            "employee_no": "N0007"
+          },
+          "service_item": {
+            "id": 10,
+            "name": "健康监测",
+            "category": "monitor",
+            "standard_duration_min": 30
+          },
+          "evaluation": null,
+          "appointment": {
+            "id": 31,
+            "code": "AP202611120001",
+            "status": "completed"
+          },
+          "deviation_min": 30,
+          "duration_anomaly_threshold_min": 30,
+          "metrics_recorded": [
+            {
+              "id": 201,
+              "metric_code": "sbp",
+              "value": 200.0,
+              "unit": "mmHg"
+            },
+            {
+              "id": 202,
+              "metric_code": "hr",
+              "value": 125.0,
+              "unit": "次/分"
+            },
+            {
+              "id": 203,
+              "metric_code": "spo2",
+              "value": 85.0,
+              "unit": "%"
+            }
+          ],
+          "alerts_created": [
+            {
+              "id": 7,
+              "level": "red",
+              "summary": "张建国 血氧 85%（阈值 <90%）"
+            }
+          ],
+          "appointment_sync": {
+            "appointment_id": 31,
+            "from_status": "in_service",
+            "to_status": "completed"
+          }
+        }
+      }
+    },
+    {
+      "name": "health metrics trigger pending alert",
+      "passed": true,
+      "detail": [
+        {
+          "id": 7,
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "elder_code": "E0001",
+          "rule_id": 3,
+          "rule_code": "SPO2_LOW",
+          "rule_name": "血氧过低",
+          "work_order_id": null,
+          "level": "red",
+          "level_name": "红色预警",
+          "status": "pending",
+          "metric_code": "spo2",
+          "metric_name": "血氧",
+          "metric_value": 85.0,
+          "summary": "张建国 血氧 85%（阈值 <90%）",
+          "detail": {
+            "rule_code": "SPO2_LOW",
+            "rule_name": "血氧过低",
+            "rule_type": "threshold",
+            "metric_code": "spo2",
+            "metric_id": 203,
+            "operator": "<",
+            "threshold": 90.0,
+            "threshold2": null,
+            "window_size": null,
+            "measured_at": "2026-11-12T17:15:05.732715",
+            "recent_values": []
+          },
+          "pushed_at": "2026-11-12T17:15:05.740436",
+          "deadline_at": "2026-11-12T17:45:05.740436",
+          "escalated_at": null,
+          "escalated_to_org_id": null,
+          "resolved_at": null,
+          "resolved_by": null,
+          "resolution_type": null,
+          "resolution_note": null,
+          "measure": null,
+          "response_seconds": null,
+          "handling_seconds": null,
+          "created_at": "2026-11-12T17:15:05.744338",
+          "overdue": false
+        },
+        {
+          "id": 1,
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "elder_code": "E0001",
+          "rule_id": 1,
+          "rule_code": "SBP_HIGH",
+          "rule_name": "收缩压过高",
+          "work_order_id": null,
+          "level": "red",
+          "level_name": "红色预警",
+          "status": "pending",
+          "metric_code": "sbp",
+          "metric_name": "收缩压",
+          "metric_value": 186.0,
+          "summary": "收缩压 186 mmHg（≥180），立即处置",
+          "detail": null,
+          "pushed_at": "2026-11-12T17:07:10",
+          "deadline_at": "2026-11-12T17:36:50",
+          "escalated_at": null,
+          "escalated_to_org_id": null,
+          "resolved_at": null,
+          "resolved_by": null,
+          "resolution_type": null,
+          "resolution_note": null,
+          "measure": null,
+          "response_seconds": null,
+          "handling_seconds": null,
+          "created_at": "2026-11-12T17:06:50",
+          "overdue": false
+        }
+      ]
+    },
+    {
+      "name": "resolution required-field feedback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "failed resolution preserves input and retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "alert resolution succeeds",
+      "passed": true,
+      "detail": {
+        "code": 0,
+        "message": "ok",
+        "data": {
+          "id": 7,
+          "elder_id": 1,
+          "elder_name": "张建国",
+          "elder_code": "E0001",
+          "rule_id": 3,
+          "rule_code": "SPO2_LOW",
+          "rule_name": "血氧过低",
+          "work_order_id": null,
+          "level": "red",
+          "level_name": "红色预警",
+          "status": "resolved",
+          "metric_code": "spo2",
+          "metric_name": "血氧",
+          "metric_value": 85.0,
+          "summary": "张建国 血氧 85%（阈值 <90%）",
+          "detail": {
+            "rule_code": "SPO2_LOW",
+            "rule_name": "血氧过低",
+            "rule_type": "threshold",
+            "metric_code": "spo2",
+            "metric_id": 203,
+            "operator": "<",
+            "threshold": 90.0,
+            "threshold2": null,
+            "window_size": null,
+            "measured_at": "2026-11-12T17:15:05.732715",
+            "recent_values": []
+          },
+          "pushed_at": "2026-11-12T17:15:05.740436",
+          "deadline_at": "2026-11-12T17:45:05.740436",
+          "escalated_at": null,
+          "escalated_to_org_id": null,
+          "resolved_at": "2026-11-12T17:15:09.031837",
+          "resolved_by": 4,
+          "resolution_type": "resolved",
+          "resolution_note": null,
+          "measure": "演示处置：已联系家属并记录转诊建议，模拟数据不用于医疗判断。",
+          "response_seconds": 1,
+          "handling_seconds": 3,
+          "created_at": "2026-11-12T17:15:05.744338",
+          "overdue": false,
+          "actions": [
+            {
+              "id": 10,
+              "alert_id": 7,
+              "action_type": "push",
+              "channel": "inapp",
+              "target": "grid:5",
+              "operator_id": 12,
+              "note": "红色预警推送（网格员/家属/签约医生）",
+              "action_at": "2026-11-12T17:15:05.740436",
+              "created_at": "2026-11-12T17:15:05.748392"
+            },
+            {
+              "id": 11,
+              "alert_id": 7,
+              "action_type": "ack",
+              "channel": "inapp",
+              "target": "grid",
+              "operator_id": 4,
+              "note": "已确认收到预警",
+              "action_at": "2026-11-12T17:15:07.570088",
+              "created_at": "2026-11-12T17:15:07.571082"
+            },
+            {
+              "id": 12,
+              "alert_id": 7,
+              "action_type": "resolve",
+              "channel": "inapp",
+              "target": "网格",
+              "operator_id": 4,
+              "note": "[resolved] 演示处置：已联系家属并记录转诊建议，模拟数据不用于医疗判断。",
+              "action_at": "2026-11-12T17:15:09.031837",
+              "created_at": "2026-11-12T17:15:09.031837"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "empty list feedback",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile width /",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "mobile width /appointments",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "mobile width /dispatch",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "mobile width /orders",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "mobile width /alerts",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "mobile width /stats",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "no uncaught browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "toast_type": "function",
+  "layout": [
+    {
+      "viewport": 1440,
+      "font": "standard",
+      "width": 1440,
+      "scroll": 1440,
+      "bodyFont": "18px"
+    },
+    {
+      "viewport": 1440,
+      "font": "large",
+      "width": 1440,
+      "scroll": 1440,
+      "bodyFont": "21px"
+    },
+    {
+      "viewport": 1440,
+      "font": "extra",
+      "width": 1440,
+      "scroll": 1440,
+      "bodyFont": "24px"
+    },
+    {
+      "viewport": 390,
+      "font": "standard",
+      "width": 390,
+      "scroll": 390,
+      "bodyFont": "18px"
+    },
+    {
+      "viewport": 390,
+      "font": "large",
+      "width": 390,
+      "scroll": 390,
+      "bodyFont": "21px"
+    },
+    {
+      "viewport": 390,
+      "font": "extra",
+      "width": 390,
+      "scroll": 390,
+      "bodyFont": "24px"
+    }
+  ],
+  "appointment_id": 31,
+  "assignment": {
+    "id": 121,
+    "code": "WO202611120001",
+    "appointment_id": 31,
+    "elder_id": 1,
+    "elder_name": "张建国",
+    "service_item_id": 10,
+    "item_name": "健康监测",
+    "nurse_id": 7,
+    "nurse_name": "周建平",
+    "status": "pending_accept",
+    "status_name": "待接单",
+    "scheduled_start": "2026-12-12T09:00:00",
+    "scheduled_end": "2026-12-12T09:30:00",
+    "price_version_id": 13,
+    "unit_price": 80.0,
+    "quantity": 1.0,
+    "amount": 80.0,
+    "community_org_id": 2,
+    "created_by": 4,
+    "created_at": "2026-11-12T17:15:02.873090",
+    "summary": null
+  },
+  "order_id": 121,
+  "alert_id": 7,
+  "passed": true,
+  "browser_errors": [],
+  "finished_at": "2026-11-12T17:15:11.323407"
+}

@@ -1,0 +1,132 @@
+{
+  "started_at_utc": "2026-11-12T09:20:58.777030+00:00",
+  "passed": true,
+  "within_ten_minutes": true,
+  "source_method": "allowlisted current-working-tree copy; not remote clone",
+  "runtime": {
+    "python": "3.12.14 (main, Sep  1 2026, 14:17:39) [MSC v.1944 64 bit (AMD64)]",
+    "base_python": "C:\\Users\\Administrator\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\python\\python.exe",
+    "os": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "logical_cpus": 8
+  },
+  "conditions": {
+    "python_preinstalled": true,
+    "source_venv_reused": false,
+    "source_database_reused": false,
+    "pip_cache_policy": "default cache, network allowed",
+    "scheduler": false,
+    "browser_visual_check": false
+  },
+  "run_directory": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-reproduction-runs\\20261112-172058",
+  "stages": [
+    {
+      "name": "source-copy",
+      "elapsed_seconds": 7.125
+    },
+    {
+      "name": "create-venv",
+      "elapsed_seconds": 12.063,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-reproduction-runs\\20261112-172058\\create-venv.log"
+    },
+    {
+      "name": "pip-cache-before",
+      "elapsed_seconds": 0.422,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-reproduction-runs\\20261112-172058\\pip-cache-before.log"
+    },
+    {
+      "name": "install-dependencies",
+      "elapsed_seconds": 64.515,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-reproduction-runs\\20261112-172058\\install-dependencies.log"
+    },
+    {
+      "name": "pip-check",
+      "elapsed_seconds": 1.204,
+      "exit_code": 0,
+      "log": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-reproduction-runs\\20261112-172058\\pip-check.log"
+    },
+    {
+      "name": "launcher-seed-start-and-six-role-http",
+      "elapsed_seconds": 8.062
+    }
+  ],
+  "checks": [
+    {
+      "user": "super",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "user": "super",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "super",
+      "path": "/admin/audit",
+      "status": 200
+    },
+    {
+      "user": "street",
+      "path": "/stats",
+      "status": 200
+    },
+    {
+      "user": "street",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "orgadmin",
+      "path": "/quality",
+      "status": 200
+    },
+    {
+      "user": "orgadmin",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/dispatch",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "nurse1",
+      "path": "/orders",
+      "status": 200
+    },
+    {
+      "user": "elder1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "user": "elder1",
+      "path": "/billing",
+      "status": 200
+    }
+  ],
+  "initial_state": {
+    "venv_exists": false,
+    "database_exists": false,
+    "env_exists": false,
+    "source_file_count": 220
+  },
+  "elapsed_to_all_logins_seconds": 93.391,
+  "finished_at_utc": "2026-11-12T09:22:32.544837+00:00",
+  "total_elapsed_seconds": 93.485
+}

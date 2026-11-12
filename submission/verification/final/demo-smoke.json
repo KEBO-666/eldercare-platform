@@ -1,0 +1,113 @@
+{
+  "seed_idempotent": true,
+  "checks": [
+    {
+      "user": "super",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "user": "super",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "super",
+      "path": "/admin/audit",
+      "status": 200
+    },
+    {
+      "user": "street",
+      "path": "/stats",
+      "status": 200
+    },
+    {
+      "user": "street",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "orgadmin",
+      "path": "/quality",
+      "status": 200
+    },
+    {
+      "user": "orgadmin",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/dispatch",
+      "status": 200
+    },
+    {
+      "user": "grid1",
+      "path": "/billing",
+      "status": 200
+    },
+    {
+      "user": "nurse1",
+      "path": "/orders",
+      "status": 200
+    },
+    {
+      "user": "elder1",
+      "path": "/appointments",
+      "status": 200
+    },
+    {
+      "user": "elder1",
+      "path": "/billing",
+      "status": 200
+    }
+  ],
+  "table_counts": {
+    "subsidy_policy": 12,
+    "service_item": 10,
+    "alert_rule": 5,
+    "org": 10,
+    "role": 6,
+    "permission": 35,
+    "audit_log": 7,
+    "backup_record": 0,
+    "config_item": 9,
+    "bill": 2,
+    "service_price_version": 13,
+    "role_permission": 98,
+    "user": 33,
+    "payment_record": 3,
+    "elder": 20,
+    "access_grant": 0,
+    "staff": 8,
+    "elder_tag": 24,
+    "elder_disease": 40,
+    "elder_medication": 40,
+    "ability_assessment": 40,
+    "archive_change_log": 2,
+    "device": 6,
+    "appointment": 30,
+    "staff_performance_monthly": 8,
+    "notification": 6,
+    "appointment_log": 36,
+    "work_order": 120,
+    "bill_detail": 16,
+    "reconciliation_diff": 2,
+    "health_metric": 200,
+    "alert": 6,
+    "work_order_item": 480,
+    "work_order_photo": 6,
+    "work_order_track": 197,
+    "anomaly_report": 5,
+    "evaluation": 74,
+    "complaint": 3,
+    "alert_action": 9,
+    "callback_task": 12
+  },
+  "passed": true
+}

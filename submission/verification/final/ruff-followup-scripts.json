@@ -1,0 +1,9 @@
+{
+  "timestamp_utc": "2026-11-12T09:20:12.006259+00:00",
+  "exit_code": 0,
+  "command": "python -m ruff check scripts/build_chuanzhi_submission.py scripts/verify_browser.py",
+  "inputs": {
+    "scripts/build_chuanzhi_submission.py": "4601ca403165fcc46ed2b7d0cc72b9f6ad6e495978ab5ba1e84959c19686c626",
+    "scripts/verify_browser.py": "5ad121b8c215488fddd6380aa8e95fb9df28f41b246983c6227b235ef12d63f6"
+  }
+}

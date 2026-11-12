@@ -1,0 +1,75 @@
+{
+  "created_utc": "2026-11-12T10:04:50.129795+00:00",
+  "source_head": "5524ab578eb154fe782743cb0dd7cdab0b4a2c5d",
+  "export_head": "e834c53a6f1cdb8b16c05839fdc9bc83b7020594",
+  "source_history_unchanged": true,
+  "retained_file_count_union": 227,
+  "excluded_path_count_union": 166,
+  "retained_head_blob_ids_equal": true,
+  "commits": [
+    {
+      "original": "9bd3def0903e1a652e59db135fef16f39aa832f1",
+      "public_export": "90d35cb0eb94a7339df884684273a0e2cc5a3156",
+      "author_date": "2026-11-08T21:50:03+08:00",
+      "committer_date": "2026-11-08T21:50:03+08:00",
+      "subject": "chore: 冻结基座（模型/安全/权限/状态机/审计/配置/测试夹具）"
+    },
+    {
+      "original": "5029ec01618c55ec0b043e4633a1e4e2b0cad7d5",
+      "public_export": "60f4a92fc1abc33a08163c8d169db22175f6d3fb",
+      "author_date": "2026-11-08T22:51:39+08:00",
+      "committer_date": "2026-11-08T22:57:43+08:00",
+      "subject": "feat: 完成社区智慧养老平台全模块（十大需求/六条流程/89% 覆盖率/340 测试全绿）"
+    },
+    {
+      "original": "1504c044175f5d6d91a7077e3b1718d92dc0c49b",
+      "public_export": "da5e9c918bd9931d63a8fc5acbf0e7320cd6b0d2",
+      "author_date": "2026-11-12T17:25:23+08:00",
+      "committer_date": "2026-11-12T17:25:23+08:00",
+      "subject": "chore: record existing reviewed eldercare improvements at current time"
+    },
+    {
+      "original": "9c8e0acfa3827fd4a84f845732994848c4e519e1",
+      "public_export": "3401138e37cc7d0174bd6906dedfea6549f8e3d6",
+      "author_date": "2026-11-12T17:25:24+08:00",
+      "committer_date": "2026-11-12T17:25:24+08:00",
+      "subject": "fix: make demo startup fail clearly and verify clean installation"
+    },
+    {
+      "original": "f61533f964f949ac77aabdb60d0dc3f80856b8da",
+      "public_export": "7d4c5098f4baf97f18be70452d7bad83d36a5917",
+      "author_date": "2026-11-12T17:25:24+08:00",
+      "committer_date": "2026-11-12T17:25:24+08:00",
+      "subject": "fix: restore visible feedback and preserve failed form input"
+    },
+    {
+      "original": "c7bf1a15d5aa0de0e9f44abf2782ef015bffe201",
+      "public_export": "6d3d0240a4eed951b106afbfe556b0a4ce48a28e",
+      "author_date": "2026-11-12T17:33:52+08:00",
+      "committer_date": "2026-11-12T17:33:52+08:00",
+      "subject": "fix: stop owned verification server tree before Windows cleanup"
+    },
+    {
+      "original": "7c2cf13e410c662864c51106680e37de2ac1bc5e",
+      "public_export": "7f77291815fd082cfa0ed5bca7ff8cc6a3aa3947",
+      "author_date": "2026-11-12T17:37:08+08:00",
+      "committer_date": "2026-11-12T17:37:08+08:00",
+      "subject": "docs: add authentic AI evidence and reproducible competition materials"
+    },
+    {
+      "original": "2bac08ec3b8948f75d0602a145ed7bb7b0eeef41",
+      "public_export": "d0bc785ece72544c3ec5d0b5ac1fd3271683b6e8",
+      "author_date": "2026-11-12T17:41:23+08:00",
+      "committer_date": "2026-11-12T17:41:23+08:00",
+      "subject": "fix: preserve readable opening frames in evidence replay video"
+    },
+    {
+      "original": "5524ab578eb154fe782743cb0dd7cdab0b4a2c5d",
+      "public_export": "e834c53a6f1cdb8b16c05839fdc9bc83b7020594",
+      "author_date": "2026-11-12T18:04:13+08:00",
+      "committer_date": "2026-11-12T18:04:13+08:00",
+      "subject": "chore: prepare independent allowlisted public history export"
+    }
+  ],
+  "notice": "Filtered derivative history: commit IDs change; actual metadata and order retained. No invented early iterations."
+}

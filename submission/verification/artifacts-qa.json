@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "duration_seconds": 429.02,
+  "resolution": "1920x1080",
+  "decode_all_frames": "passed",
+  "evidence_replay_seconds": 122,
+  "live_evidence_checks": true,
+  "video_sha256": "a6607f5bf249ffd3df36a190bd039fe050f22c8c788925baa41860c4146464c5",
+  "pdf_pages": 18,
+  "pdf_sha256": "90aec59e9e9a64ce042dc206406f3bb55226021e198d470e6887296629b69b17",
+  "pdf_text_check": "passed",
+  "visual_review": "passed: final sampled video frames, corrected opening, evidence text and PDF rendered pages inspected",
+  "contact_sheet": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-video-qa\\contact.png",
+  "notice": "Format and integrity checks do not certify eligibility or three full independent Prompt chains."
+}

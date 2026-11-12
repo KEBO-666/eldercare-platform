@@ -1,0 +1,82 @@
+........................................................................ [ 17%]
+........................................................................ [ 35%]
+........................................................................ [ 52%]
+........................................................................ [ 70%]
+........................................................................ [ 87%]
+..................................................                       [100%]
+- generated xml file: D:\Program Files (x86)\巅峰\python\eldercare-platform\reports\chuanzhi-final\junit.xml -
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.14-final-0 _______________
+
+Name                                  Stmts   Miss  Cover
+---------------------------------------------------------
+app\__init__.py                           0      0   100%
+app\algorithms\__init__.py                0      0   100%
+app\algorithms\alert_rules.py            92     15    84%
+app\algorithms\dispatch.py              155     13    92%
+app\algorithms\subsidy.py                89     13    85%
+app\api\__init__.py                       0      0   100%
+app\api\v1\__init__.py                    0      0   100%
+app\api\v1\admin.py                     110      3    97%
+app\api\v1\alerts.py                     74      0   100%
+app\api\v1\appointments.py               46      0   100%
+app\api\v1\auth.py                       28      0   100%
+app\api\v1\billing.py                    79      0   100%
+app\api\v1\catalog.py                    69      0   100%
+app\api\v1\dispatch.py                   30      0   100%
+app\api\v1\elders.py                     74      1    99%
+app\api\v1\health.py                     64      0   100%
+app\api\v1\orders.py                     81      2    98%
+app\api\v1\quality.py                    66      0   100%
+app\api\v1\router.py                      5      0   100%
+app\api\v1\stats.py                      32      0   100%
+app\core\__init__.py                      0      0   100%
+app\core\audit.py                        43      3    93%
+app\core\config.py                       67      2    97%
+app\core\deps.py                        109      6    94%
+app\core\enums.py                       138      0   100%
+app\core\exceptions.py                   33      0   100%
+app\core\export.py                        6      0   100%
+app\core\permissions.py                   6      0   100%
+app\core\response.py                     19      1    95%
+app\core\security.py                     77     15    81%
+app\core\state_machine.py                36     11    69%
+app\db\__init__.py                        0      0   100%
+app\db\base.py                           20      0   100%
+app\db\session.py                        21     10    52%
+app\main.py                              62     14    77%
+app\models\__init__.py                   10      0   100%
+app\models\billing.py                    68      0   100%
+app\models\catalog.py                    30      0   100%
+app\models\elder.py                      77      0   100%
+app\models\health.py                     74      0   100%
+app\models\order.py                      94      0   100%
+app\models\org.py                        57      0   100%
+app\models\quality.py                    66      0   100%
+app\models\system.py                     33      0   100%
+app\schemas\__init__.py                   0      0   100%
+app\schemas\elder.py                    214     26    88%
+app\services\__init__.py                  0      0   100%
+app\services\admin_service.py           563    104    82%
+app\services\alert_service.py           417     38    91%
+app\services\appointment_service.py     287     32    89%
+app\services\archive_service.py         319     14    96%
+app\services\auth_service.py             40      0   100%
+app\services\billing_service.py         610     46    92%
+app\services\catalog_service.py         164     16    90%
+app\services\dispatch_service.py        256     21    92%
+app\services\health_service.py          191     26    86%
+app\services\order_service.py           470     47    90%
+app\services\quality_service.py         401     47    88%
+app\services\stats_service.py           351     21    94%
+app\tasks\__init__.py                     0      0   100%
+app\tasks\alert_timeout.py               27     12    56%
+app\tasks\backup_daily.py               120     18    85%
+app\tasks\billing_monthly.py             34      4    88%
+app\tasks\scheduler.py                   42     42     0%
+app\web\__init__.py                       0      0   100%
+app\web\routes.py                       807    197    76%
+---------------------------------------------------------
+TOTAL                                  7553    820    89%
+Coverage HTML written to dir reports/chuanzhi-final/htmlcov
+Coverage XML written to file reports/chuanzhi-final/coverage.xml

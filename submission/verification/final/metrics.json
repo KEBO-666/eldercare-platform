@@ -1,0 +1,10 @@
+{
+  "tests": 410,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "junit_seconds": 252.852,
+  "line_rate": "0.8914",
+  "lines_valid": "7553",
+  "lines_covered": "6733"
+}

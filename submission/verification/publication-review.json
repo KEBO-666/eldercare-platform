@@ -1,0 +1,345 @@
+{
+  "generated_at_utc": "2026-11-12T10:06:16.811625+00:00",
+  "status": "no_additional_blocker_identified_for_sanitized_export",
+  "scope": {
+    "original_commits_reviewed": 8,
+    "historical_unique_text_path_blobs": 262,
+    "historical_and_current_texts_scanned": 459,
+    "actual_auth_or_private_config_opened": false,
+    "database_contents_opened": false,
+    "source_or_git_changed": false,
+    "published": false
+  },
+  "reviewed_current_matches": [
+    {
+      "path": "tests/conftest.py",
+      "line": 134,
+      "signal": "credential_assignment",
+      "classification": "test_password_constant_reference"
+    },
+    {
+      "path": "tests/conftest.py",
+      "line": 230,
+      "signal": "credential_assignment",
+      "classification": "test_password_constant_reference"
+    },
+    {
+      "path": "tests/integration/test_web_smoke.py",
+      "line": 32,
+      "signal": "credential_assignment",
+      "classification": "test_password_constant_reference"
+    },
+    {
+      "path": "app/core/config.py",
+      "line": 22,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "app/core/config.py",
+      "line": 25,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "app/core/config.py",
+      "line": 26,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "app/services/admin_service.py",
+      "line": 340,
+      "signal": "credential_assignment",
+      "classification": "runtime_expression_or_random_password_prefix"
+    },
+    {
+      "path": "app/services/admin_service.py",
+      "line": 344,
+      "signal": "credential_assignment",
+      "classification": "runtime_expression_or_random_password_prefix"
+    },
+    {
+      "path": "app/web/routes.py",
+      "line": 639,
+      "signal": "credential_assignment",
+      "classification": "empty_form_default"
+    },
+    {
+      "path": "docs/CONTRACTS.md",
+      "line": 94,
+      "signal": "credential_assignment",
+      "classification": "cookie_documentation_placeholder"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 74,
+      "signal": "credential_url",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 10,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 10,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 10,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 10,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 10,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 51,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 51,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.jsonl",
+      "line": 92,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 687,
+      "signal": "credential_url",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 112,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 112,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 112,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 112,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 112,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 477,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 477,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/2026-11-12-optimization/visible-conversation.md",
+      "line": 842,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.jsonl",
+      "line": 2,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.jsonl",
+      "line": 2,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.jsonl",
+      "line": 2,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.md",
+      "line": 25,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.md",
+      "line": 25,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-reproduction/visible-conversation.md",
+      "line": 25,
+      "signal": "credential_assignment",
+      "classification": "archived_code_expression_placeholder_or_json_escape"
+    },
+    {
+      "path": "docker/docker-compose.yml",
+      "line": 41,
+      "signal": "credential_url",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "scripts/seed.py",
+      "line": 89,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "scripts/simulate_wearable.py",
+      "line": 44,
+      "signal": "credential_assignment",
+      "classification": "interactive_getpass_expression"
+    },
+    {
+      "path": "README.md",
+      "line": 159,
+      "signal": "credential_url",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": "README.md",
+      "line": 217,
+      "signal": "credential_url",
+      "classification": "database_url_documentation_placeholder"
+    },
+    {
+      "path": ".env.example",
+      "line": 10,
+      "signal": "credential_url",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": ".env.example",
+      "line": 5,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": ".env.example",
+      "line": 17,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    },
+    {
+      "path": ".env.example",
+      "line": 18,
+      "signal": "credential_assignment",
+      "classification": "known_public_demo_value"
+    }
+  ],
+  "review_summary": {
+    "test_password_constant_reference": 3,
+    "known_public_demo_value": 12,
+    "runtime_expression_or_random_password_prefix": 2,
+    "empty_form_default": 1,
+    "cookie_documentation_placeholder": 1,
+    "archived_code_expression_placeholder_or_json_escape": 22,
+    "interactive_getpass_expression": 1,
+    "database_url_documentation_placeholder": 1
+  },
+  "strong_secret_indicators": {
+    "actual_api_token": 0,
+    "jwt_literal": 0,
+    "private_key": 0,
+    "cloud_key": 0,
+    "auth_json_token_body": 0,
+    "bearer_token_literal": 0
+  },
+  "additional_signal_classifications": [
+    {
+      "paths": [
+        "tests/unit/test_foundation.py",
+        "tests/integration/test_admin_api.py",
+        "tests/integration/test_elders_api.py",
+        "tests/unit/test_archive.py",
+        "tests/unit/test_auth_admin.py"
+      ],
+      "classification": "test_fixture_identity_and_phone_literals"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/",
+      "classification": "numeric_runs_in_hashes_or_cache_object_names"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/",
+      "classification": "email_regex_false_positives_in_python_decorators_or_recording_uri"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-evidence/visible-conversation.md",
+      "classification": "auth_filename_only_in_scan_and_exclusion_code"
+    },
+    {
+      "path": "docs/chuanzhi/evidence/history/current-root/visible-conversation.md",
+      "classification": "auth_filename_only_in_directory_listing"
+    }
+  ],
+  "required_export_exclusions": [
+    "data/**",
+    "**/pip-cache/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/*.whl",
+    "**/*.db",
+    "**/*.db-wal",
+    "**/*.db-shm",
+    "**/*.sqlite*",
+    "**/.env",
+    "**/auth.json",
+    "**/credentials.json",
+    "**/*.pem",
+    "**/*.key"
+  ],
+  "requirements": [
+    "Apply exclusions to every exported commit, not only the final tree.",
+    "Keep original repository unchanged; disclose rewritten commit mappings."
+  ],
+  "limitations": [
+    "Contextual static review cannot prove absence of every possible secret.",
+    "Binary images, videos and database contents were not opened by this review.",
+    "Project participant identity, entry numbers and project-related local paths are intentional competition materials; no unrelated private data was identified in the examined text."
+  ],
+  "credential_values_in_report": false
+}
