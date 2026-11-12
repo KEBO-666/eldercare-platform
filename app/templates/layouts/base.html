@@ -52,13 +52,19 @@
                 <h1>{{ page_title|default('首页') }}</h1>
             </div>
             <div class="user-box">
+                <label for="font-size" class="small">字号</label>
+                <select id="font-size" class="font-size-control" aria-label="调整全站字号">
+                    <option value="standard">标准</option>
+                    <option value="large">大字</option>
+                    <option value="extra">超大字</option>
+                </select>
                 <span class="role-badge role-{{ user.role_code }}">{{ user.role_name }}</span>
                 <span class="user-name">{{ user.real_name }}</span>
                 <a class="btn btn-ghost btn-sm" href="/logout" data-action="logout">退出</a>
             </div>
         </header>
 
-        <main class="app-content" id="main-content">
+        <main class="app-content" id="main-content" tabindex="-1">
             {% if notice %}
                 <div class="notice {{ notice_type|default('') }}">{{ notice }}</div>
             {% endif %}

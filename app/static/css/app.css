@@ -35,6 +35,17 @@
 
 * { box-sizing: border-box; }
 
+html[data-font-size="large"] { --font-base: 21px; --font-sm: 20px; --font-lg: 23px; }
+html[data-font-size="extra"] { --font-base: 24px; --font-sm: 22px; --font-lg: 26px; }
+.font-size-control { min-height: 44px; max-width: 110px; font: inherit; }
+html[data-font-size="large"] :is(input, select, textarea, .btn, .data-table) { font-size: 20px; }
+html[data-font-size="extra"] :is(input, select, textarea, .btn, .data-table) { font-size: 22px; }
+@media (max-width: 600px) {
+    .app-topbar { flex-wrap: wrap; }
+    .user-box { flex-wrap: wrap; gap: 8px; }
+    .page-heading { min-width: 0; }
+}
+
 html { font-size: var(--font-base); }
 
 body.app-body {
@@ -129,6 +140,7 @@ textarea:focus-visible, .nav-item:focus-visible {
 .page-heading h1 { font-size: 24px; margin: 0; line-height: 1.3; }
 
 .user-box { display: flex; align-items: center; gap: 12px; font-size: 17px; }
+.user-box > label { white-space: nowrap; }
 .user-name { font-weight: 700; }
 .role-badge {
     display: inline-block; padding: 5px 12px; border-radius: 999px;
@@ -219,7 +231,7 @@ textarea:focus-visible, .nav-item:focus-visible {
 .btn-warning:hover { background: #cf7800; color: #fff; }
 .btn-ghost { background: transparent; border-color: var(--color-border); color: var(--color-primary-dark); }
 .btn-ghost:hover { background: var(--color-primary-light); }
-.btn-sm { min-height: 38px; padding: 6px 14px; font-size: 16px; }
+.btn-sm { min-height: 44px; padding: 6px 14px; font-size: 16px; }
 .btn-block { width: 100%; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
@@ -399,6 +411,7 @@ table.data-table tr.row-muted td { color: #7a8794; }
 .modal-close {
     border: none; background: transparent; font-size: 26px; line-height: 1;
     cursor: pointer; color: #4a5561; padding: 4px 10px; border-radius: 8px;
+    min-width: 44px; min-height: 44px;
 }
 .modal-close:hover { background: #eef4fb; }
 .modal-body { padding: 20px 22px; overflow-y: auto; font-size: 17px; }
@@ -408,7 +421,8 @@ table.data-table tr.row-muted td { color: #7a8794; }
 }
 
 /* ---------------- Toast ---------------- */
-.toast-box { position: fixed; right: 22px; bottom: 22px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+.toast-box { position: fixed; right: 22px; bottom: 22px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; max-width: calc(100vw - 44px); }
+.toast-box .toast { display: block; opacity: 1; min-width: 0; width: 100%; overflow-wrap: anywhere; }
 .toast {
     min-width: 260px; max-width: 460px; padding: 14px 18px;
     border-radius: 10px; font-size: 17px; font-weight: 700; color: #fff;

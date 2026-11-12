@@ -20,9 +20,9 @@
         <div class="stat-hint">技能、坐标、评分可参与排序</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">⚖️ 四因子权重</div>
+        <div class="stat-label">⚖️ 环境默认权重</div>
         <div class="stat-value" style="font-size:26px">{{ weights }}</div>
-        <div class="stat-hint">技能 / 距离 / 负荷 / 评分</div>
+        <div class="stat-hint">技能 / 距离 / 负荷 / 评分；运行期权重以候选明细为准</div>
     </div>
 </div>
 
@@ -105,7 +105,8 @@
     (function () {
         var NURSES = {{ nurses_json|safe }};
         var WEIGHTS = "{{ weights }}".split(",").map(Number);
-        var WEIGHT_LABELS = ["技能匹配（40%）", "距离（30%）", "负荷（20%）", "评分（10%）"];
+        var FACTOR_LABELS = ["技能匹配", "距离", "负荷", "评分"];
+        var WEIGHT_LABELS = FACTOR_LABELS.map(function (label, i) { return label + "（" + (WEIGHTS[i] * 100).toFixed(0) + "%）"; });
         var FACTOR_KEYS = ["skill", "distance", "load", "rating"];
 
         function pickNumber(obj, keys) {
@@ -163,9 +164,13 @@
                 var value = c.factors[key];
                 var width = pctOf(value);
                 var text = value === null ? "无数据" : (value <= 1 ? (value * 100).toFixed(0) + "%" : value.toFixed(1));
+                var weight = c.raw.weights ? c.raw.weights[i] : WEIGHTS[i];
+                var label = FACTOR_LABELS[i] + "（权重 " + (weight * 100).toFixed(0) + "%）";
+                var contribution = c.raw.contributions ? c.raw.contributions[key] : null;
                 return '<div class="factor">' +
-                    '<div class="factor-head"><span>' + WEIGHT_LABELS[i] + '</span><span>' + text + '</span></div>' +
+                    '<div class="factor-head"><span>' + label + '</span><span>' + text + '</span></div>' +
                     '<div class="progress ' + (i === 0 ? "gold" : "") + '"><span style="width:' + width.toFixed(1) + '%"></span></div>' +
+                    (contribution !== null ? '<div class="small muted">加权贡献 ' + (Number(contribution) * 100).toFixed(2) + ' 分</div>' : '') +
                     "</div>";
             }).join("");
             var meta = [];
@@ -178,6 +183,7 @@
                 (meta.length ? '<div class="small muted mb-1">' + App.esc(meta.join(" · ")) + "</div>" : "") +
                 (c.reason ? '<div class="demo-tip">评分依据：' + App.esc(c.reason) + "</div>" : "") +
                 bars +
+                (c.raw.penalty < 1 ? '<div class="notice warn">重点关注降权：总分 × ' + App.esc(c.raw.penalty) + '</div>' : '') +
                 '<div class="btn-row mt-1"><button class="btn btn-success btn-sm" data-assign="' + appointmentId +
                 '" data-nurse="' + (c.nurse_id || "") + '">✓ 一键派单给 TA</button></div>' +
                 "</div></div>";
@@ -187,15 +193,14 @@
             var modal = App.modal({
                 title: "派单候选 · " + (code || appointmentId),
                 html: '<div id="cand-box"><div class="empty-state">正在计算候选护理员…</div></div>' +
-                    '<div class="demo-tip">评分规则：技能匹配 × ' + (WEIGHT_LABELS[0]) + " + " + WEIGHT_LABELS[1] + " + " +
-                    WEIGHT_LABELS[2] + " + " + WEIGHT_LABELS[3] + "，取 Top {{ top_n }}。</div>",
+                    '<div class="demo-tip">评分规则：四项因子分别乘实际权重后求和；重点关注护理员再降权，取 Top {{ top_n }}。权重以候选明细为准。</div>',
                 buttons: [{ text: "关闭", cls: "btn-secondary" }]
             });
             var box = modal.el.querySelector("#cand-box");
             App.api.get("/dispatch/" + appointmentId + "/candidates").then(function (res) {
                 var list = normalize(res);
                 if (!list.length) {
-                    box.innerHTML = '<div class="empty-state"><span class="icon">🙁</span>暂无符合条件的候选护理员（可能技能/距离/当日单量受限），可人工指派。</div>' +
+                    box.innerHTML = '<div class="empty-state"><span class="icon">🙁</span>暂无符合条件的候选护理员（可能技能/距离/当日单量受限）。人工指派仍需满足全部约束，可先核对资源或调整预约时间。</div>' +
                         manualHtml(appointmentId);
                     bindManual(modal.el, appointmentId);
                     return;

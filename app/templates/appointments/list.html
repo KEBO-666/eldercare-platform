@@ -75,6 +75,9 @@
                     {% if can_cancel and appt.status in ('pending_accept', 'accepted', 'pending_dispatch', 'dispatched') %}
                         <button class="btn btn-ghost btn-sm" data-act="cancel" data-id="{{ appt.id }}">取消</button>
                     {% endif %}
+                    {% if can_accept and appt.status == 'dispatched' %}
+                        <button class="btn btn-ghost btn-sm" data-act="no-show" data-id="{{ appt.id }}">登记爽约</button>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -96,19 +99,20 @@
             if (!target) { return; }
             var act = target.getAttribute("data-act");
             var id = target.getAttribute("data-id");
-            if (act === "cancel") {
+            if (act === "cancel" || act === "no-show") {
+                var noShow = act === "no-show";
                 App.modal({
-                    title: "取消预约",
-                    html: '<p>距离服务开始不足 2 小时的取消将产生计费，请填写取消原因：</p>' +
+                    title: noShow ? "登记爽约" : "取消预约",
+                    html: '<p>' + (noShow ? '登记后释放护理员时段，请填写核实原因：' : '距离服务开始不足 2 小时的取消将产生计费，请填写原因：') + '</p>' +
                         '<div class="form-field"><label>取消原因</label>' +
                         '<input id="cancel-reason" type="text" maxlength="100" placeholder="例如：老人临时住院"></div>',
                     buttons: [
                         { text: "返回", cls: "btn-secondary" },
                         {
-                            text: "确认取消", cls: "btn-danger", onClick: function (modal) {
+                            text: "确认登记", cls: "btn-danger", onClick: function (modal) {
                                 var reason = (modal.querySelector("#cancel-reason").value || "").trim();
                                 if (!reason) { App.toast("请填写取消原因", "warn"); return true; }
-                                App.action(target, "/appointments/" + id + "/cancel", { reason: reason }, "已取消预约");
+                                App.action(target, "/appointments/" + id + "/" + act, { reason: reason }, "登记成功");
                             }
                         }
                     ]

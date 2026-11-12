@@ -46,6 +46,14 @@
                     <div class="hint">系统将校验：同老人 ±2 小时内无冲突、地址在社区范围内、能力等级与项目适配</div>
                 </div>
 
+                <div class="form-field">
+                    <label for="cycle_rule">预约频率</label>
+                    <select id="cycle_rule" name="cycle_rule">
+                        <option value="">仅本次</option>
+                        <option value="weekly">每周固定（连续 4 周）</option>
+                    </select>
+                    <div class="hint">每周同一时间上门；任一周冲突会提示原因，整组不提交。</div>
+                </div>
                 <div class="form-field" style="grid-column:1/-1">
                     <label for="remark">备注（可选）</label>
                     <textarea id="remark" name="remark" maxlength="200" placeholder="例如：老人行动不便，请携带轮椅；需测量血压"></textarea>
@@ -71,7 +79,7 @@
                 <li><strong>派单规则</strong>：技能匹配 → 3 公里半径 → 当日 &lt; 6 单 → 时段无冲突，四因子加权排序取 Top3。</li>
                 <li><strong>上门留痕</strong>：签到定位偏差 &gt; 200 米需填写说明，服务过程逐项勾选并拍照。</li>
             </ul>
-            <div class="notice success">演示提示：为保证演示效果，请选择未来 1～2 小时内的时段。</div>
+            <div class="notice success">演示提示：请选择未来且无冲突的时段，建议使用明天的预约。</div>
         </div>
     </section>
 </div>
@@ -103,13 +111,16 @@
             var payload = {
                 elder_id: Number(elderId),
                 service_item_id: Number(itemId),
+                cycle_rule: document.getElementById("cycle_rule").value || undefined,
                 desired_start: start.replace("T", " ") + (start.length === 16 ? ":00" : ""),
                 remark: document.getElementById("remark").value || undefined
             };
             btn.disabled = true;
+            btn.setAttribute("aria-busy", "true");
+            btn.textContent = "正在提交…";
             App.api.post("/appointments", payload).then(function (res) {
                 var data = res.data || {};
-                App.toast("预约提交成功" + (data.code ? "：" + data.code : ""), "success");
+                App.toast(data.occurrence_count ? "已提交 " + data.occurrence_count + " 周预约" : "预约提交成功", "success");
                 tip.textContent = "预约提交成功，正在跳转列表…";
                 window.setTimeout(function () { window.location.href = "/appointments"; }, 900);
             }).catch(function (err) {
@@ -119,7 +130,10 @@
                     tip.innerHTML = '<span style="color:#a11616;font-weight:700">提交失败：' + App.esc(msg) + "</span>";
                     App.toast(msg, "error");
                 }
-            }).finally(function () { btn.disabled = false; });
+                btn.disabled = false;
+                btn.removeAttribute("aria-busy");
+                btn.textContent = "✓ 提交预约";
+            });
         });
     })();
 </script>

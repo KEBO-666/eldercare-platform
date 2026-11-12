@@ -11,6 +11,18 @@
     window.App = App;
 
     var base = "/api/v1";
+    var fontControl = document.getElementById("font-size");
+    if (fontControl) {
+        var savedFont = "standard";
+        try { savedFont = localStorage.getItem("eldercare-font-size") || "standard"; } catch (e) { /* 存储不可用时使用默认 */ }
+        if (["standard", "large", "extra"].indexOf(savedFont) < 0) { savedFont = "standard"; }
+        fontControl.value = savedFont;
+        document.documentElement.dataset.fontSize = savedFont;
+        fontControl.addEventListener("change", function () {
+            document.documentElement.dataset.fontSize = fontControl.value;
+            try { localStorage.setItem("eldercare-font-size", fontControl.value); } catch (e) { /* 本次仍然生效 */ }
+        });
+    }
 
     function goLogin() {
         var next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -35,6 +47,7 @@
             window.setTimeout(function () { el.remove(); }, 260);
         }, 3600);
     }
+    App.toast = toast;
 
     function request(method, url, body, opts) {
         opts = opts || {};
@@ -115,18 +128,33 @@
     /* ---------------- 模态框 ---------------- */
     App.modal = function (options) {
         var opts = options || {};
+        var previousFocus = document.activeElement;
         var mask = document.createElement("div");
         mask.className = "modal-mask show";
         mask.innerHTML =
             '<div class="modal-box" role="dialog" aria-modal="true">' +
-            '  <div class="modal-head"><span>' + App.esc(opts.title || "提示") + "</span>" +
+            '  <div class="modal-head"><span id="modal-title">' + App.esc(opts.title || "提示") + "</span>" +
             '    <button type="button" class="modal-close" aria-label="关闭">×</button></div>' +
             '  <div class="modal-body">' + (opts.html || "") + "</div>" +
             '  <div class="modal-foot"></div>' +
             "</div>";
         document.body.appendChild(mask);
         var foot = mask.querySelector(".modal-foot");
-        function close() { mask.remove(); }
+        mask.querySelector('[role="dialog"]').setAttribute("aria-labelledby", "modal-title");
+        function close() {
+            mask.remove();
+            if (previousFocus && previousFocus.isConnected) { previousFocus.focus(); }
+        }
+        mask.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape") { ev.preventDefault(); close(); return; }
+            if (ev.key !== "Tab") { return; }
+            var items = Array.from(mask.querySelectorAll('button, input, select, textarea, a[href], [tabindex="0"]'))
+                .filter(function (el) { return !el.disabled && el.getClientRects().length > 0; });
+            if (!items.length) { return; }
+            var first = items[0], last = items[items.length - 1];
+            if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+            else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+        });
         mask.querySelector(".modal-close").addEventListener("click", close);
         mask.addEventListener("click", function (ev) { if (ev.target === mask) { close(); } });
         (opts.buttons || [{ text: "关闭", cls: "btn-secondary" }]).forEach(function (b) {
@@ -144,14 +172,24 @@
             foot.appendChild(btn);
         });
         if (opts.onReady) { opts.onReady(mask, close); }
+        var initialFocus = mask.querySelector("input, select, textarea, button");
+        if (initialFocus) { initialFocus.focus(); }
         return { el: mask, close: close };
     };
 
     /** 通用「调用接口 + 刷新」按钮动作 */
     App.action = function (button, url, body, okMsg, opts) {
         opts = opts || {};
-        if (button) { button.disabled = true; }
-        App.api.post(url, body).then(function (res) {
+        if (button && button.disabled) { return Promise.resolve(null); }
+        var originalText = button ? button.textContent : "";
+        var succeeded = false;
+        if (button) {
+            button.disabled = true;
+            button.setAttribute("aria-busy", "true");
+            button.textContent = "处理中…";
+        }
+        return App.api.post(url, body).then(function (res) {
+            succeeded = true;
             toast(okMsg || "操作成功", "success");
             if (opts.reload !== false) {
                 window.setTimeout(function () { window.location.reload(); }, 400);
@@ -160,7 +198,11 @@
         }).catch(function (err) {
             if (err && err.message !== "UNAUTHORIZED") { toast(err.message || "操作失败", "error"); }
         }).finally(function () {
-            if (button) { button.disabled = false; }
+            if (button) {
+                button.removeAttribute("aria-busy");
+                button.textContent = originalText;
+                if (!succeeded || opts.reload === false) { button.disabled = false; }
+            }
         });
     };
 

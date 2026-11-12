@@ -191,14 +191,18 @@
                 buttons: [
                     { text: "取消", cls: "btn-secondary" },
                     {
-                        text: "提交闭环", cls: "btn-success", onClick: function (modal) {
+                        text: "提交闭环", cls: "btn-success", onClick: function (modal, close) {
                             var measure = (modal.querySelector("#h-measure").value || "").trim();
                             if (!measure) { App.toast("请填写处置措施", "warn"); return true; }
-                            App.action(null, "/alerts/" + alertId + "/handle", {
+                            var submit = modal.querySelector(".modal-foot .btn-success");
+                            App.action(submit, "/alerts/" + alertId + "/handle", {
                                 resolution_type: modal.querySelector("#h-type").value,
                                 measure: measure,
                                 note: modal.querySelector("#h-note").value || undefined
-                            }, "预警已闭环");
+                            }, "预警已闭环", { reload: false }).then(function (result) {
+                                if (result) { close(); window.setTimeout(function () { window.location.reload(); }, 400); }
+                            });
+                            return true;
                         }
                     }
                 ]
