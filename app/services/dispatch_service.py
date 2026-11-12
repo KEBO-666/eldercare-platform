@@ -16,11 +16,16 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.algorithms.dispatch import (
+    DEFAULT_RATING,
     DEFAULT_WEIGHTS,
+    FACTOR_NAMES,
+    FOCUS_PENALTY,
+    RATING_FULL_SCORE,
     candidate_rejection_reason,
     haversine,
     normalize_skills,
     parse_weights,
+    rating_factor,
     score_candidates,
 )
 from app.core.audit import write_audit
@@ -54,6 +59,8 @@ from app.services import catalog_service
 
 BUSY_EXCLUDED_STATUSES = (OrderStatus.CANCELLED.value, OrderStatus.COMPLETED.value)
 DISPATCH_WEIGHTS_KEY = "dispatch.weights"
+LEGACY_DISPATCH_WEIGHTS_KEY = "dispatch_weights"
+RATING_WINDOW_DAYS = 30
 DEFAULT_ORDER_MINUTES = 60
 ORDER_STATUS_NAMES = {
     OrderStatus.PENDING_ACCEPT.value: "待接单",
@@ -74,23 +81,42 @@ def get_dispatch_weights(db: Session) -> tuple[float, float, float, float]:
 
 def get_dispatch_weight_details(db: Session) -> dict[str, Any]:
     """Resolve the actual normalized weights without evaluating unsafe settings.weights_tuple."""
-    row = db.execute(select(ConfigItem).where(ConfigItem.key == DISPATCH_WEIGHTS_KEY)).scalar_one_or_none()
+    rows = {row.key: row for row in db.scalars(select(ConfigItem).where(
+        ConfigItem.key.in_((DISPATCH_WEIGHTS_KEY, LEGACY_DISPATCH_WEIGHTS_KEY)),
+    )).all()}
     fallback = False
 
     def valid(raw: Any) -> bool:
         # Two distinct fallbacks distinguish a valid result from parse failure.
         return parse_weights(raw, (1, 0, 0, 0)) == parse_weights(raw, (0, 1, 0, 0))
 
-    if row is not None:
+    for key in (DISPATCH_WEIGHTS_KEY, LEGACY_DISPATCH_WEIGHTS_KEY):
+        row = rows.get(key)
+        if row is None:
+            continue
         if valid(row.value):
             return {"values": list(parse_weights(row.value)), "source": "runtime",
-                    "source_label": "运行期配置", "fallback": False}
+                    "source_label": f"运行期配置 {key}", "source_key": key, "fallback": fallback}
         fallback = True
     if valid(settings.dispatch_weights):
         return {"values": list(parse_weights(settings.dispatch_weights)), "source": "environment",
-                "source_label": "环境配置", "fallback": fallback}
+                "source_label": "环境配置", "source_key": "DISPATCH_WEIGHTS", "fallback": fallback}
     return {"values": list(DEFAULT_WEIGHTS), "source": "default",
-            "source_label": "内置默认权重", "fallback": True}
+            "source_label": "内置默认权重", "source_key": None, "fallback": True}
+
+
+def get_dispatch_policy() -> dict[str, Any]:
+    """Expose the exact scoring settings shared by report and page explanations."""
+    rating_default = rating_factor(None, settings.nurse_rating_default) * RATING_FULL_SCORE
+    return {
+        "top_n": max(1, min(20, int(settings.dispatch_top_n))),
+        "radius_km": float(settings.service_radius_km), "daily_limit": int(settings.order_daily_limit),
+        "rating_default": rating_default, "rating_default_builtin": DEFAULT_RATING,
+        "rating_window_days": RATING_WINDOW_DAYS, "focus_penalty": FOCUS_PENALTY,
+        "factor_order": list(FACTOR_NAMES), "rating_full_score": RATING_FULL_SCORE, "score_scale": 100,
+        "sort_order": "精确总分降序、距离升序、服务当日负荷升序、护理员编号升序",
+        "skill_note": "必需技能为硬约束；合格候选技能因子均为1，技能权重不区分合格者",
+    }
 
 
 # ---------------- 工具 ----------------
@@ -322,17 +348,18 @@ def get_candidate_report(
     end = start + duration
     now = now or datetime.now()
 
-    top_n = max(1, min(20, int(settings.dispatch_top_n if limit is None else limit)))
+    policy = get_dispatch_policy()
+    top_n = policy["top_n"] if limit is None else max(1, min(20, int(limit)))
     weight_info = get_dispatch_weight_details(db)
     weights = weight_info["values"]
-    daily_limit = int(settings.order_daily_limit)
-    radius = float(settings.service_radius_km)
+    daily_limit = policy["daily_limit"]
+    radius = policy["radius_km"]
 
     staffs = db.execute(select(Staff).order_by(Staff.id.asc())).scalars().all()
     # 近 30 天评分实时聚合，避免缓存评分过期后影响推荐。
     ratings = dict(db.execute(
         select(Evaluation.nurse_id, func.avg(Evaluation.avg_score))
-        .where(Evaluation.created_at >= now - timedelta(days=30), Evaluation.created_at <= now)
+        .where(Evaluation.created_at >= now - timedelta(days=RATING_WINDOW_DAYS), Evaluation.created_at <= now)
         .group_by(Evaluation.nurse_id)
     ).all())
     day_start, day_end = _day_window(start)
@@ -387,7 +414,7 @@ def get_candidate_report(
         weights,
         radius_km=radius,
         daily_limit=daily_limit,
-        rating_default=float(settings.nurse_rating_default),
+        rating_default=policy["rating_default"],
         required_skills=required,
         top_n=None,
     )
@@ -398,16 +425,14 @@ def get_candidate_report(
     returned = scored[:top_n]
     return {
         "appointment_id": appointment.id, "status": appointment.status, "candidates": returned,
+        "computed_at": now.isoformat(), "service_date": start.date().isoformat(),
+        "desired_start": start.isoformat(), "desired_end": end.isoformat(),
         "eligible_count": len(scored), "returned_count": len(returned), "evaluated_count": len(staffs),
         "excluded_count": sum(filter_counts.values()),
         "filter_counts": [{"code": code, "label": label, "count": filter_counts[code], "suggestion": suggestion}
                           for code, label, suggestion in definitions],
         "weights": weight_info,
-        "rules": {"radius_km": radius, "daily_limit": daily_limit,
-                  "rating_default": float(settings.nurse_rating_default), "rating_window_days": 30,
-                  "focus_penalty": 0.8,
-                  "sort_order": "精确总分降序、距离升序、服务当日负荷升序、护理员编号升序",
-                  "skill_note": "必需技能为硬约束；合格候选技能因子均为1，技能权重不区分合格者"},
+        "rules": {key: value for key, value in policy.items() if key != "top_n"},
         "coordination": _coordination_to_dict(_current_coordination(db, appointment.id)),
         "outcome": "ready" if scored else "no_candidates", "top_n": top_n,
     }

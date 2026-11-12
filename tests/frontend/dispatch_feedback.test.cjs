@@ -17,7 +17,7 @@ const validate = (payload) => context.App.dispatchFeedback.validRecommendation(p
 function report() {
     return { code: 0, data: {
         appointment_id: 12, status: "pending_dispatch", top_n: 3,
-        candidates: [{ staff_id: 8, name: "护理员", rank: 1, distance_km: 1.5,
+        candidates: [{ staff_id: 8, name: "护理员", rank: 1, distance_km: 1.5, distance_km_precision: 1.5, is_focus: true,
             today_count: 3, allowed_radius_km: 3, daily_limit: 6,
             rating_used: 3.5, rating_is_default: true,
             base_score: 0.72, score_precision: 0.576, penalty: 0.8,
@@ -28,7 +28,10 @@ function report() {
         filter_counts: [{ code: "missing_skills", label: "缺少必需技能", count: 1, suggestion: "协调有技能的护理员" }],
         weights: { values: [0.4, 0.3, 0.2, 0.1], source: "runtime", source_label: "运行期配置", fallback: false },
         rules: { radius_km: 3, daily_limit: 6, rating_default: 3.5, rating_window_days: 30,
-            focus_penalty: 0.8, sort_order: "精确总分、距离、负荷、编号", skill_note: "技能是硬约束" },
+            focus_penalty: 0.8, factor_order: ["skill", "distance", "load", "rating"], rating_full_score: 5, score_scale: 100,
+            sort_order: "精确总分、距离、负荷、编号", skill_note: "技能是硬约束" },
+        computed_at: "2026-11-12T19:00:00", service_date: "2026-12-12",
+        desired_start: "2026-12-12T09:00:00", desired_end: "2026-12-12T10:00:00",
         coordination: null, outcome: "ready",
     } };
 }
@@ -45,6 +48,11 @@ test("valid floating point summation at the upper score bound remains usable", (
     c.factors_precision = { skill: 1, distance: 1, load: 1, rating: 1 };
     c.contributions = Object.fromEntries(["skill", "distance", "load", "rating"].map((key, i) => [key, c.weights_precision[i]]));
     c.penalty = 1;
+    c.is_focus = false;
+    c.distance_km_precision = 0;
+    c.today_count = 0;
+    c.rating_used = 5;
+    c.rating_is_default = false;
     c.base_score = Object.values(c.contributions).reduce((a, b) => a + b, 0);
     c.score_precision = c.base_score;
     assert.ok(c.base_score > 1);
@@ -99,6 +107,13 @@ const invalid = [
     ["base score and sum disagree", (d) => { d.candidates[0].base_score = 0.9; }],
     ["penalty and final score disagree", (d) => { d.candidates[0].score_precision = 0.72; }],
     ["candidate and report weights disagree", (d) => { d.candidates[0].weights_precision = [0.1, 0.2, 0.3, 0.4]; }],
+    ["distance input and factor disagree", (d) => { d.candidates[0].distance_km_precision = 1.2; }],
+    ["service-day load and factor disagree", (d) => { d.candidates[0].today_count = 2; }],
+    ["rating input and factor disagree", (d) => { d.candidates[0].rating_used = 4; }],
+    ["default rating disagrees with adopted value", (d) => { d.rules.rating_default = 4; }],
+    ["focus label disagrees with penalty", (d) => { d.candidates[0].is_focus = false; }],
+    ["factor order disagrees with labels", (d) => { d.rules.factor_order.reverse(); }],
+    ["service date disagrees with schedule", (d) => { d.service_date = "2026-12-11"; }],
 ];
 for (const [name, mutate] of invalid) {
     test(`damaged recommendation cannot enable assignment: ${name}`, () => {
@@ -107,3 +122,37 @@ for (const [name, mutate] of invalid) {
         assert.equal(validate(payload), false);
     });
 }
+
+test("a self-consistent weighted sum with a false distance factor is rejected", () => {
+    const p = report(), c = p.data.candidates[0];
+    c.factors_precision.distance = 0.9;
+    c.contributions.distance = 0.27;
+    c.base_score = 0.84;
+    c.score_precision = 0.672;
+    assert.equal(validate(p), false);
+});
+
+test("renderer uses the original distance directly and exposes unrounded arithmetic", () => {
+    const p = report(), c = p.data.candidates[0];
+    c.distance_km_precision = 0.12496;
+    c.distance_km = 0.125;
+    const html = context.App.dispatchFeedback.candidateHtml(c, p.data);
+    assert.ok(html.includes("直线距离 0.12 km"));
+    assert.ok(html.includes("clamp(1 - 0.12496 / 3, 0, 1)"));
+    assert.ok(html.includes("0.7 × 0.1 × 100"));
+    assert.ok(html.includes("0.72 × 0.8 × 100"));
+    assert.ok(html.includes("服务日 2026-12-12"));
+});
+
+test("reported ranks must follow the actual precision score and stable tie order", () => {
+    const p = report();
+    const other = JSON.parse(JSON.stringify(p.data.candidates[0]));
+    other.staff_id = 7;
+    other.rank = 2;
+    p.data.candidates.push(other);
+    Object.assign(p.data, { returned_count: 2, eligible_count: 2, evaluated_count: 3 });
+    assert.equal(validate(p), false);
+    p.data.candidates.reverse();
+    p.data.candidates.forEach((c, i) => { c.rank = i + 1; });
+    assert.equal(validate(p), true);
+});

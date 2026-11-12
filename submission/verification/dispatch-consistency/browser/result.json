@@ -1,0 +1,123 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "five real candidates rendered with current runtime weights",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A candidate 2 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A candidate 4 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A candidate 1 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A candidate 5 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A candidate 3 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-A every displayed score equals backend four-place score",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "new nurse uses configured default while focused nurse uses recent evaluation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "future service-day workload excludes today and cancelled orders",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "near equal displayed scores retain precision-based ranking",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile raw numbers wrap within candidate card",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "changed runtime weights are reflected in new report",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B candidate 2 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B candidate 4 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B candidate 1 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B candidate 5 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B candidate 3 raw inputs and multiplication equal backend",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weights-B every displayed score equals backend four-place score",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "canonical config overrides then synchronizes existing legacy key",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "admin explains effective runtime config and source",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "appointment hints use effective configured dispatch limits",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unhandled browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "real backend JSON compared with real Edge DOM; no injected recommendation responses",
+  "fixtures": {
+    "radius_km": 4.5,
+    "daily_limit": 8,
+    "top_n": 5,
+    "default_rating": 3.75,
+    "notes": "isolated staff near tie, focused staff, real evaluation, future-day workloads; authentic API writes for config and appointments"
+  }
+}

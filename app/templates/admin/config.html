@@ -5,10 +5,11 @@
 {% block content %}
 <section class="card">
     <div class="card-header">
-        <span>⚙️ 运行期配置（可热更新）</span>
+        <span>⚙️ 配置存储与派单权重</span>
         <span class="btn-row"><button class="btn btn-primary btn-sm" data-config-new>＋ 新增配置项</button></span>
     </div>
     <div class="card-body tight">
+        <div class="notice">派单权重支持保存后重新计算生效，推荐键为 <code>dispatch.weights</code>；旧键 <code>dispatch_weights</code>兼容读取。服务半径、每日上限、TopN、默认评分等派单参数当前从环境读取，修改下表同名存储值不会改变派单计算，须调整环境并重启。其他模块按各自读取规则生效。</div>
         {% if configs %}
         <div class="table-wrap">
             <table class="data-table">
@@ -37,11 +38,14 @@
 
 <div class="grid grid-2">
     <section class="card">
-        <div class="card-header"><span>📌 关键运行参数（.env 配置）</span></div>
+        <div class="card-header"><span>📌 派单实际权重与环境参数</span></div>
         <div class="card-body tight">
             <table class="data-table">
                 <tbody>
-                <tr><td>派单四因子权重</td><td><strong>{{ dispatch_weights }}</strong>（技能/距离/负荷/评分）</td></tr>
+                <tr><td>派单实际归一化权重</td><td><strong data-effective-dispatch-weights>{{ dispatch_effective_weights }}</strong>（技能/距离/负荷/评分）；{{ dispatch_weight_details.source_label }}{% if dispatch_weight_details.fallback %}，无效配置已回退{% endif %}</td></tr>
+                <tr><td>环境默认权重原值</td><td>{{ dispatch_weights }}；运行期有效权重优先</td></tr>
+                <tr><td>实际默认TopN</td><td>{{ dispatch_policy.top_n }}（限定1–20）</td></tr>
+                <tr><td>无评价实际默认评分</td><td>{{ dispatch_policy.rating_default }} / {{ dispatch_policy.rating_full_score }}（限定有效范围）</td></tr>
                 <tr><td>护理员当日单量上限</td><td>{{ order_daily_limit }} 单</td></tr>
                 <tr><td>服务半径</td><td>{{ service_radius_km }} 公里</td></tr>
                 <tr><td>签到距离阈值</td><td>{{ checkin_distance }} 米</td></tr>
@@ -49,7 +53,7 @@
                 <tr><td>账单差异率阈值</td><td>{{ (diff_ratio_threshold * 100)|round(1) }}%</td></tr>
                 </tbody>
             </table>
-            <div class="demo-tip">如需修改以上默认参数，请调整项目根目录 <code>.env</code> 后重启服务。</div>
+            <div class="demo-tip">派单权重保存后可重新计算查看；其余上述环境参数须调整项目根目录 <code>.env</code> 后重启服务。此处反映页面打开时配置，每次推荐以返回明细为准。</div>
         </div>
     </section>
 
@@ -155,7 +159,7 @@
             if (create) {
                 App.modal({
                     title: "新增配置项",
-                    html: '<div class="form-field mb-1"><label>配置键</label><input id="nc-key" placeholder="如 dispatch_weights"></div>' +
+                    html: '<div class="form-field mb-1"><label>配置键</label><input id="nc-key" placeholder="如 dispatch.weights"></div>' +
                         '<div class="form-field mb-1"><label>配置值</label><input id="nc-value" placeholder="如 0.4,0.3,0.2,0.1"></div>' +
                         '<div class="form-field"><label>说明</label><input id="nc-desc" placeholder="如 派单四因子权重"></div>',
                     buttons: [

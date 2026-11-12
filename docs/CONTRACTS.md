@@ -203,6 +203,8 @@ appt.status = new_status
 
 推荐报告保留`candidates`列表及旧候选字段，增加`rank`、`score_precision`、`base_score`、`factors_precision`、`weights_precision`、`rating_used/rating_is_default`、`allowed_radius_km/daily_limit`。候选按未舍入总分降序、实际距离升序、服务当日负荷升序、护理员ID升序排列，展示分数不能用于客户端重新排序。`weights`说明本次归一化权重及配置来源；`filter_counts`按首个失败原因互斥计数，`evaluated_count = eligible_count + excluded_count`；接口错误不能当作无人可派。
 
+推荐报告增加`computed_at/service_date/desired_start/desired_end`，采用服务器本地时间语义；`rules.factor_order/rating_full_score/score_scale/focus_penalty`来自实际算法，`rules.rating_default`为安全解析后的采用值。权重`source_key`说明新键`dispatch.weights`、兼容旧键`dispatch_weights`或环境来源；管理保存任一别名同步已存在的另一行，冲突批量与非法数值整体拒绝。配置接口`dispatch_weights/dispatch_weight_details/actual_dispatch`反映真实派单值；保留旧`effective`存储映射兼容，但该映射不保证每个键都被算法热读取。见[派单解释一致性](chuanzhi/派单解释一致性.md)。
+
 `coordinate`仅允许已受理/待派单且复检无候选的预约，原因去除首尾空格后不能为空、至多255字符。返回`appointment_id/status/coordination{id,reason,requested_at}/already_recorded/work_order_created=false/notification_count`。保持预约状态，协调日志、审计与站内通知整体成功或回滚；同一状态阶段的重复申请返回原记录且不重复通知。查看推荐不会自动申请协调。详见[智能派单完善](chuanzhi/智能派单完善.md)。
 
 ### orders（C）

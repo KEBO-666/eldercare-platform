@@ -15,6 +15,10 @@
     function text(value) { return App.esc(value); }
     function number(value, digits) { return Number(value).toFixed(digits === undefined ? 4 : digits); }
     function invalid() { var err = new Error("返回结果无法确认"); err.code = "INVALID_RESPONSE"; return err; }
+    var epsilon = 0.00000001;
+    function close(a, b) { return finite(a) && finite(b) && Math.abs(a - b) <= epsilon; }
+    function clamp(value) { return Math.max(0, Math.min(1, value)); }
+    function raw(value) { return String(value); }
 
     function validRecommendation(res, appointmentId) {
         if (!res || res.code !== 0 || !res.data) { return false; }
@@ -28,6 +32,11 @@
             Math.abs(w.values.reduce(function (a, b) { return a + b; }, 0) - 1) > 0.00001 ||
             typeof w.source_label !== "string" || !r || !finite(r.radius_km) || !id(r.daily_limit) ||
             !finite(r.rating_default) || !id(r.rating_window_days) || !finite(r.focus_penalty) ||
+            !Array.isArray(r.factor_order) || r.factor_order.join(",") !== keys.join(",") ||
+            !finite(r.rating_full_score) || r.rating_full_score <= 0 || !finite(r.score_scale) || r.score_scale <= 0 ||
+            r.rating_default < 0 || r.rating_default > r.rating_full_score || !date(d.computed_at) ||
+            typeof d.service_date !== "string" || !date(d.desired_start) || !date(d.desired_end) ||
+            d.service_date !== d.desired_start.slice(0, 10) || new Date(d.desired_end) <= new Date(d.desired_start) ||
             typeof r.sort_order !== "string" || typeof r.skill_note !== "string") { return false; }
         if (!d.filter_counts.every(function (f) { return f && typeof f.code === "string" && typeof f.label === "string" && count(f.count) && typeof f.suggestion === "string"; }) ||
             d.filter_counts.reduce(function (sum, f) { return sum + f.count; }, 0) !== d.excluded_count ||
@@ -36,14 +45,23 @@
         var seen = new Set();
         return d.candidates.every(function (c, index) {
             if (!c || !id(c.staff_id) || seen.has(c.staff_id) || c.rank !== index + 1 ||
-                typeof c.name !== "string" || !finite(c.distance_km) || !count(c.today_count) ||
+                typeof c.name !== "string" || !finite(c.distance_km) || !finite(c.distance_km_precision) || c.distance_km_precision < 0 || !count(c.today_count) ||
                 !finite(c.allowed_radius_km) || !id(c.daily_limit) || !finite(c.rating_used) ||
+                c.allowed_radius_km <= 0 || c.distance_km_precision > c.allowed_radius_km || c.daily_limit !== r.daily_limit ||
+                c.today_count >= c.daily_limit || c.rating_used < 0 || c.rating_used > r.rating_full_score ||
+                typeof c.is_focus !== "boolean" || !close(c.penalty, c.is_focus ? r.focus_penalty : 1) ||
                 typeof c.rating_is_default !== "boolean" || !finite(c.base_score) ||
                 c.base_score < -0.00000001 || c.base_score > 1.00000001 || !finite(c.score_precision) || c.score_precision < -0.00000001 || c.score_precision > 1.00000001 ||
                 !finite(c.penalty) || c.penalty <= 0 || c.penalty > 1 ||
                 !Array.isArray(c.weights_precision) || c.weights_precision.length !== 4 ||
                 !c.factors_precision || !c.contributions) { return false; }
             seen.add(c.staff_id);
+            if (index > 0) {
+                var previous = d.candidates[index - 1];
+                if (previous.score_precision < c.score_precision || (previous.score_precision === c.score_precision &&
+                    (previous.distance_km_precision > c.distance_km_precision || (previous.distance_km_precision === c.distance_km_precision &&
+                    (previous.today_count > c.today_count || (previous.today_count === c.today_count && previous.staff_id > c.staff_id)))))) { return false; }
+            }
             var consistent = keys.every(function (key, i) {
                 return finite(c.factors_precision[key]) && c.factors_precision[key] >= 0 && c.factors_precision[key] <= 1 &&
                     finite(c.contributions[key]) && c.contributions[key] >= -0.00000001 && c.contributions[key] <= 1.00000001 &&
@@ -51,7 +69,11 @@
                     Math.abs(c.contributions[key] - c.factors_precision[key] * c.weights_precision[i]) < 0.00000001;
             });
             var total = keys.reduce(function (sum, key) { return sum + c.contributions[key]; }, 0);
-            return consistent && Math.abs(c.base_score - total) < 0.00000001 &&
+            var expected = { skill: 1, distance: clamp(1 - c.distance_km_precision / c.allowed_radius_km),
+                load: clamp(1 - c.today_count / c.daily_limit), rating: c.rating_used / r.rating_full_score };
+            return consistent && keys.every(function (key) { return close(c.factors_precision[key], expected[key]); }) &&
+                (!c.rating_is_default || close(c.rating_used, r.rating_default)) &&
+                Math.abs(c.base_score - total) < 0.00000001 &&
                 Math.abs(c.score_precision - c.base_score * c.penalty) < 0.00000001 &&
                 Math.abs(c.weights_precision.reduce(function (a, b) { return a + b; }, 0) - 1) < 0.00000001;
         });
@@ -98,22 +120,37 @@
         note.textContent = message;
     }
 
+    function calculationHtml(c, d) {
+        var r = d.rules, f = c.factors_precision;
+        var expressions = { skill: "通过全部必需技能 = " + raw(f.skill),
+            distance: "clamp(1 - " + raw(c.distance_km_precision) + " / " + raw(c.allowed_radius_km) + ", 0, 1) = " + raw(f.distance),
+            load: "clamp(1 - " + raw(c.today_count) + " / " + raw(c.daily_limit) + ", 0, 1) = " + raw(f.load),
+            rating: raw(c.rating_used) + " / " + raw(r.rating_full_score) + " = " + raw(f.rating) };
+        return '<details data-calculation style="overflow-wrap:anywhere"><summary>展开原始数值与计算过程</summary>' +
+            '<p class="hint">以下数值来自本次服务器计算；clamp 表示限制在 0–1。简表数字仅作舍入显示，相加可能有末位差异；排序使用未舍入值。</p>' +
+            keys.map(function (key, i) { return '<p data-calculation-factor="' + key + '">' + labels[i] + '：' + expressions[key] + '</p>' +
+                '<p data-calculation-contribution="' + key + '">' + raw(f[key]) + ' × ' + raw(c.weights_precision[i]) + ' × ' + raw(r.score_scale) + ' = ' + raw(c.contributions[key] * r.score_scale) + ' 分</p>'; }).join("") +
+            '<p data-calculation-base>贡献原值之和：(' + keys.map(function (key) { return raw(c.contributions[key]); }).join(' + ') + ') × ' + raw(r.score_scale) + ' = ' + raw(c.base_score * r.score_scale) + ' 分</p>' +
+            '<p data-calculation-final>最终：' + raw(c.base_score) + ' × ' + raw(c.penalty) + ' × ' + raw(r.score_scale) + ' = ' + raw(c.score_precision * r.score_scale) + ' 分</p></details>';
+    }
+
     function candidateHtml(c, d) {
+        var scale = d.rules.score_scale;
         var factors = keys.map(function (key, i) {
             return '<div class="factor"><div class="factor-head" style="flex-wrap:wrap;gap:4px"><span>' + labels[i] +
                 '</span><span>因子 ' + number(c.factors_precision[key]) + '</span></div>' +
                 '<div class="progress"><span style="width:' + number(c.factors_precision[key] * 100, 2) + '%"></span></div>' +
-                '<div class="small">权重 ' + number(c.weights_precision[i] * 100, 2) + '% · 加权贡献 ' + number(c.contributions[key] * 100) + ' 分</div></div>';
+                '<div class="small">权重 ' + number(c.weights_precision[i] * 100, 2) + '% · 加权贡献 ' + number(c.contributions[key] * scale) + ' 分</div></div>';
         }).join("");
         return '<section class="card" data-candidate="' + c.staff_id + '" style="margin-bottom:14px"><div class="card-body">' +
             '<div class="flex-between mb-1" style="flex-wrap:wrap;gap:8px"><strong style="font-size:20px">第 ' + c.rank + ' 名 · ' + text(c.name) +
-            '</strong><span class="badge badge-blue">综合分 ' + number(c.score_precision * 100) + '</span></div>' +
-            '<p class="small">直线距离 ' + number(c.distance_km, 2) + ' km / 可用半径 ' + number(c.allowed_radius_km, 2) +
-            ' km；服务当日已派 ' + c.today_count + ' / ' + c.daily_limit + ' 单（不含取消）；' +
+            '</strong><span class="badge badge-blue">综合分 ' + number(c.score_precision * scale) + '</span></div>' +
+            '<p class="small">直线距离 ' + number(c.distance_km_precision, 2) + ' km / 可用半径 ' + number(c.allowed_radius_km, 2) +
+            ' km；服务日 ' + text(d.service_date) + ' 已派 ' + c.today_count + ' / ' + c.daily_limit + ' 单（不含取消）；' +
             (c.rating_is_default ? '近 ' + d.rules.rating_window_days + ' 天暂无评价，使用默认 ' : '近 ' + d.rules.rating_window_days + ' 天平均评价 ') +
-            number(c.rating_used, 2) + ' / 5 分。</p>' + factors +
-            '<div class="notice ' + (c.penalty < 1 ? 'warn' : '') + '">加权合计 ' + number(c.base_score * 100) +
-            ' 分 × ' + number(c.penalty, 2) + (c.penalty < 1 ? '（重点关注降权）' : '（无降权）') + ' = 最终 ' + number(c.score_precision * 100) + ' 分。</div>' +
+            number(c.rating_used, 2) + ' / ' + raw(d.rules.rating_full_score) + ' 分。</p>' + factors +
+            '<div class="notice ' + (c.penalty < 1 ? 'warn' : '') + '">加权合计 ' + number(c.base_score * scale) +
+            ' 分 × ' + number(c.penalty, 2) + (c.penalty < 1 ? '（重点关注降权）' : '（无降权）') + ' = 最终 ' + number(c.score_precision * scale) + ' 分。</div>' + calculationHtml(c, d) +
             '<button type="button" class="btn btn-success mt-1" data-assign-nurse="' + c.staff_id + '">' +
             (c.rank === 1 ? '按第 1 名一键派单' : '选择第 ' + c.rank + ' 名派单') + '</button></div></section>';
     }
@@ -124,13 +161,16 @@
             labels.map(function (label, i) { return label + ' ' + number(d.weights.values[i] * 100, 2) + '%'; }).join(' · ') +
             '</div><div>来源：' + text(d.weights.source_label) + (d.weights.fallback ? '（配置无效，已回退）' : '') +
             '</div><div>合格 ' + d.eligible_count + ' 人，本次展示前 ' + d.returned_count + ' 人。计算不会占用护理员时段，派单时将再次校验。</div></div>' +
+            '<p class="small">计算时间：' + text(d.computed_at) + '；服务时段：' + text(d.desired_start) + ' 至 ' + text(d.desired_end) + '（服务器本地时间）。页面顶部为打开页面时的配置；本次结果以上述权重为准。</p>' +
             '<details><summary>查看因素定义、惩罚与同分规则</summary><ul style="padding-left:22px;line-height:1.8">' +
             '<li>技能：' + text(r.skill_note) + '</li><li>距离：1 − 直线距离 / 可用服务半径，限制在 0–1；半径取系统与护理员本人半径较小值（系统 ' + number(r.radius_km, 2) + ' km）。</li>' +
             '<li>负荷：1 − 服务当日未取消工单数 / 每日上限 ' + r.daily_limit + ' 单，限制在 0–1；不是今天的工单数，也不是累计单量。</li>' +
-            '<li>评分：最近 ' + r.rating_window_days + ' 天评价均分 / 5；无评价使用默认 ' + number(r.rating_default, 2) + ' 分。</li>' +
-            '<li>四项加权贡献相加后，重点关注护理员乘 ' + number(r.focus_penalty, 2) + '；其余乘 1。显示分数乘 100，明细仅显示位数有舍入。</li>' +
+            '<li>评分：计算时刻之前最近 ' + r.rating_window_days + ' 天评价均分 / ' + raw(r.rating_full_score) + '；无有效评价使用默认 ' + number(r.rating_default, 2) + ' 分，采用值限制在 0–' + raw(r.rating_full_score) + '。</li>' +
+            '<li>四项加权贡献相加后，重点关注护理员乘 ' + number(r.focus_penalty, 2) + '；其余乘 1。显示分数乘 ' + raw(r.score_scale) + '；简表末位可能有舍入差异，原始过程可展开核对。</li>' +
             '<li>排序：' + text(r.sort_order) + '；排序使用未舍入数值。</li></ul></details>';
     }
+    D.candidateHtml = candidateHtml;
+    D.detailsHtml = detailsHtml;
 
     D.open = function (button) {
         var appointmentId = Number(button.getAttribute("data-dispatch"));

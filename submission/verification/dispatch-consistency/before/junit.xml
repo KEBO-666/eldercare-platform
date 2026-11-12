@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="9" time="4.584" timestamp="2026-11-12T19:29:09.010928+08:00" hostname="WIN-E4PFKRRQD8U"><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[10-5.0]" time="0.504"><failure message="assert 10.0 == 5.0 ± 5.0e-06&#10;  &#10;  comparison failed&#10;  Obtained: 10.0&#10;  Expected: 5.0 ± 5.0e-06">tests\integration\test_dispatch_calculation_contract.py:34: in test_rule_default_rating_matches_actual_missing_rating_score
+    assert report['rules']['rating_default'] == pytest.approx(expected)
+E   assert 10.0 == 5.0 ± 5.0e-06
+E     
+E     comparison failed
+E     Obtained: 10.0
+E     Expected: 5.0 ± 5.0e-06</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[-2-0]" time="0.459"><failure message="assert -2.0 == 0 ± 1.0e-12&#10;  &#10;  comparison failed&#10;  Obtained: -2.0&#10;  Expected: 0 ± 1.0e-12">tests\integration\test_dispatch_calculation_contract.py:34: in test_rule_default_rating_matches_actual_missing_rating_score
+    assert report['rules']['rating_default'] == pytest.approx(expected)
+E   assert -2.0 == 0 ± 1.0e-12
+E     
+E     comparison failed
+E     Obtained: -2.0
+E     Expected: 0 ± 1.0e-12</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[nan-3.5]" time="0.461"><failure message="assert nan == 3.5 ± 3.5e-06&#10;  &#10;  comparison failed&#10;  Obtained: nan&#10;  Expected: 3.5 ± 3.5e-06">tests\integration\test_dispatch_calculation_contract.py:34: in test_rule_default_rating_matches_actual_missing_rating_score
+    assert report['rules']['rating_default'] == pytest.approx(expected)
+E   assert nan == 3.5 ± 3.5e-06
+E     
+E     comparison failed
+E     Obtained: nan
+E     Expected: 3.5 ± 3.5e-06</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[inf-3.5]" time="0.458"><failure message="assert inf == 3.5 ± 3.5e-06&#10;  &#10;  comparison failed&#10;  Obtained: inf&#10;  Expected: 3.5 ± 3.5e-06">tests\integration\test_dispatch_calculation_contract.py:34: in test_rule_default_rating_matches_actual_missing_rating_score
+    assert report['rules']['rating_default'] == pytest.approx(expected)
+E   assert inf == 3.5 ± 3.5e-06
+E     
+E     comparison failed
+E     Obtained: inf
+E     Expected: 3.5 ± 3.5e-06</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[invalid-3.5]" time="0.458"><failure message="ValueError: could not convert string to float: 'invalid'">tests\integration\test_dispatch_calculation_contract.py:32: in test_rule_default_rating_matches_actual_missing_rating_score
+    report = dispatch_service.get_candidate_report(db, row.id, accounts['users']['grid'], now=NOW)
+app\services\dispatch_service.py:390: in get_candidate_report
+    rating_default=float(settings.nurse_rating_default),
+E   ValueError: could not convert string to float: 'invalid'</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[True-3.5]" time="0.513"><failure message="assert 1.0 == 3.5 ± 3.5e-06&#10;  &#10;  comparison failed&#10;  Obtained: 1.0&#10;  Expected: 3.5 ± 3.5e-06">tests\integration\test_dispatch_calculation_contract.py:34: in test_rule_default_rating_matches_actual_missing_rating_score
+    assert report['rules']['rating_default'] == pytest.approx(expected)
+E   assert 1.0 == 3.5 ± 3.5e-06
+E     
+E     comparison failed
+E     Obtained: 1.0
+E     Expected: 3.5 ± 3.5e-06</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rule_default_rating_matches_actual_missing_rating_score[3.125-3.125]" time="0.456" /><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_report_formula_constants_and_full_precision_reconstruct_score" time="0.529"><failure message="KeyError: 'factor_order'">tests\integration\test_dispatch_calculation_contract.py:47: in test_report_formula_constants_and_full_precision_reconstruct_score
+    assert rules['factor_order'] == list(FACTOR_NAMES)
+E   KeyError: 'factor_order'</failure></testcase><testcase classname="tests.integration.test_dispatch_calculation_contract" name="test_rating_window_and_service_day_are_different_inputs" time="0.475" /></testsuite></testsuites>

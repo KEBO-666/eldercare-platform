@@ -1,0 +1,65 @@
+{
+  "verified_at_utc": "2026-11-12T11:44:22.829642+00:00",
+  "source_parent": "0f9d0bb9e2d61fe386a75b503f2afe464ce76e3c",
+  "user_request": "页面解释与实际计算一致",
+  "validation": {
+    "pytest_tests": 538,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 316.662,
+    "lines_covered": 6928,
+    "lines_valid": 7749,
+    "coverage_percent": 89.41,
+    "node_tests": 97,
+    "edge_checks": 22,
+    "ruff": "passed"
+  },
+  "browser_report": "reports/dispatch-explanation-browser/20261112-193544/result.json",
+  "browser_method": "real backend JSON compared with real Edge DOM; no injected recommendation responses",
+  "fixtures": {
+    "radius_km": 4.5,
+    "daily_limit": 8,
+    "top_n": 5,
+    "default_rating": 3.75,
+    "notes": "isolated staff near tie, focused staff, real evaluation, future-day workloads; authentic API writes for config and appointments"
+  },
+  "before_fix": {
+    "tests": 9,
+    "failed": 7,
+    "passed": 2,
+    "report": "reports/dispatch-calculation-before.xml"
+  },
+  "changes": [
+    "Show original numeric inputs, formulas, weighted contributions and penalty from real response",
+    "Verify factor input formulas, contributions, sum, penalty and exact ranking before enabling assignment",
+    "Share policy and algorithm constants across API and templates; safe actual default rating",
+    "Canonical and legacy weight aliases both work; synchronize existing alias on admin save",
+    "Atomic rejection of invalid/conflicting weight settings; actual values and stored map distinguished",
+    "Dynamic appointment hints and TopN clamp; avoid distance double rounding"
+  ],
+  "limits": [
+    "Full precision numbers retain binary floating point tail differences",
+    "Radius, daily limit, default rating and TopN are environment parameters requiring restart",
+    "Existing PDF and video remain earlier snapshots",
+    "No contest portal upload",
+    "User follow-up recorded honestly; summary is not a complete original conversation export"
+  ],
+  "changed_source_sha256": {
+    "README.md": "edf77260b87a08021a7b3b1abef4f6609d8a7804b4ab43329f288e297422b317",
+    "app/services/admin_service.py": "703fecf99c11df99ab4dd069ee25663cd0905de6cdb4d0fa7edcc7fa4497fa9a",
+    "app/services/dispatch_service.py": "2d06911a7d026a77fd8b65ec97faa4d5a1b253bb54778030800cc2944aa8d261",
+    "app/static/js/dispatch-feedback.js": "cdb91e460b00499fff93006dc0d885261b85bda84178e48a035694268f4132ff",
+    "app/templates/admin/config.html": "59e76734c5fa5828f7581c28cb35e4a1509464286d682c91bbdf270607cec417",
+    "app/templates/appointments/new.html": "f66d23505d5fffc1c1c06d05920299405a618f7d51f77f83c05c0fae9bfb68e9",
+    "app/web/routes.py": "65bf0b3c10d83ec4ba823d96aff631cbd66872a2c48620baef9887a38054e11c",
+    "docs/CONTRACTS.md": "aa3b9df605840827f0557504e4b23bae43c07969ed4bfb8b1b61c5a47f1ca882",
+    "docs/chuanzhi/派单解释一致性.md": "205b84168d4b1e36be5147cae1766559bb72f9a872c3850823ab54fb0a3003da",
+    "docs/chuanzhi/AI协同与演进索引.md": "a022afa24dd7843475d5e783f0515e1b9e955784a564fa0cf9124253f1ab9675",
+    "scripts/build_chuanzhi_submission.py": "988bd3f7a99a90879160f47661dfc91f386478481861e4988d25ab8c0cbf326c",
+    "tests/frontend/dispatch_feedback.test.cjs": "a95a82f2b66e849979be74d3617a958d75a648db3c551f7751a6f76e2ecc3627",
+    "tests/unit/test_auth_admin.py": "3e137cbdb12477e310dd9bf0ec6997b2a608371852abdb95fbe5d76b66d5ed34",
+    "tests/integration/test_dispatch_calculation_contract.py": "37f5948e4877b496f3950804ef84b62614947c4fa5cbd97e4bf1a441d7d6a7ad",
+    "tests/integration/test_dispatch_config_consistency.py": "bcf15c54f6c43a1b005f14f1ceab4d024e5e71278f35b82dfd97bd01594d9423"
+  }
+}

@@ -151,6 +151,16 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
         for path in dispatch_runs[-1].iterdir():
             if path.name == "result.json" or path.suffix.lower() == ".png":
                 add(path)
+    for name in ("dispatch-consistency-summary.json", "dispatch-consistency-frontend.tap",
+                 "dispatch-calculation-before.xml", "dispatch-calculation-before.log"):
+        add(reports / name)
+    for name in ("junit.xml", "coverage.xml"):
+        add(reports / "dispatch-consistency-full" / name)
+    consistency_runs = sorted(path.parent for path in (reports / "dispatch-explanation-browser").glob("*/result.json"))
+    if consistency_runs:
+        for path in consistency_runs[-1].iterdir():
+            if path.name in {"result.json", "weights-A-report.json", "weights-B-report.json", "weights-A-dom.json", "weights-B-dom.json"} or path.suffix.lower() == ".png":
+                add(path)
     ai_runs = sorted(path.parent for path in (reports / "chuanzhi-ai-recording").glob("*/result.json"))
     if ai_runs:
         ai_run = ai_runs[-1]

@@ -1,0 +1,592 @@
+TAP version 13
+# Subtest: opt-in request timeout aborts transport and produces REQUEST_TIMEOUT
+ok 1 - opt-in request timeout aborts transport and produces REQUEST_TIMEOUT
+  ---
+  duration_ms: 32.1814
+  type: 'test'
+  ...
+# Subtest: recommendation GET forwards an optional timeout without creating a request body
+ok 2 - recommendation GET forwards an optional timeout without creating a request body
+  ---
+  duration_ms: 1.5956
+  type: 'test'
+  ...
+# Subtest: recommendation GET timeout aborts a stalled read
+ok 3 - recommendation GET timeout aborts a stalled read
+  ---
+  duration_ms: 1.2958
+  type: 'test'
+  ...
+# Subtest: timeout covers a response body that stalls after headers
+ok 4 - timeout covers a response body that stalls after headers
+  ---
+  duration_ms: 1.4023
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on success
+ok 5 - request clears its timeout on success
+  ---
+  duration_ms: 2.6441
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on http-error
+ok 6 - request clears its timeout on http-error
+  ---
+  duration_ms: 1.487
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on network-error
+ok 7 - request clears its timeout on network-error
+  ---
+  duration_ms: 1.1003
+  type: 'test'
+  ...
+# Subtest: request clears its timeout on body-error
+ok 8 - request clears its timeout on body-error
+  ---
+  duration_ms: 0.9369
+  type: 'test'
+  ...
+# Subtest: requests without timeout options retain existing transport behavior
+ok 9 - requests without timeout options retain existing transport behavior
+  ---
+  duration_ms: 0.8916
+  type: 'test'
+  ...
+# Subtest: cleanup also clears a valid timer handle of zero
+ok 10 - cleanup also clears a valid timer handle of zero
+  ---
+  duration_ms: 1.4803
+  type: 'test'
+  ...
+# Subtest: 401 preserves unauthorized status, login redirect and clears the request timer
+ok 11 - 401 preserves unauthorized status, login redirect and clears the request timer
+  ---
+  duration_ms: 1.6203
+  type: 'test'
+  ...
+# Subtest: known 403/FORBIDDEN is a confirmed rejection
+ok 12 - known 403/FORBIDDEN is a confirmed rejection
+  ---
+  duration_ms: 1.1943
+  type: 'test'
+  ...
+# Subtest: known 404/NOT_FOUND is a confirmed rejection
+ok 13 - known 404/NOT_FOUND is a confirmed rejection
+  ---
+  duration_ms: 0.9566
+  type: 'test'
+  ...
+# Subtest: known 409/INVALID_TRANSITION is a confirmed rejection
+ok 14 - known 409/INVALID_TRANSITION is a confirmed rejection
+  ---
+  duration_ms: 0.8656
+  type: 'test'
+  ...
+# Subtest: known 409/CONFLICT is a confirmed rejection
+ok 15 - known 409/CONFLICT is a confirmed rejection
+  ---
+  duration_ms: 0.8977
+  type: 'test'
+  ...
+# Subtest: known 422/NEEDS_MANUAL is a confirmed rejection
+ok 16 - known 422/NEEDS_MANUAL is a confirmed rejection
+  ---
+  duration_ms: 0.8716
+  type: 'test'
+  ...
+# Subtest: known 422/VALIDATION_ERROR is a confirmed rejection
+ok 17 - known 422/VALIDATION_ERROR is a confirmed rejection
+  ---
+  duration_ms: 1.0717
+  type: 'test'
+  ...
+# Subtest: known 400/RULE_VIOLATION is a confirmed rejection
+ok 18 - known 400/RULE_VIOLATION is a confirmed rejection
+  ---
+  duration_ms: 0.9074
+  type: 'test'
+  ...
+# Subtest: rate-limit keeps write outcome unknown and preview explicitly read-only
+ok 19 - rate-limit keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 1.1642
+  type: 'test'
+  ...
+# Subtest: http-timeout keeps write outcome unknown and preview explicitly read-only
+ok 20 - http-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.9201
+  type: 'test'
+  ...
+# Subtest: rate-limit-with-known-code keeps write outcome unknown and preview explicitly read-only
+ok 21 - rate-limit-with-known-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.8885
+  type: 'test'
+  ...
+# Subtest: http-timeout-with-known-code keeps write outcome unknown and preview explicitly read-only
+ok 22 - http-timeout-with-known-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.844
+  type: 'test'
+  ...
+# Subtest: server-error keeps write outcome unknown and preview explicitly read-only
+ok 23 - server-error keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.8174
+  type: 'test'
+  ...
+# Subtest: unavailable keeps write outcome unknown and preview explicitly read-only
+ok 24 - unavailable keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.8308
+  type: 'test'
+  ...
+# Subtest: gateway-timeout keeps write outcome unknown and preview explicitly read-only
+ok 25 - gateway-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.8646
+  type: 'test'
+  ...
+# Subtest: offline keeps write outcome unknown and preview explicitly read-only
+ok 26 - offline keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.8343
+  type: 'test'
+  ...
+# Subtest: client-timeout keeps write outcome unknown and preview explicitly read-only
+ok 27 - client-timeout keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 2.3453
+  type: 'test'
+  ...
+# Subtest: invalid-success keeps write outcome unknown and preview explicitly read-only
+ok 28 - invalid-success keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 1.122
+  type: 'test'
+  ...
+# Subtest: unrecognized-client-error keeps write outcome unknown and preview explicitly read-only
+ok 29 - unrecognized-client-error keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5938
+  type: 'test'
+  ...
+# Subtest: mismatched-status-and-code keeps write outcome unknown and preview explicitly read-only
+ok 30 - mismatched-status-and-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5649
+  type: 'test'
+  ...
+# Subtest: code-without-status keeps write outcome unknown and preview explicitly read-only
+ok 31 - code-without-status keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.6537
+  type: 'test'
+  ...
+# Subtest: inherited-property-code keeps write outcome unknown and preview explicitly read-only
+ok 32 - inherited-property-code keeps write outcome unknown and preview explicitly read-only
+  ---
+  duration_ms: 0.5068
+  type: 'test'
+  ...
+# Subtest: malformed validation details cannot suppress the visible rejection feedback
+ok 33 - malformed validation details cannot suppress the visible rejection feedback
+  ---
+  duration_ms: 0.6404
+  type: 'test'
+  ...
+# Subtest: non-array validation details (null) retain usable feedback
+ok 34 - non-array validation details (null) retain usable feedback
+  ---
+  duration_ms: 0.5782
+  type: 'test'
+  ...
+# Subtest: non-array validation details ({}) retain usable feedback
+ok 35 - non-array validation details ({}) retain usable feedback
+  ---
+  duration_ms: 0.5059
+  type: 'test'
+  ...
+# Subtest: non-array validation details ("proxy detail") retain usable feedback
+ok 36 - non-array validation details ("proxy detail") retain usable feedback
+  ---
+  duration_ms: 0.5407
+  type: 'test'
+  ...
+# Subtest: preview accepts a confirmed contract and uses the feedback timeout
+ok 37 - preview accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 1.5362
+  type: 'test'
+  ...
+# Subtest: create accepts a confirmed contract and uses the feedback timeout
+ok 38 - create accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 0.6945
+  type: 'test'
+  ...
+# Subtest: cancel accepts a confirmed contract and uses the feedback timeout
+ok 39 - cancel accepts a confirmed contract and uses the feedback timeout
+  ---
+  duration_ms: 0.5832
+  type: 'test'
+  ...
+# Subtest: weekly preview and create require four confirmed occurrences
+ok 40 - weekly preview and create require four confirmed occurrences
+  ---
+  duration_ms: 1.4887
+  type: 'test'
+  ...
+# Subtest: weekly create cannot claim four successes by repeating the same appointment id
+ok 41 - weekly create cannot claim four successes by repeating the same appointment id
+  ---
+  duration_ms: 0.765
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (2027-01-01T09:00:00)
+ok 42 - preview rejects an empty, inverted or invalid interval (2027-01-01T09:00:00)
+  ---
+  duration_ms: 0.644
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (2027-01-01T08:59:00)
+ok 43 - preview rejects an empty, inverted or invalid interval (2027-01-01T08:59:00)
+  ---
+  duration_ms: 0.5804
+  type: 'test'
+  ...
+# Subtest: preview rejects an empty, inverted or invalid interval (not a date)
+ok 44 - preview rejects an empty, inverted or invalid interval (not a date)
+  ---
+  duration_ms: 0.5572
+  type: 'test'
+  ...
+# Subtest: cancel rejects a response for a different appointment id
+ok 45 - cancel rejects a response for a different appointment id
+  ---
+  duration_ms: 0.6709
+  type: 'test'
+  ...
+# Subtest: no-show rejects a response for a different appointment id
+ok 46 - no-show rejects a response for a different appointment id
+  ---
+  duration_ms: 0.567
+  type: 'test'
+  ...
+# Subtest: accept rejects a response for a different appointment id
+ok 47 - accept rejects a response for a different appointment id
+  ---
+  duration_ms: 0.5506
+  type: 'test'
+  ...
+# Subtest: to-dispatch rejects a response for a different appointment id
+ok 48 - to-dispatch rejects a response for a different appointment id
+  ---
+  duration_ms: 0.6311
+  type: 'test'
+  ...
+# Subtest: 200 HTML cannot become a successful appointment operation
+ok 49 - 200 HTML cannot become a successful appointment operation
+  ---
+  duration_ms: 0.7895
+  type: 'test'
+  ...
+# Subtest: 200 empty-body cannot become a successful appointment operation
+ok 50 - 200 empty-body cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6435
+  type: 'test'
+  ...
+# Subtest: 200 null cannot become a successful appointment operation
+ok 51 - 200 null cannot become a successful appointment operation
+  ---
+  duration_ms: 0.643
+  type: 'test'
+  ...
+# Subtest: 200 missing-data cannot become a successful appointment operation
+ok 52 - 200 missing-data cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6596
+  type: 'test'
+  ...
+# Subtest: 200 wrong-code cannot become a successful appointment operation
+ok 53 - 200 wrong-code cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6139
+  type: 'test'
+  ...
+# Subtest: 200 nonzero-code cannot become a successful appointment operation
+ok 54 - 200 nonzero-code cannot become a successful appointment operation
+  ---
+  duration_ms: 0.6317
+  type: 'test'
+  ...
+# Subtest: cancel missing-fee cannot report success or default to a zero fee
+ok 55 - cancel missing-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.674
+  type: 'test'
+  ...
+# Subtest: cancel string-fee cannot report success or default to a zero fee
+ok 56 - cancel string-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.5248
+  type: 'test'
+  ...
+# Subtest: cancel negative-fee cannot report success or default to a zero fee
+ok 57 - cancel negative-fee cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6282
+  type: 'test'
+  ...
+# Subtest: cancel missing-release-count cannot report success or default to a zero fee
+ok 58 - cancel missing-release-count cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.6042
+  type: 'test'
+  ...
+# Subtest: cancel wrong-status cannot report success or default to a zero fee
+ok 59 - cancel wrong-status cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.5371
+  type: 'test'
+  ...
+# Subtest: cancel missing-id cannot report success or default to a zero fee
+ok 60 - cancel missing-id cannot report success or default to a zero fee
+  ---
+  duration_ms: 0.5934
+  type: 'test'
+  ...
+# Subtest: server-supplied feedback is rendered as inert text, with an alert and safe navigation
+ok 61 - server-supplied feedback is rendered as inert text, with an alert and safe navigation
+  ---
+  duration_ms: 0.7715
+  type: 'test'
+  ...
+# Subtest: accepts a consistent recommendation including focus penalty and floating point contributions
+ok 62 - accepts a consistent recommendation including focus penalty and floating point contributions
+  ---
+  duration_ms: 7.9428
+  type: 'test'
+  ...
+# Subtest: valid floating point summation at the upper score bound remains usable
+ok 63 - valid floating point summation at the upper score bound remains usable
+  ---
+  duration_ms: 0.4862
+  type: 'test'
+  ...
+# Subtest: valid empty recommendation is distinct from a failed or missing response
+ok 64 - valid empty recommendation is distinct from a failed or missing response
+  ---
+  duration_ms: 0.2025
+  type: 'test'
+  ...
+# Subtest: accepts a zero-workforce result without inventing a candidate
+ok 65 - accepts a zero-workforce result without inventing a candidate
+  ---
+  duration_ms: 0.1568
+  type: 'test'
+  ...
+# Subtest: a recorded coordination must include its actual reason and timestamp
+ok 66 - a recorded coordination must include its actual reason and timestamp
+  ---
+  duration_ms: 0.3803
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: wrong appointment
+ok 67 - damaged recommendation cannot enable assignment: wrong appointment
+  ---
+  duration_ms: 0.4157
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: missing weight metadata
+ok 68 - damaged recommendation cannot enable assignment: missing weight metadata
+  ---
+  duration_ms: 0.3139
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: non-normalized weights
+ok 69 - damaged recommendation cannot enable assignment: non-normalized weights
+  ---
+  duration_ms: 0.4118
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: nonfinite weights
+ok 70 - damaged recommendation cannot enable assignment: nonfinite weights
+  ---
+  duration_ms: 0.5948
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: incorrect returned count
+ok 71 - damaged recommendation cannot enable assignment: incorrect returned count
+  ---
+  duration_ms: 1.3881
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: incorrect evaluated count
+ok 72 - damaged recommendation cannot enable assignment: incorrect evaluated count
+  ---
+  duration_ms: 0.2058
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: overlapping rejection counts
+ok 73 - damaged recommendation cannot enable assignment: overlapping rejection counts
+  ---
+  duration_ms: 0.2027
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: fractional rejection count
+ok 74 - damaged recommendation cannot enable assignment: fractional rejection count
+  ---
+  duration_ms: 0.135
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: ready with no candidates
+ok 75 - damaged recommendation cannot enable assignment: ready with no candidates
+  ---
+  duration_ms: 0.1117
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: false empty outcome
+ok 76 - damaged recommendation cannot enable assignment: false empty outcome
+  ---
+  duration_ms: 0.1187
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: duplicate candidate
+ok 77 - damaged recommendation cannot enable assignment: duplicate candidate
+  ---
+  duration_ms: 0.1309
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: incorrect rank
+ok 78 - damaged recommendation cannot enable assignment: incorrect rank
+  ---
+  duration_ms: 0.0686
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: invalid nursing identifier
+ok 79 - damaged recommendation cannot enable assignment: invalid nursing identifier
+  ---
+  duration_ms: 0.0644
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: missing default-rating disclosure
+ok 80 - damaged recommendation cannot enable assignment: missing default-rating disclosure
+  ---
+  duration_ms: 0.0723
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: nonfinite final score
+ok 81 - damaged recommendation cannot enable assignment: nonfinite final score
+  ---
+  duration_ms: 0.087
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: factor outside its bounds
+ok 82 - damaged recommendation cannot enable assignment: factor outside its bounds
+  ---
+  duration_ms: 0.0817
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: nonfinite contribution
+ok 83 - damaged recommendation cannot enable assignment: nonfinite contribution
+  ---
+  duration_ms: 0.0902
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: factor and contribution disagree
+ok 84 - damaged recommendation cannot enable assignment: factor and contribution disagree
+  ---
+  duration_ms: 0.096
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: base score and sum disagree
+ok 85 - damaged recommendation cannot enable assignment: base score and sum disagree
+  ---
+  duration_ms: 0.0907
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: penalty and final score disagree
+ok 86 - damaged recommendation cannot enable assignment: penalty and final score disagree
+  ---
+  duration_ms: 0.0818
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: candidate and report weights disagree
+ok 87 - damaged recommendation cannot enable assignment: candidate and report weights disagree
+  ---
+  duration_ms: 0.0946
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: distance input and factor disagree
+ok 88 - damaged recommendation cannot enable assignment: distance input and factor disagree
+  ---
+  duration_ms: 0.091
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: service-day load and factor disagree
+ok 89 - damaged recommendation cannot enable assignment: service-day load and factor disagree
+  ---
+  duration_ms: 0.1016
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: rating input and factor disagree
+ok 90 - damaged recommendation cannot enable assignment: rating input and factor disagree
+  ---
+  duration_ms: 0.0944
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: default rating disagrees with adopted value
+ok 91 - damaged recommendation cannot enable assignment: default rating disagrees with adopted value
+  ---
+  duration_ms: 0.1015
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: focus label disagrees with penalty
+ok 92 - damaged recommendation cannot enable assignment: focus label disagrees with penalty
+  ---
+  duration_ms: 0.0744
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: factor order disagrees with labels
+ok 93 - damaged recommendation cannot enable assignment: factor order disagrees with labels
+  ---
+  duration_ms: 0.079
+  type: 'test'
+  ...
+# Subtest: damaged recommendation cannot enable assignment: service date disagrees with schedule
+ok 94 - damaged recommendation cannot enable assignment: service date disagrees with schedule
+  ---
+  duration_ms: 0.0795
+  type: 'test'
+  ...
+# Subtest: a self-consistent weighted sum with a false distance factor is rejected
+ok 95 - a self-consistent weighted sum with a false distance factor is rejected
+  ---
+  duration_ms: 0.1443
+  type: 'test'
+  ...
+# Subtest: renderer uses the original distance directly and exposes unrounded arithmetic
+ok 96 - renderer uses the original distance directly and exposes unrounded arithmetic
+  ---
+  duration_ms: 0.4892
+  type: 'test'
+  ...
+# Subtest: reported ranks must follow the actual precision score and stable tie order
+ok 97 - reported ranks must follow the actual precision score and stable tie order
+  ---
+  duration_ms: 0.4958
+  type: 'test'
+  ...
+1..97
+# tests 97
+# suites 0
+# pass 97
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 196.354

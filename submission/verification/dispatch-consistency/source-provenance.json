@@ -1,0 +1,37 @@
+{
+  "recorded_at_utc": "2026-11-12T11:44:40.097341+00:00",
+  "original_local_source_commit": "779e1671667ac573d1b768bef8ab5d3a9d436b75",
+  "original_local_parent": "0f9d0bb9e2d61fe386a75b503f2afe464ce76e3c",
+  "public_parent": "dd046e02433476671227ef051e54d3de718ec623",
+  "notice": "Actual follow-up aligning displayed explanations with calculation. Original history preserved; isolated synthetic evidence only.",
+  "changed_source_files": [
+    "README.md",
+    "app/services/admin_service.py",
+    "app/services/dispatch_service.py",
+    "app/static/js/dispatch-feedback.js",
+    "app/templates/admin/config.html",
+    "app/templates/appointments/new.html",
+    "app/web/routes.py",
+    "docs/CONTRACTS.md",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/派单解释一致性.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/frontend/dispatch_feedback.test.cjs",
+    "tests/integration/test_dispatch_calculation_contract.py",
+    "tests/integration/test_dispatch_config_consistency.py",
+    "tests/unit/test_auth_admin.py"
+  ],
+  "validation": {
+    "pytest_tests": 538,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 316.662,
+    "lines_covered": 6928,
+    "lines_valid": 7749,
+    "coverage_percent": 89.41,
+    "node_tests": 97,
+    "edge_checks": 22,
+    "ruff": "passed"
+  }
+}

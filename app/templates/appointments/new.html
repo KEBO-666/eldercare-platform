@@ -85,7 +85,7 @@
                 <li><strong>三重校验</strong>：时间冲突、服务范围、能力适配；失败时不创建预约，可联系网格员协助。</li>
                 <li><strong>周期预约</strong>：连续 4 周共 4 次，全部通过才创建；以后取消某次不会取消其余预约。</li>
                 <li><strong>取消规则</strong>：距服务开始不足 {{ cancel_free_hours }} 小时取消可能计费，实际费用以取消结果为准；取消会释放关联工单的时段。</li>
-                <li><strong>派单规则</strong>：技能匹配 → 3 公里半径 → 当日 &lt; 6 单 → 时段无冲突，四因子加权排序取 Top3。</li>
+                <li><strong>派单规则</strong>：必需技能全部具备 → 服务半径不超过 {{ dispatch_policy.radius_km }} 公里（同时受护理员本人半径限制） → 预约服务当日未取消工单数 &lt; {{ dispatch_policy.daily_limit }} 单 → 时段无冲突。四因子按实际权重排序，默认展示 Top{{ dispatch_policy.top_n }}；派单时重新检查。</li>
                 <li><strong>上门留痕</strong>：签到定位偏差 &gt; 200 米需填写说明，服务过程逐项勾选并拍照。</li>
             </ul>
             <div class="notice success">演示提示：请选择未来且无冲突的时段，建议使用明天的预约。</div>

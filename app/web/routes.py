@@ -1211,6 +1211,8 @@ def appointment_new(
     if user is None:
         return _login_redirect(request)
 
+    from app.services.dispatch_service import get_dispatch_policy
+
     role = _role_code(user)
     elder_stmt = _scoped(select(Elder).where(Elder.is_deleted == 0), Elder, user, db)
     elder_options = _rows(db, elder_stmt.order_by(Elder.id.asc()).limit(300))
@@ -1242,6 +1244,7 @@ def appointment_new(
         prices=prices,
         role=role,
         cancel_free_hours=settings.cancel_free_hours,
+        dispatch_policy=get_dispatch_policy(),
     )
     return _render(request, "appointments/new.html", ctx)
 
@@ -1260,9 +1263,10 @@ def dispatch_board(
     if not _has_perm(user, "order:dispatch"):
         return _error_page(request, user, "无权访问", "您没有派单权限。", status_code=403)
 
-    from app.services.dispatch_service import get_dispatch_weight_details
+    from app.services.dispatch_service import get_dispatch_policy, get_dispatch_weight_details
 
     dispatch_weights = get_dispatch_weight_details(db)
+    dispatch_policy = get_dispatch_policy()
 
     pending = _rows(
         db,
@@ -1330,7 +1334,7 @@ def dispatch_board(
         weights=",".join(f"{value:.4g}" for value in dispatch_weights["values"]),
         weight_source_label=dispatch_weights["source_label"],
         active_nurse_count=sum(1 for nurse in nurses if nurse["status"] == "active"),
-        top_n=settings.dispatch_top_n,
+        top_n=dispatch_policy["top_n"],
         can_reassign=_has_perm(user, "order:reassign"),
     )
     return _render(request, "dispatch/index.html", ctx)
@@ -2218,6 +2222,9 @@ def admin_config(
     configs = _rows(db, select(ConfigItem).order_by(ConfigItem.key.asc()))
     rules = _rows(db, select(AlertRule).order_by(AlertRule.id.asc()))
     policies = _rows(db, select(SubsidyPolicy).order_by(SubsidyPolicy.id.asc()))
+    from app.services.dispatch_service import get_dispatch_policy, get_dispatch_weight_details
+
+    dispatch_weight_details = get_dispatch_weight_details(db)
     ctx = _base_ctx(
         request,
         user,
@@ -2228,6 +2235,9 @@ def admin_config(
         rules=rules,
         policies=policies,
         dispatch_weights=settings.dispatch_weights,
+        dispatch_effective_weights=", ".join(f"{value:.8g}" for value in dispatch_weight_details["values"]),
+        dispatch_weight_details=dispatch_weight_details,
+        dispatch_policy=get_dispatch_policy(),
         order_daily_limit=settings.order_daily_limit,
         service_radius_km=settings.service_radius_km,
         checkin_distance=settings.checkin_distance_threshold_m,

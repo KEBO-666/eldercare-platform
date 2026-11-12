@@ -1,0 +1,350 @@
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "appointment_id": 31,
+    "status": "accepted",
+    "candidates": [
+      {
+        "staff_id": 2,
+        "name": "王大力",
+        "distance_km": 0.0951,
+        "distance_km_precision": 0.09507896146033863,
+        "score": 0.9229,
+        "score_precision": 0.9228871341897703,
+        "base_score": 0.9228871341897703,
+        "factors": {
+          "skill": 1.0,
+          "distance": 0.9789,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "factors_precision": {
+          "skill": 1.0,
+          "distance": 0.9788713418977025,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "weights": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "weights_precision": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "contributions": {
+          "skill": 0.4,
+          "distance": 0.09788713418977026,
+          "load": 0.2,
+          "rating": 0.22499999999999998
+        },
+        "penalty": 1.0,
+        "allowed_radius_km": 4.5,
+        "daily_limit": 8,
+        "rating_used": 3.75,
+        "rating_is_default": true,
+        "reason": "技能匹配 nursing；距离0.10km；服务当日已派0单；近30天无有效评价，采用默认评分3.8；技能为硬约束，合格者技能项等量计分",
+        "today_count": 0,
+        "rating": null,
+        "is_focus": false,
+        "rank": 1,
+        "appointment_id": 31,
+        "desired_start": "2027-04-21T09:00:00"
+      },
+      {
+        "staff_id": 4,
+        "name": "陈国庆",
+        "distance_km": 0.0951,
+        "distance_km_precision": 0.09507896146033863,
+        "score": 0.9229,
+        "score_precision": 0.9228871341897703,
+        "base_score": 0.9228871341897703,
+        "factors": {
+          "skill": 1.0,
+          "distance": 0.9789,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "factors_precision": {
+          "skill": 1.0,
+          "distance": 0.9788713418977025,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "weights": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "weights_precision": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "contributions": {
+          "skill": 0.4,
+          "distance": 0.09788713418977026,
+          "load": 0.2,
+          "rating": 0.22499999999999998
+        },
+        "penalty": 1.0,
+        "allowed_radius_km": 4.5,
+        "daily_limit": 8,
+        "rating_used": 3.75,
+        "rating_is_default": true,
+        "reason": "技能匹配 nursing；距离0.10km；服务当日已派0单；近30天无有效评价，采用默认评分3.8；技能为硬约束，合格者技能项等量计分",
+        "today_count": 0,
+        "rating": null,
+        "is_focus": false,
+        "rank": 2,
+        "appointment_id": 31,
+        "desired_start": "2027-04-21T09:00:00"
+      },
+      {
+        "staff_id": 1,
+        "name": "李春梅",
+        "distance_km": 0.0951,
+        "distance_km_precision": 0.09507897096840445,
+        "score": 0.9229,
+        "score_precision": 0.9228871339784799,
+        "base_score": 0.9228871339784799,
+        "factors": {
+          "skill": 1.0,
+          "distance": 0.9789,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "factors_precision": {
+          "skill": 1.0,
+          "distance": 0.978871339784799,
+          "load": 1.0,
+          "rating": 0.75
+        },
+        "weights": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "weights_precision": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "contributions": {
+          "skill": 0.4,
+          "distance": 0.09788713397847991,
+          "load": 0.2,
+          "rating": 0.22499999999999998
+        },
+        "penalty": 1.0,
+        "allowed_radius_km": 4.5,
+        "daily_limit": 8,
+        "rating_used": 3.75,
+        "rating_is_default": true,
+        "reason": "技能匹配 nursing；距离0.10km；服务当日已派0单；近30天无有效评价，采用默认评分3.8；技能为硬约束，合格者技能项等量计分",
+        "today_count": 0,
+        "rating": null,
+        "is_focus": false,
+        "rank": 3,
+        "appointment_id": 31,
+        "desired_start": "2027-04-21T09:00:00"
+      },
+      {
+        "staff_id": 5,
+        "name": "赵小燕",
+        "distance_km": 0.0951,
+        "distance_km_precision": 0.09507896146033863,
+        "score": 0.8729,
+        "score_precision": 0.8728871341897703,
+        "base_score": 0.8728871341897703,
+        "factors": {
+          "skill": 1.0,
+          "distance": 0.9789,
+          "load": 0.75,
+          "rating": 0.75
+        },
+        "factors_precision": {
+          "skill": 1.0,
+          "distance": 0.9788713418977025,
+          "load": 0.75,
+          "rating": 0.75
+        },
+        "weights": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "weights_precision": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "contributions": {
+          "skill": 0.4,
+          "distance": 0.09788713418977026,
+          "load": 0.15000000000000002,
+          "rating": 0.22499999999999998
+        },
+        "penalty": 1.0,
+        "allowed_radius_km": 4.5,
+        "daily_limit": 8,
+        "rating_used": 3.75,
+        "rating_is_default": true,
+        "reason": "技能匹配 nursing；距离0.10km；服务当日已派2单；近30天无有效评价，采用默认评分3.8；技能为硬约束，合格者技能项等量计分",
+        "today_count": 2,
+        "rating": null,
+        "is_focus": false,
+        "rank": 4,
+        "appointment_id": 31,
+        "desired_start": "2027-04-21T09:00:00"
+      },
+      {
+        "staff_id": 3,
+        "name": "张红英",
+        "distance_km": 0.0951,
+        "distance_km_precision": 0.09507896146033863,
+        "score": 0.7887,
+        "score_precision": 0.7887097073518162,
+        "base_score": 0.9858871341897703,
+        "factors": {
+          "skill": 1.0,
+          "distance": 0.9789,
+          "load": 1.0,
+          "rating": 0.96
+        },
+        "factors_precision": {
+          "skill": 1.0,
+          "distance": 0.9788713418977025,
+          "load": 1.0,
+          "rating": 0.96
+        },
+        "weights": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "weights_precision": [
+          0.4,
+          0.1,
+          0.2,
+          0.3
+        ],
+        "contributions": {
+          "skill": 0.4,
+          "distance": 0.09788713418977026,
+          "load": 0.2,
+          "rating": 0.288
+        },
+        "penalty": 0.8,
+        "allowed_radius_km": 4.5,
+        "daily_limit": 8,
+        "rating_used": 4.8,
+        "rating_is_default": false,
+        "reason": "技能匹配 nursing；距离0.10km；服务当日已派0单；近30天评分4.8；技能为硬约束，合格者技能项等量计分；重点关注降权×0.8",
+        "today_count": 0,
+        "rating": 4.8,
+        "is_focus": true,
+        "rank": 5,
+        "appointment_id": 31,
+        "desired_start": "2027-04-21T09:00:00"
+      }
+    ],
+    "computed_at": "2026-11-12T19:35:52.594258",
+    "service_date": "2027-04-21",
+    "desired_start": "2027-04-21T09:00:00",
+    "desired_end": "2027-04-21T09:30:00",
+    "eligible_count": 5,
+    "returned_count": 5,
+    "evaluated_count": 8,
+    "excluded_count": 3,
+    "filter_counts": [
+      {
+        "code": "previously_attempted",
+        "label": "本轮已尝试",
+        "count": 0,
+        "suggestion": "联系其他护理员或由网格员人工协调"
+      },
+      {
+        "code": "inactive",
+        "label": "护理员已停用",
+        "count": 3,
+        "suggestion": "核对人员状态或安排在岗护理员"
+      },
+      {
+        "code": "missing_skills",
+        "label": "缺少必需技能",
+        "count": 0,
+        "suggestion": "安排具备项目所需技能的护理员"
+      },
+      {
+        "code": "invalid_location",
+        "label": "定位或服务半径无效",
+        "count": 0,
+        "suggestion": "补充有效定位并核对服务半径"
+      },
+      {
+        "code": "out_of_radius",
+        "label": "超出服务半径",
+        "count": 0,
+        "suggestion": "协调可覆盖该地址的护理员"
+      },
+      {
+        "code": "daily_limit",
+        "label": "服务当日负荷已满",
+        "count": 0,
+        "suggestion": "调整服务日期或协调其他护理员"
+      },
+      {
+        "code": "time_conflict",
+        "label": "服务时段冲突",
+        "count": 0,
+        "suggestion": "调整服务时段或协调其他护理员"
+      }
+    ],
+    "weights": {
+      "values": [
+        0.4,
+        0.1,
+        0.2,
+        0.3
+      ],
+      "source": "runtime",
+      "source_label": "运行期配置 dispatch.weights",
+      "source_key": "dispatch.weights",
+      "fallback": false
+    },
+    "rules": {
+      "radius_km": 4.5,
+      "daily_limit": 8,
+      "rating_default": 3.75,
+      "rating_default_builtin": 3.5,
+      "rating_window_days": 30,
+      "focus_penalty": 0.8,
+      "factor_order": [
+        "skill",
+        "distance",
+        "load",
+        "rating"
+      ],
+      "rating_full_score": 5.0,
+      "score_scale": 100,
+      "sort_order": "精确总分降序、距离升序、服务当日负荷升序、护理员编号升序",
+      "skill_note": "必需技能为硬约束；合格候选技能因子均为1，技能权重不区分合格者"
+    },
+    "coordination": null,
+    "outcome": "ready",
+    "top_n": 5
+  }
+}

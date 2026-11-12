@@ -299,7 +299,7 @@ def test_config_defaults_and_upsert(db, accounts):
     assert db.query(ConfigItem).filter(ConfigItem.key == "order_daily_limit").one().value == "5"
 
     data = admin_service.list_configs(db)
-    assert data["dispatch_weights"] == [0.4, 0.3, 0.2, 0.1]
+    assert data["dispatch_weights"] == [0.5, 0.3, 0.1, 0.1]
     assert data["defaults"]["dispatch_weights"] == "0.4,0.3,0.2,0.1"
     assert data["effective"]["order_daily_limit"] == 5
     assert len(data["items"]) == 3

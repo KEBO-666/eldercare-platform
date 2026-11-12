@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import secrets
 import sqlite3
 import string
@@ -16,6 +17,7 @@ from fastapi import Request
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.algorithms.dispatch import parse_weights
 from app.core.audit import verify_chain, write_audit
 from app.core.config import settings
 from app.core.deps import apply_scope, effective_scope, scope_condition
@@ -703,12 +705,17 @@ def config_to_dict(item: ConfigItem) -> dict[str, Any]:
 
 
 def list_configs(db: Session) -> dict[str, Any]:
+    from app.services.dispatch_service import get_dispatch_policy, get_dispatch_weight_details
+
     rows = db.execute(select(ConfigItem).order_by(ConfigItem.key.asc())).scalars().all()
+    weight_details = get_dispatch_weight_details(db)
     return {
         "items": [config_to_dict(row) for row in rows],
         "total": len(rows),
         "defaults": dict(DEFAULT_CONFIGS),
-        "dispatch_weights": list(settings.weights_tuple),
+        "dispatch_weights": list(weight_details["values"]),
+        "dispatch_weight_details": weight_details,
+        "actual_dispatch": {**get_dispatch_policy(), "weights": weight_details},
         "effective": get_config_map(db),
     }
 
@@ -737,18 +744,16 @@ def _normalize_config_payload(payload: Any) -> list[tuple[str, Any]]:
 
 
 def _normalize_weights(value: Any) -> str:
+    # Different fallbacks preserve parse failure, including nonfinite/overflowing
+    # input, without duplicating the algorithm's CSV/list/JSON mapping parser.
     try:
-        if isinstance(value, (list, tuple)):
-            parts = [float(part) for part in value]
-        else:
-            parts = [float(part) for part in str(value).replace("，", ",").split(",") if part.strip()]
-    except (TypeError, ValueError) as exc:
-        raise RuleViolation("派单权重必须是 4 个数字，如 0.4,0.3,0.2,0.1") from exc
-    if len(parts) != 4:
-        raise RuleViolation("派单权重必须是 4 个数字，如 0.4,0.3,0.2,0.1")
-    if sum(parts) <= 0:
-        raise RuleViolation("派单权重之和必须大于 0")
-    return ",".join(f"{part:g}" for part in parts)
+        weights = parse_weights(value, (1, 0, 0, 0))
+        valid = weights == parse_weights(value, (0, 1, 0, 0))
+    except (TypeError, ValueError, OverflowError):
+        valid = False
+    if not valid:
+        raise RuleViolation("派单权重必须是4个有限非负数字，且总和有限并大于0")
+    return ",".join(repr(part) for part in weights)
 
 
 def set_config(
@@ -760,34 +765,54 @@ def set_config(
     """更新/新增运行期配置（支持单项、批量 items、键值映射三种写法）。"""
     pairs = _normalize_config_payload(payload)
     changed: dict[str, Any] = {}
+    aliases = ("dispatch.weights", "dispatch_weights")
+    # Validate the entire batch before mutating even unrelated configuration.
     for key, value in pairs:
         if not key:
             raise RuleViolation("配置 key 不能为空")
         if value is None:
             raise RuleViolation(f"配置 {key} 的值不能为空")
-        if key == "dispatch_weights":
+        if key in aliases:
             value = _normalize_weights(value)
         text = _serialize_config(value)
         if len(text) > 512:
             raise RuleViolation(f"配置 {key} 的值过长（最多 512 字符）")
-        item = db.execute(select(ConfigItem).where(ConfigItem.key == key)).scalar_one_or_none()
-        if item is None:
-            item = ConfigItem(key=key, value=text, description=f"运行期配置 {key}", updated_by=operator.id)
-            db.add(item)
-        else:
-            item.value = text
-            item.updated_by = operator.id
         changed[key] = value
+    if all(key in changed for key in aliases):
+        first, second = (parse_weights(changed[key]) for key in aliases)
+        if any(not math.isclose(left, right, rel_tol=0, abs_tol=1e-12) for left, right in zip(first, second, strict=True)):
+            raise RuleViolation("同批派单权重别名的值不一致，请使用相同权重")
+        # Equivalent proportions should also be stored identically.
+        changed[aliases[1]] = changed[aliases[0]]
 
-    write_audit(
-        db,
-        user=operator,
-        action=AuditAction.UPDATE,
-        entity_type="config",
-        after={"changed": {key: _serialize_config(value) for key, value in changed.items()}},
-        detail=f"更新配置：{', '.join(changed)}",
-        request=request,
-    )
+    with db.begin_nested():
+        existing = {item.key: item for item in db.scalars(select(ConfigItem)).all()}
+        for key, value in changed.items():
+            text = _serialize_config(value)
+            item = existing.get(key)
+            if item is None:
+                item = ConfigItem(key=key, value=text, description=f"运行期配置 {key}", updated_by=operator.id)
+                db.add(item)
+                existing[key] = item
+            else:
+                item.value = text
+                item.updated_by = operator.id
+        synced = {}
+        for key in aliases:
+            other = aliases[1] if key == aliases[0] else aliases[0]
+            if key in changed and other not in changed and other in existing:
+                existing[other].value = _serialize_config(changed[key])
+                existing[other].updated_by = operator.id
+                synced[other] = existing[other].value
+        write_audit(
+            db,
+            user=operator,
+            action=AuditAction.UPDATE,
+            entity_type="config",
+            after={"changed": {key: _serialize_config(value) for key, value in changed.items()}, "synced": synced},
+            detail=f"更新配置：{', '.join(changed)}",
+            request=request,
+        )
     db.commit()
     return {
         "changed": sorted(changed),
