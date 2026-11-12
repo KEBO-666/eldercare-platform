@@ -1,0 +1,206 @@
+{
+  "baseline_revision": "b8fd6dd",
+  "baseline_source_sha256": "2f413efbe1f12b389e8c2e61ad7bcff89dd901ab0d2a3c16e11e2ea74438c27d",
+  "current_source_sha256": "4cf0886d8da73df7644e9d0ada230edd339e7f25b74a8a0fa310d9d67209cfae",
+  "comparisons": [
+    {
+      "case": "score_rounding_collision",
+      "weights": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "candidates": [
+        {
+          "staff_id": 1,
+          "distance_km": 0.1,
+          "today_count": 0,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.0
+        },
+        {
+          "staff_id": 2,
+          "distance_km": 0.2,
+          "today_count": 0,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.00001
+        }
+      ],
+      "old": [
+        {
+          "staff_id": 1,
+          "score": 0.8,
+          "distance_km": 0.1,
+          "today_count": 0
+        },
+        {
+          "staff_id": 2,
+          "score": 0.8,
+          "distance_km": 0.2,
+          "today_count": 0
+        }
+      ],
+      "new": [
+        {
+          "staff_id": 2,
+          "score": 0.8,
+          "distance_km": 0.2,
+          "today_count": 0,
+          "rank": 1,
+          "score_precision": 0.8000019999999999
+        },
+        {
+          "staff_id": 1,
+          "score": 0.8,
+          "distance_km": 0.1,
+          "today_count": 0,
+          "rank": 2,
+          "score_precision": 0.8
+        }
+      ]
+    },
+    {
+      "case": "distance_rounding_collision",
+      "weights": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "candidates": [
+        {
+          "staff_id": 1,
+          "distance_km": 0.50004,
+          "today_count": 0,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.0
+        },
+        {
+          "staff_id": 2,
+          "distance_km": 0.50003,
+          "today_count": 0,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.0
+        }
+      ],
+      "old": [
+        {
+          "staff_id": 1,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 0
+        },
+        {
+          "staff_id": 2,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 0
+        }
+      ],
+      "new": [
+        {
+          "staff_id": 2,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 0,
+          "rank": 1,
+          "score_precision": 1.0
+        },
+        {
+          "staff_id": 1,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 0,
+          "rank": 2,
+          "score_precision": 1.0
+        }
+      ]
+    },
+    {
+      "case": "equal_score_distance_service_day_load",
+      "weights": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "candidates": [
+        {
+          "staff_id": 1,
+          "distance_km": 0.5,
+          "today_count": 5,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.0
+        },
+        {
+          "staff_id": 2,
+          "distance_km": 0.5,
+          "today_count": 1,
+          "skills": [
+            "shower"
+          ],
+          "rating": 4.0
+        }
+      ],
+      "old": [
+        {
+          "staff_id": 1,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 5
+        },
+        {
+          "staff_id": 2,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 1
+        }
+      ],
+      "new": [
+        {
+          "staff_id": 2,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 1,
+          "rank": 1,
+          "score_precision": 1.0
+        },
+        {
+          "staff_id": 1,
+          "score": 1.0,
+          "distance_km": 0.5,
+          "today_count": 5,
+          "rank": 2,
+          "score_precision": 1.0
+        }
+      ]
+    },
+    {
+      "case": "nan_latitude_not_zero_distance",
+      "coordinates": [
+        "NaN",
+        121,
+        31,
+        121
+      ],
+      "old_distance_km": 0.0,
+      "new_distance_km": "Infinity",
+      "old_candidate_ids": [
+        1
+      ],
+      "new_candidate_ids": []
+    }
+  ],
+  "scope": "Original ranking and coordinate defects only; no assertion about previously absent APIs."
+}

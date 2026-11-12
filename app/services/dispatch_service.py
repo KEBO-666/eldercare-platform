@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import math
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from typing import Any
@@ -15,7 +16,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.algorithms.dispatch import (
+    DEFAULT_WEIGHTS,
+    candidate_rejection_reason,
     haversine,
+    normalize_skills,
     parse_weights,
     score_candidates,
 )
@@ -34,6 +38,7 @@ from app.core.exceptions import Conflict, NotFound, RuleViolation
 from app.core.state_machine import APPOINTMENT, ORDER
 from app.models import (
     Appointment,
+    AppointmentLog,
     ConfigItem,
     Elder,
     Evaluation,
@@ -64,11 +69,28 @@ ORDER_STATUS_NAMES = {
 # ---------------- 配置 ----------------
 def get_dispatch_weights(db: Session) -> tuple[float, float, float, float]:
     """派单权重：ConfigItem 覆盖优先，其次环境变量默认值。"""
-    raw = None
+    return tuple(get_dispatch_weight_details(db)["values"])
+
+
+def get_dispatch_weight_details(db: Session) -> dict[str, Any]:
+    """Resolve the actual normalized weights without evaluating unsafe settings.weights_tuple."""
     row = db.execute(select(ConfigItem).where(ConfigItem.key == DISPATCH_WEIGHTS_KEY)).scalar_one_or_none()
-    if row is not None and row.value:
-        raw = row.value
-    return parse_weights(raw, settings.weights_tuple)
+    fallback = False
+
+    def valid(raw: Any) -> bool:
+        # Two distinct fallbacks distinguish a valid result from parse failure.
+        return parse_weights(raw, (1, 0, 0, 0)) == parse_weights(raw, (0, 1, 0, 0))
+
+    if row is not None:
+        if valid(row.value):
+            return {"values": list(parse_weights(row.value)), "source": "runtime",
+                    "source_label": "运行期配置", "fallback": False}
+        fallback = True
+    if valid(settings.dispatch_weights):
+        return {"values": list(parse_weights(settings.dispatch_weights)), "source": "environment",
+                "source_label": "环境配置", "fallback": fallback}
+    return {"values": list(DEFAULT_WEIGHTS), "source": "default",
+            "source_label": "内置默认权重", "fallback": True}
 
 
 # ---------------- 工具 ----------------
@@ -170,19 +192,20 @@ def _ensure_eligible(db: Session, staff: Staff, elder: Elder | None, item: Servi
         raise RuleViolation("服务项目已下架或不存在，不可派单")
     if elder is None or elder.is_deleted:
         raise NotFound("老人档案不存在")
-    missing = set(item.required_skills or []) - set(staff.skills or [])
+    missing = normalize_skills(item.required_skills) - normalize_skills(staff.skills)
     if missing:
         raise RuleViolation("护理员缺少必需技能：" + "、".join(sorted(missing)))
     distance = haversine(elder.lat, elder.lng, staff.base_lat, staff.base_lng)
-    radius = min(float(settings.service_radius_km), float(staff.service_radius_km or 0))
-    if distance > radius:
+    radii = (float(settings.service_radius_km), float(staff.service_radius_km or 0))
+    radius = min(radii)
+    if not math.isfinite(distance) or any(not math.isfinite(value) or value <= 0 for value in radii) or distance > radius:
         raise RuleViolation("护理员超出服务半径或缺少定位坐标")
 
 
-def _notify_family_and_grid(db: Session, appointment: Appointment, *, title: str, content: str) -> None:
+def _notify_family_and_grid(db: Session, appointment: Appointment, *, title: str, content: str) -> int:
     elder = db.get(Elder, appointment.elder_id)
     if elder is None:
-        return
+        return 0
     recipients = set(db.scalars(
         select(User.id).join(Role, User.role_id == Role.id).where(
             User.is_active.is_(True),
@@ -198,6 +221,7 @@ def _notify_family_and_grid(db: Session, appointment: Appointment, *, title: str
             channel=NotificationChannel.INAPP.value, title=title, content=content,
             status=NotificationStatus.SENT.value, related_type="appointment", related_id=appointment.id,
         ))
+    return len(recipients)
 
 
 def _notify_nurse(db: Session, staff: Staff, *, title: str, content: str, related_id: int | None) -> None:
@@ -255,6 +279,32 @@ def get_candidates(
     exclude_nurse_ids: set[int] | None = None,
 ) -> list[dict[str, Any]]:
     """返回 TopN 候选护理员及四项因子明细（按 score 倒序）。"""
+    return get_candidate_report(db, appointment_id, user, limit=limit, now=now,
+                                exclude_nurse_ids=exclude_nurse_ids)["candidates"]
+
+
+def _current_coordination(db: Session, appointment_id: int) -> AppointmentLog | None:
+    boundary = db.scalar(select(func.max(AppointmentLog.id)).where(
+        AppointmentLog.appointment_id == appointment_id,
+        AppointmentLog.action.in_(("dispatch", "requeue", "accept")),
+    )) or 0
+    return db.scalars(select(AppointmentLog).where(
+        AppointmentLog.appointment_id == appointment_id,
+        AppointmentLog.action == "dispatch_coordinate", AppointmentLog.id > boundary,
+    ).order_by(AppointmentLog.id.desc())).first()
+
+
+def _coordination_to_dict(record: AppointmentLog | None) -> dict[str, Any] | None:
+    if record is None:
+        return None
+    return {"id": record.id, "reason": record.remark, "requested_at": record.created_at}
+
+
+def get_candidate_report(
+    db: Session, appointment_id: int, user: User | None, *, limit: int | None = None,
+    now: datetime | None = None, exclude_nurse_ids: set[int] | None = None,
+) -> dict[str, Any]:
+    """只读推荐报告；首个硬约束失败互斥计数，与评分算法共用筛选口径。"""
     appointment = appt_service.get_or_404(db, appointment_id)
     if user is not None:
         appt_service.ensure_visible(db, user, appointment)
@@ -272,12 +322,13 @@ def get_candidates(
     end = start + duration
     now = now or datetime.now()
 
-    top_n = int(settings.dispatch_top_n if limit is None else limit)
-    weights = get_dispatch_weights(db)
+    top_n = max(1, min(20, int(settings.dispatch_top_n if limit is None else limit)))
+    weight_info = get_dispatch_weight_details(db)
+    weights = weight_info["values"]
     daily_limit = int(settings.order_daily_limit)
     radius = float(settings.service_radius_km)
 
-    staffs = db.execute(select(Staff).where(Staff.status == "active").order_by(Staff.id.asc())).scalars().all()
+    staffs = db.execute(select(Staff).order_by(Staff.id.asc())).scalars().all()
     # 近 30 天评分实时聚合，避免缓存评分过期后影响推荐。
     ratings = dict(db.execute(
         select(Evaluation.nurse_id, func.avg(Evaluation.avg_score))
@@ -293,8 +344,6 @@ def get_candidates(
     ).all())
     raw_candidates: list[dict[str, Any]] = []
     for staff in staffs:
-        if staff.id in (exclude_nurse_ids or set()):
-            continue
         distance = haversine(elder.lat, elder.lng, staff.base_lat, staff.base_lng)
         raw_candidates.append(
             {
@@ -311,22 +360,97 @@ def get_candidates(
             }
         )
 
-    # 时段在途工单冲突的候选直接剔除（四因子之外的时间维度约束）
-    available = [row for row in raw_candidates if find_busy_order(db, int(row["staff_id"]), start, end) is None]
+    definitions = (
+        ("previously_attempted", "本轮已尝试", "联系其他护理员或由网格员人工协调"),
+        ("inactive", "护理员已停用", "核对人员状态或安排在岗护理员"),
+        ("missing_skills", "缺少必需技能", "安排具备项目所需技能的护理员"),
+        ("invalid_location", "定位或服务半径无效", "补充有效定位并核对服务半径"),
+        ("out_of_radius", "超出服务半径", "协调可覆盖该地址的护理员"),
+        ("daily_limit", "服务当日负荷已满", "调整服务日期或协调其他护理员"),
+        ("time_conflict", "服务时段冲突", "调整服务时段或协调其他护理员"),
+    )
+    filter_counts = {code: 0 for code, _, _ in definitions}
+    available = []
+    required = list(item.required_skills or [])
+    for row in raw_candidates:
+        rejection = "previously_attempted" if row["staff_id"] in (exclude_nurse_ids or set()) else candidate_rejection_reason(
+            row, required_skills=required, radius_km=radius, daily_limit=daily_limit,
+        )
+        if rejection is None and find_busy_order(db, int(row["staff_id"]), start, end) is not None:
+            rejection = "time_conflict"
+        if rejection is None:
+            available.append(row)
+        else:
+            filter_counts[rejection] += 1
     scored = score_candidates(
         available,
         weights,
         radius_km=radius,
         daily_limit=daily_limit,
         rating_default=float(settings.nurse_rating_default),
-        required_skills=list(item.required_skills or []) if item is not None else [],
-        top_n=top_n,
+        required_skills=required,
+        top_n=None,
     )
     for row in scored:
         row["appointment_id"] = appointment.id
         row["desired_start"] = appointment.desired_start
-        row["weights"] = [round(w, 4) for w in weights]
-    return scored
+        row["weights"] = list(weights)
+    returned = scored[:top_n]
+    return {
+        "appointment_id": appointment.id, "status": appointment.status, "candidates": returned,
+        "eligible_count": len(scored), "returned_count": len(returned), "evaluated_count": len(staffs),
+        "excluded_count": sum(filter_counts.values()),
+        "filter_counts": [{"code": code, "label": label, "count": filter_counts[code], "suggestion": suggestion}
+                          for code, label, suggestion in definitions],
+        "weights": weight_info,
+        "rules": {"radius_km": radius, "daily_limit": daily_limit,
+                  "rating_default": float(settings.nurse_rating_default), "rating_window_days": 30,
+                  "focus_penalty": 0.8,
+                  "sort_order": "精确总分降序、距离升序、服务当日负荷升序、护理员编号升序",
+                  "skill_note": "必需技能为硬约束；合格候选技能因子均为1，技能权重不区分合格者"},
+        "coordination": _coordination_to_dict(_current_coordination(db, appointment.id)),
+        "outcome": "ready" if scored else "no_candidates", "top_n": top_n,
+    }
+
+
+def coordinate_dispatch(
+    db: Session, appointment_id: int, *, reason: str, user: User | None, request: Request | None = None,
+) -> dict[str, Any]:
+    """无人可派时记录协调请求；保留原状态，单阶段重复请求不重复通知。"""
+    reason = str(reason or "").strip()
+    if not reason or len(reason) > 255:
+        raise RuleViolation("协调原因必填且不超过255字")
+    with db.begin_nested():
+        appointment = appt_service.get_or_404(db, appointment_id)
+        if user is not None:
+            appt_service.ensure_visible(db, user, appointment)
+        if str(appointment.status) not in ("accepted", "pending_dispatch"):
+            raise Conflict("仅已受理或待派单预约可请求人工协调")
+        report = get_candidate_report(db, appointment_id, user)
+        if report["eligible_count"]:
+            raise Conflict("已有合格候选护理员，请重新查看推荐并派单")
+        existing = _current_coordination(db, appointment_id)
+        notification_count = 0
+        if existing is None:
+            existing = appt_service.write_log(
+                db, appointment, from_status=appointment.status, to_status=appointment.status,
+                action="dispatch_coordinate", operator_id=getattr(user, "id", None), remark=reason,
+            )
+            notification_count = _notify_family_and_grid(
+                db, appointment, title="预约待人工协调",
+                content=f"预约 {appointment.code} 暂无合格候选，请协调服务人员或调整时段。原因：{reason}",
+            )
+            write_audit(db, user=user, action=AuditAction.UPDATE.value, entity_type="appointment",
+                        entity_id=appointment.id, after={"coordination_id": existing.id, "reason": reason},
+                        detail=f"预约 {appointment.code} 无人可派，记录人工协调", request=request)
+            already_recorded = False
+        else:
+            already_recorded = True
+        data = {"appointment_id": appointment.id, "status": appointment.status,
+                "coordination": _coordination_to_dict(existing), "already_recorded": already_recorded,
+                "work_order_created": False, "notification_count": notification_count}
+    db.commit()
+    return data
 
 
 # ---------------- 派单 ----------------

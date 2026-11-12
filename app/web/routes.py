@@ -1260,6 +1260,10 @@ def dispatch_board(
     if not _has_perm(user, "order:dispatch"):
         return _error_page(request, user, "无权访问", "您没有派单权限。", status_code=403)
 
+    from app.services.dispatch_service import get_dispatch_weight_details
+
+    dispatch_weights = get_dispatch_weight_details(db)
+
     pending = _rows(
         db,
         _scoped(
@@ -1269,7 +1273,6 @@ def dispatch_board(
                     [
                         AppointmentStatus.PENDING_DISPATCH.value,
                         AppointmentStatus.ACCEPTED.value,
-                        AppointmentStatus.PENDING_ACCEPT.value,
                     ]
                 )
             )
@@ -1297,12 +1300,16 @@ def dispatch_board(
                 "order_count": s.order_count_cached or 0,
                 "is_focus": s.is_focus,
                 "org_id": s.org_id,
+                "status": s.status,
             }
         )
 
     # 当日已派单数
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_dispatched = _scoped_count(db, WorkOrder, user, WorkOrder.scheduled_start >= today)
+    today_dispatched = _scoped_count(
+        db, WorkOrder, user, WorkOrder.scheduled_start >= today,
+        WorkOrder.scheduled_start < today + timedelta(days=1),
+    )
     in_dispatch = _scoped_count(
         db, Appointment, user, Appointment.status == AppointmentStatus.PENDING_DISPATCH.value
     )
@@ -1320,7 +1327,9 @@ def dispatch_board(
         nurses_json=json.dumps(nurses, ensure_ascii=False),
         today_dispatched=today_dispatched,
         in_dispatch=in_dispatch,
-        weights=settings.dispatch_weights,
+        weights=",".join(f"{value:.4g}" for value in dispatch_weights["values"]),
+        weight_source_label=dispatch_weights["source_label"],
+        active_nurse_count=sum(1 for nurse in nurses if nurse["status"] == "active"),
         top_n=settings.dispatch_top_n,
         can_reassign=_has_perm(user, "order:reassign"),
     )

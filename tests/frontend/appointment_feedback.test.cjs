@@ -102,6 +102,31 @@ test("opt-in request timeout aborts transport and produces REQUEST_TIMEOUT", asy
     assert.equal(h.cleared.length, 1);
 });
 
+test("recommendation GET forwards an optional timeout without creating a request body", async () => {
+    let captured;
+    const h = harness((url, init) => {
+        captured = { url, init };
+        return Promise.resolve(response(200, { code: 0, data: { candidates: [] } }));
+    });
+    await h.App.api.get("/dispatch/12/recommendation", { timeoutMs: 25 });
+    assert.equal(captured.url, "/api/v1/dispatch/12/recommendation");
+    assert.equal(captured.init.method, "GET");
+    assert.equal(captured.init.body, undefined);
+    assert.ok(captured.init.signal);
+    assert.equal(h.timers.size, 0);
+});
+
+test("recommendation GET timeout aborts a stalled read", async () => {
+    const capture = {};
+    const h = harness(deferredFetch(capture));
+    const request = h.App.api.get("/dispatch/12/recommendation", { timeoutMs: 25 });
+    const rejected = assert.rejects(request, (error) => error.code === "REQUEST_TIMEOUT");
+    h.fire(25);
+    await rejected;
+    assert.equal(capture.signal.aborted, true);
+    assert.equal(h.timers.size, 0);
+});
+
 test("timeout covers a response body that stalls after headers", async () => {
     let signal;
     const h = harness(async (_url, init) => {

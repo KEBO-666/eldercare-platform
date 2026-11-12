@@ -195,9 +195,15 @@ appt.status = new_status
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
 | GET | `/dispatch/{appointment_id}/candidates` | 前 N 候选 + 四项因子明细 | order:dispatch |
+| GET | `/dispatch/{appointment_id}/recommendation` | 只读推荐报告：排名、实际权重、互斥筛除计数、协调记录；limit默认配置值 | order:dispatch |
+| POST | `/dispatch/{appointment_id}/coordinate` | 无人可派时申请人工协调 `{reason}`，不生成工单，同阶段去重 | order:dispatch |
 | POST | `/dispatch/{appointment_id}/assign` | 派单 `{nurse_id}` → 生成工单 | order:dispatch |
 | POST | `/dispatch/orders/{order_id}/reassign` | 改派 `{nurse_id, reason}` | order:reassign |
 | POST | `/dispatch/scan-timeout` | 从派单创建时刻满 30 分钟后顺延，限操作者范围；增加 reassigned_orders | order:dispatch |
+
+推荐报告保留`candidates`列表及旧候选字段，增加`rank`、`score_precision`、`base_score`、`factors_precision`、`weights_precision`、`rating_used/rating_is_default`、`allowed_radius_km/daily_limit`。候选按未舍入总分降序、实际距离升序、服务当日负荷升序、护理员ID升序排列，展示分数不能用于客户端重新排序。`weights`说明本次归一化权重及配置来源；`filter_counts`按首个失败原因互斥计数，`evaluated_count = eligible_count + excluded_count`；接口错误不能当作无人可派。
+
+`coordinate`仅允许已受理/待派单且复检无候选的预约，原因去除首尾空格后不能为空、至多255字符。返回`appointment_id/status/coordination{id,reason,requested_at}/already_recorded/work_order_created=false/notification_count`。保持预约状态，协调日志、审计与站内通知整体成功或回滚；同一状态阶段的重复申请返回原记录且不重复通知。查看推荐不会自动申请协调。详见[智能派单完善](chuanzhi/智能派单完善.md)。
 
 ### orders（C）
 | 方法 | 路径 | 说明 | 权限 |

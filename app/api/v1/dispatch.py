@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.core.deps import require
@@ -28,6 +28,17 @@ class AssignRequest(BaseModel):
 class ReassignRequest(BaseModel):
     nurse_id: int = Field(..., description="新护理员（staff.id）")
     reason: str = Field("", description="改派原因（必填）")
+
+
+class CoordinateRequest(BaseModel):
+    reason: str = Field(..., max_length=255, description="人工协调原因")
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("协调原因必填")
+        return value.strip()
 
 
 @router.post("/scan-timeout", summary="手动触发接单超时顺延扫描")
@@ -75,3 +86,24 @@ def assign_order(
         db, appointment_id, payload.nurse_id, user=user, request=request
     )
     return ok(data, "派单成功")
+
+
+@router.get("/{appointment_id}/recommendation", summary="只读候选排序、权重和筛选解释")
+def recommendation(
+    appointment_id: int,
+    limit: int | None = Query(None, ge=1, le=20),
+    db: Session = Depends(get_db),
+    user: User = Depends(require("order:dispatch")),
+) -> dict:
+    return ok(dispatch_service.get_candidate_report(db, appointment_id, user, limit=limit))
+
+
+@router.post("/{appointment_id}/coordinate", summary="无人可派时记录人工协调")
+def coordinate(
+    appointment_id: int, payload: CoordinateRequest, request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require("order:dispatch")),
+) -> dict:
+    return ok(dispatch_service.coordinate_dispatch(
+        db, appointment_id, reason=payload.reason, user=user, request=request,
+    ), "已记录人工协调，预约状态保持不变")

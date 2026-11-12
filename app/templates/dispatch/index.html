@@ -3,6 +3,7 @@
 {% block title %}智能派单{% endblock %}
 
 {% block content %}
+<div id="dispatch-feedback" class="notice hidden" role="status" aria-live="polite"></div>
 <div class="grid grid-4">
     <div class="stat-card warn">
         <div class="stat-label">⏳ 待派单预约</div>
@@ -16,13 +17,13 @@
     </div>
     <div class="stat-card ok">
         <div class="stat-label">👩‍⚕️ 在岗护理员</div>
-        <div class="stat-value">{{ nurses|length }}</div>
+        <div class="stat-value">{{ active_nurse_count }}</div>
         <div class="stat-hint">技能、坐标、评分可参与排序</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">⚖️ 环境默认权重</div>
+        <div class="stat-label">⚖️ 当前生效权重</div>
         <div class="stat-value" style="font-size:26px">{{ weights }}</div>
-        <div class="stat-hint">技能 / 距离 / 负荷 / 评分；运行期权重以候选明细为准</div>
+        <div class="stat-hint">技能 / 距离 / 负荷 / 评分；{{ weight_source_label }}。每次计算以返回明细为准。</div>
     </div>
 </div>
 
@@ -72,11 +73,11 @@
 </section>
 
 <section class="card">
-    <div class="card-header"><span>👩‍⚕️ 护理员资源池</span><span class="sub">技能 / 评分 / 累计工单</span></div>
+    <div class="card-header"><span>👩‍⚕️ 护理员资源概况</span><span class="sub">缓存评分与累计工单仅供参考，不是本次推荐评分或服务当日负荷</span></div>
     <div class="card-body tight">
         <div class="table-wrap">
             <table class="data-table">
-                <thead><tr><th>工号</th><th>姓名</th><th>技能</th><th>评分</th><th>累计工单</th><th>状态</th></tr></thead>
+                <thead><tr><th>工号</th><th>姓名</th><th>技能</th><th>缓存评分</th><th>累计工单</th><th>状态</th></tr></thead>
                 <tbody>
                 {% for nurse in nurses %}
                 <tr>
@@ -88,8 +89,9 @@
                     <td>{{ '★ %.1f'|format(nurse.rating) }}</td>
                     <td>{{ nurse.order_count }}</td>
                     <td>
-                        {% if nurse.is_focus %}<span class="badge badge-red">重点关注</span>
-                        {% else %}<span class="badge badge-green">正常</span>{% endif %}
+                        {% if nurse.status == 'active' %}<span class="badge badge-green">在岗</span>
+                        {% else %}<span class="badge badge-gray">非在岗（{{ nurse.status }}）</span>{% endif %}
+                        {% if nurse.is_focus %}<span class="badge badge-red">重点关注</span>{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -101,151 +103,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    (function () {
-        var NURSES = {{ nurses_json|safe }};
-        var WEIGHTS = "{{ weights }}".split(",").map(Number);
-        var FACTOR_LABELS = ["技能匹配", "距离", "负荷", "评分"];
-        var WEIGHT_LABELS = FACTOR_LABELS.map(function (label, i) { return label + "（" + (WEIGHTS[i] * 100).toFixed(0) + "%）"; });
-        var FACTOR_KEYS = ["skill", "distance", "load", "rating"];
-
-        function pickNumber(obj, keys) {
-            for (var i = 0; i < keys.length; i += 1) {
-                var v = obj ? obj[keys[i]] : undefined;
-                if (v !== undefined && v !== null && !isNaN(Number(v))) { return Number(v); }
-            }
-            return null;
-        }
-
-        function pctOf(value) {
-            if (value === null || value === undefined) { return 0; }
-            var v = Number(value);
-            if (v <= 1) { return Math.max(0, Math.min(100, v * 100)); }
-            return Math.max(0, Math.min(100, v));
-        }
-
-        function normalize(payload) {
-            var data = (payload && payload.data !== undefined) ? payload.data : payload;
-            var list = [];
-            if (Array.isArray(data)) { list = data; }
-            else if (data) { list = data.candidates || data.items || data.list || data.top || data.top3 || []; }
-            return list.map(function (c) {
-                var factors = c.factors || c.factor_detail || c.breakdown || c.scores || c.detail || c.factor_scores || {};
-                var flat = {
-                    skill: pickNumber(factors, ["skill", "skill_score", "skill_match", "skillMatch", "技能"]),
-                    distance: pickNumber(factors, ["distance", "distance_score", "distanceScore", "距离"]),
-                    load: pickNumber(factors, ["load", "load_score", "loadScore", "负荷"]),
-                    rating: pickNumber(factors, ["rating", "rating_score", "ratingScore", "评分"])
-                };
-                FACTOR_KEYS.forEach(function (key) {
-                    if (flat[key] === null) {
-                        var alt = pickNumber(c, [key, key + "_score", key + "Score", key + "_factor"]);
-                        if (alt !== null) { flat[key] = alt; }
-                    }
-                });
-                return {
-                    nurse_id: c.nurse_id || c.staff_id || c.id,
-                    name: c.name || c.nurse_name || c.staff_name || c.real_name || ("护理员 " + (c.nurse_id || c.staff_id || "")),
-                    total: pickNumber(c, ["total_score", "totalScore", "score", "total", "weighted_score", "final_score"]),
-                    distance_km: pickNumber(c, ["distance_km", "distanceKm", "distance"]),
-                    order_count: pickNumber(c, ["today_count", "order_count", "today_orders", "daily_orders", "orderCount"]),
-                    rating: pickNumber(c, ["rating", "rating_cached", "avg_score"]),
-                    reason: c.reason || c.explain || "",
-                    factors: flat,
-                    raw: c
-                };
-            });
-        }
-
-        function candidateHtml(c, index, appointmentId) {
-            var badge = index === 0 ? '<span class="badge badge-red">推荐</span>' : '<span class="badge badge-gray">候选 ' + (index + 1) + '</span>';
-            var total = c.total === null ? "-" : (c.total <= 1 ? (c.total * 100).toFixed(1) : c.total.toFixed(1));
-            var bars = FACTOR_KEYS.map(function (key, i) {
-                var value = c.factors[key];
-                var width = pctOf(value);
-                var text = value === null ? "无数据" : (value <= 1 ? (value * 100).toFixed(0) + "%" : value.toFixed(1));
-                var weight = c.raw.weights ? c.raw.weights[i] : WEIGHTS[i];
-                var label = FACTOR_LABELS[i] + "（权重 " + (weight * 100).toFixed(0) + "%）";
-                var contribution = c.raw.contributions ? c.raw.contributions[key] : null;
-                return '<div class="factor">' +
-                    '<div class="factor-head"><span>' + label + '</span><span>' + text + '</span></div>' +
-                    '<div class="progress ' + (i === 0 ? "gold" : "") + '"><span style="width:' + width.toFixed(1) + '%"></span></div>' +
-                    (contribution !== null ? '<div class="small muted">加权贡献 ' + (Number(contribution) * 100).toFixed(2) + ' 分</div>' : '') +
-                    "</div>";
-            }).join("");
-            var meta = [];
-            if (c.distance_km !== null) { meta.push("距离 " + c.distance_km.toFixed(2) + " km"); }
-            if (c.order_count !== null) { meta.push("当日 " + c.order_count + " 单"); }
-            if (c.rating !== null) { meta.push("评分 " + c.rating.toFixed(1)); }
-            return '<div class="card" style="margin-bottom:14px"><div class="card-body">' +
-                '<div class="flex-between mb-1"><div style="font-size:20px;font-weight:800">' + badge + " " + App.esc(c.name) + "</div>" +
-                '<div class="badge badge-blue" style="font-size:17px">综合分 ' + total + "</div></div>" +
-                (meta.length ? '<div class="small muted mb-1">' + App.esc(meta.join(" · ")) + "</div>" : "") +
-                (c.reason ? '<div class="demo-tip">评分依据：' + App.esc(c.reason) + "</div>" : "") +
-                bars +
-                (c.raw.penalty < 1 ? '<div class="notice warn">重点关注降权：总分 × ' + App.esc(c.raw.penalty) + '</div>' : '') +
-                '<div class="btn-row mt-1"><button class="btn btn-success btn-sm" data-assign="' + appointmentId +
-                '" data-nurse="' + (c.nurse_id || "") + '">✓ 一键派单给 TA</button></div>' +
-                "</div></div>";
-        }
-
-        function openCandidates(appointmentId, code, itemName) {
-            var modal = App.modal({
-                title: "派单候选 · " + (code || appointmentId),
-                html: '<div id="cand-box"><div class="empty-state">正在计算候选护理员…</div></div>' +
-                    '<div class="demo-tip">评分规则：四项因子分别乘实际权重后求和；重点关注护理员再降权，取 Top {{ top_n }}。权重以候选明细为准。</div>',
-                buttons: [{ text: "关闭", cls: "btn-secondary" }]
-            });
-            var box = modal.el.querySelector("#cand-box");
-            App.api.get("/dispatch/" + appointmentId + "/candidates").then(function (res) {
-                var list = normalize(res);
-                if (!list.length) {
-                    box.innerHTML = '<div class="empty-state"><span class="icon">🙁</span>暂无符合条件的候选护理员（可能技能/距离/当日单量受限）。人工指派仍需满足全部约束，可先核对资源或调整预约时间。</div>' +
-                        manualHtml(appointmentId);
-                    bindManual(modal.el, appointmentId);
-                    return;
-                }
-                box.innerHTML = list.map(function (c, i) { return candidateHtml(c, i, appointmentId); }).join("") +
-                    '<div class="demo-tip">若候选均不合适，可人工指派：</div>' + manualHtml(appointmentId);
-                bindManual(modal.el, appointmentId);
-            }).catch(function (err) {
-                box.innerHTML = '<div class="notice warn">候选接口暂不可用：' + App.esc(err && err.message ? err.message : "未知错误") +
-                    '。接口就绪后此处将展示 Top{{ top_n }} 与四项因子明细；当前可人工指派：</div>' +
-                    '<div class="notice">服务项目：<strong>' + App.esc(itemName || "-") + "</strong></div>" + manualHtml(appointmentId);
-                bindManual(modal.el, appointmentId);
-            });
-        }
-
-        function manualHtml(appointmentId) {
-            var options = NURSES.map(function (n) {
-                return '<option value="' + n.id + '">' + App.esc(n.name) + "（" + App.esc(n.employee_no) +
-                    " · 评分 " + Number(n.rating || 0).toFixed(1) + "）</option>";
-            }).join("");
-            return '<div class="form-field"><label>人工指派护理员</label><select id="manual-nurse-' + appointmentId + '">' +
-                '<option value="">请选择护理员</option>' + options + "</select></div>" +
-                '<div class="btn-row mt-1"><button class="btn btn-primary btn-sm" data-assign="' + appointmentId + '" data-nurse="">✓ 确认指派</button></div>';
-        }
-
-        function bindManual(root, appointmentId) {
-            root.addEventListener("click", function (ev) {
-                var btn = ev.target.closest("[data-assign]");
-                if (!btn) { return; }
-                var nurseId = btn.getAttribute("data-nurse");
-                if (!nurseId) {
-                    var sel = root.querySelector("#manual-nurse-" + appointmentId);
-                    nurseId = sel ? sel.value : "";
-                }
-                if (!nurseId) { App.toast("请选择护理员", "warn"); return; }
-                App.action(btn, "/dispatch/" + appointmentId + "/assign",
-                    { nurse_id: Number(nurseId) }, "派单成功，已生成工单");
-            });
-        }
-
-        document.addEventListener("click", function (ev) {
-            var btn = ev.target.closest("[data-dispatch]");
-            if (!btn) { return; }
-            openCandidates(btn.getAttribute("data-dispatch"), btn.getAttribute("data-code"), btn.getAttribute("data-item"));
-        });
-    })();
-</script>
+<script src="/static/js/appointment-feedback.js"></script>
+<script src="/static/js/dispatch-feedback.js"></script>
 {% endblock %}

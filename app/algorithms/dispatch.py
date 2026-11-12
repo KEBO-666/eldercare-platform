@@ -5,6 +5,8 @@
 - 四因子：技能匹配 skill、距离 distance、负荷 load、评分 rating，按权重加权求和；
 - 权重可通过配置覆盖（默认 0.4/0.3/0.2/0.1），支持 "0.4,0.3,0.2,0.1"、JSON 数组、JSON 对象三种写法；
 - 重点关注护理员（is_focus，3 次投诉成立）最终得分再乘 0.8 降权。
+- 技能先作为硬约束过滤，合格者 skill=1，因此技能权重对他们是等量贡献。
+- 排序使用未舍入总分、距离、服务当日负荷及护理员编号；显示舍入不影响名次。
 
 对外函数：
     haversine(lat1, lng1, lat2, lng2) -> float                # 直线距离（km）
@@ -52,6 +54,21 @@ def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
 
 
+def _finite_number(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _integer_number(value: Any) -> int | None:
+    number = _finite_number(value)
+    return int(number) if number is not None and number.is_integer() else None
+
+
 def _normalize(weight_values: Iterable[float]) -> tuple[float, float, float, float]:
     values = [float(v) for v in weight_values]
     total = sum(values)
@@ -62,31 +79,37 @@ def _normalize(weight_values: Iterable[float]) -> tuple[float, float, float, flo
 
 # ---------------- 基础因子 ----------------
 def haversine(lat1: float | None, lng1: float | None, lat2: float | None, lng2: float | None) -> float:
-    """两点间球面直线距离（单位 km）；坐标缺失返回 inf（视为不可达）。"""
-    if lat1 is None or lng1 is None or lat2 is None or lng2 is None:
+    """两点间球面直线距离（单位 km）；缺失、非有限或越界坐标返回 inf。"""
+    coordinates = [_finite_number(value) for value in (lat1, lng1, lat2, lng2)]
+    if any(value is None or abs(value) > bound for value, bound in zip(coordinates, (90, 180, 90, 180), strict=True)):
         return math.inf
-    phi1, phi2 = math.radians(float(lat1)), math.radians(float(lat2))
+    lat1, lng1, lat2, lng2 = coordinates
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
     d_phi = phi2 - phi1
     d_lambda = math.radians(float(lng2) - float(lng1))
     a = math.sin(d_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2
     return 2 * EARTH_RADIUS_KM * math.asin(math.sqrt(min(1.0, max(0.0, a))))
 
 
+def normalize_skills(skills: Sequence[str] | None) -> set[str]:
+    """统一技能标签的首尾空格与空值，供推荐和最终派单共用。"""
+    return {value for skill in (skills or []) if (value := str(skill).strip())}
+
+
 def skill_factor(required: Sequence[str] | None, staff_skills: Sequence[str] | None) -> float:
     """技能覆盖率：必需技能全部覆盖得 1.0，部分覆盖按比例，无要求得 1.0。"""
-    required_list = [str(s) for s in (required or []) if str(s).strip()]
-    if not required_list:
+    required_set = normalize_skills(required)
+    if not required_set:
         return 1.0
-    owned = {str(s) for s in (staff_skills or [])}
-    covered = sum(1 for skill in required_list if skill in owned)
-    return _clamp(covered / len(required_list))
+    owned = normalize_skills(staff_skills)
+    return _clamp(len(required_set & owned) / len(required_set))
 
 
 def distance_factor(distance_km: float, radius_km: float = DEFAULT_RADIUS_KM) -> float:
     """距离得分：越近越高；超出服务半径得 0；半径非法时仅 0 距离得满分。"""
-    distance = float(distance_km)
-    radius = float(radius_km)
-    if not math.isfinite(distance):
+    distance = _finite_number(distance_km)
+    radius = _finite_number(radius_km)
+    if distance is None or distance < 0 or radius is None:
         return 0.0
     if radius <= 0:
         return 1.0 if distance <= 0 else 0.0
@@ -102,8 +125,12 @@ def load_factor(today_count: int, limit: int = DEFAULT_DAILY_LIMIT) -> float:
 
 
 def rating_factor(rating: float | None, default: float = DEFAULT_RATING) -> float:
-    """评分得分：评分/5，缺失时用默认评分。"""
-    value = default if rating is None else float(rating)
+    """评分得分：评分/5，缺失或非法时用有效默认评分。"""
+    value = _finite_number(rating)
+    if value is None:
+        value = _finite_number(default)
+    if value is None:
+        value = DEFAULT_RATING
     return _clamp(value / RATING_FULL_SCORE)
 
 
@@ -163,7 +190,7 @@ def parse_weights(
         seq = [float(v) for v in values]
     except (TypeError, ValueError):
         return _normalize(fallback)
-    if len(seq) != 4 or any(not math.isfinite(v) or v < 0 for v in seq) or sum(seq) <= 0:
+    if len(seq) != 4 or any(not math.isfinite(v) or v < 0 for v in seq) or not math.isfinite(sum(seq)) or sum(seq) <= 0:
         return _normalize(fallback)
     return _normalize(seq)
 
@@ -176,9 +203,8 @@ def weighted_score(
     parsed = parse_weights(weights)
     total = 0.0
     for index, name in enumerate(FACTOR_NAMES):
-        try:
-            value = float(factors.get(name, 0.0))
-        except (TypeError, ValueError):
+        value = _finite_number(factors.get(name, 0.0))
+        if value is None:
             value = 0.0
         total += _clamp(value) * parsed[index]
     return total
@@ -202,12 +228,56 @@ def _build_reason(
     parts = [
         skill_text,
         f"距离{float(distance_km):.2f}km",
-        f"今日已派{int(today_count)}单",
-        f"评分{rating_value:.1f}",
+        f"服务当日已派{int(today_count)}单",
+        f"近30天无有效评价，采用默认评分{rating_value:.1f}" if rating is None else f"近30天评分{rating_value:.1f}",
+        "技能为硬约束，合格者技能项等量计分",
     ]
     if is_focus:
         parts.append("重点关注降权×0.8")
     return "；".join(parts)
+
+
+def _allowed_radius(candidate: Mapping[str, Any], radius_km: float | None) -> float | None:
+    radius = _finite_number(DEFAULT_RADIUS_KM if radius_km is None else radius_km)
+    if radius is None or radius <= 0:
+        return None
+    if candidate.get("service_radius_km") is not None:
+        staff_radius = _finite_number(candidate["service_radius_km"])
+        if staff_radius is None or staff_radius <= 0:
+            return None
+        radius = min(radius, staff_radius)
+    return radius
+
+
+def _daily_limit(candidate: Mapping[str, Any], daily_limit: int | None) -> int | None:
+    configured = DEFAULT_DAILY_LIMIT if daily_limit is None else daily_limit
+    return _integer_number(candidate.get("daily_limit") if candidate.get("daily_limit") is not None else configured)
+
+
+def candidate_rejection_reason(
+    candidate: Mapping[str, Any],
+    *,
+    required_skills: Sequence[str] | None = None,
+    radius_km: float | None = None,
+    daily_limit: int | None = None,
+) -> str | None:
+    """共享硬筛选，按固定顺序返回首个原因；服务层可据此解释淘汰数量。"""
+    status = candidate.get("status")
+    if status is not None and str(status) != "active":
+        return "inactive"
+    if skill_factor(required_skills, candidate.get("skills") or []) < 1.0:
+        return "missing_skills"
+    distance = _finite_number(candidate.get("distance_km"))
+    radius = _allowed_radius(candidate, radius_km)
+    if distance is None or distance < 0 or radius is None:
+        return "invalid_location"
+    if distance > radius:
+        return "out_of_radius"
+    count = _integer_number(candidate.get("today_count", 0))
+    limit = _daily_limit(candidate, daily_limit)
+    if count is None or count < 0 or limit is None or limit <= 0 or count >= limit:
+        return "daily_limit"
+    return None
 
 
 def score_candidates(
@@ -220,7 +290,7 @@ def score_candidates(
     required_skills: Sequence[str] | None = None,
     top_n: int | None = None,
 ) -> list[dict[str, Any]]:
-    """筛选并打分候选护理员，返回按 score 倒序的明细列表。
+    """先硬筛选，再按精确总分降序、距离/服务当日负荷/编号升序排名。
 
     每个候选 dict 支持的键：
         staff_id, name, distance_km, today_count, skills, rating,
@@ -233,76 +303,69 @@ def score_candidates(
         4. 当日已派工单数 >= 每日上限。
     """
     parsed_weights = parse_weights(weights)
-    required = [str(s) for s in (required_skills or []) if str(s).strip()]
-    default_limit = DEFAULT_DAILY_LIMIT if daily_limit is None else int(daily_limit)
-    default_radius = DEFAULT_RADIUS_KM if radius_km is None else float(radius_km)
+    required = sorted(normalize_skills(required_skills))
+    default_rating = _finite_number(rating_default)
+    default_rating = _clamp(DEFAULT_RATING if default_rating is None else default_rating, 0.0, RATING_FULL_SCORE)
 
     scored: list[dict[str, Any]] = []
     for candidate in candidates:
-        status = candidate.get("status")
-        if status is not None and str(status) != "active":
+        if candidate_rejection_reason(candidate, required_skills=required, radius_km=radius_km, daily_limit=daily_limit):
             continue
 
-        skills = candidate.get("skills") or []
-        skill_value = skill_factor(required, skills)
-        if required and skill_value < 1.0 - 1e-9:
-            continue
-
-        raw_distance = candidate.get("distance_km")
-        distance = math.inf if raw_distance is None else float(raw_distance)
-        staff_radius = candidate.get("service_radius_km")
-        allowed_radius = default_radius
-        if staff_radius is not None:
-            allowed_radius = min(allowed_radius, float(staff_radius))
-        if not math.isfinite(distance) or distance > allowed_radius:
-            continue
-
-        today_count = int(candidate.get("today_count") or 0)
-        limit = default_limit
-        if candidate.get("daily_limit") is not None:
-            limit = int(candidate["daily_limit"])
-        if limit <= 0 or today_count >= limit:
-            continue
-
-        rating = candidate.get("rating")
-        factors = {
-            "skill": round(skill_value, SCORE_DIGITS),
-            "distance": round(distance_factor(distance, allowed_radius), SCORE_DIGITS),
-            "load": round(load_factor(today_count, limit), SCORE_DIGITS),
-            "rating": round(rating_factor(rating, rating_default), SCORE_DIGITS),
+        distance = _finite_number(candidate["distance_km"])
+        allowed_radius = _allowed_radius(candidate, radius_km)
+        today_count = _integer_number(candidate.get("today_count", 0))
+        limit = _daily_limit(candidate, daily_limit)
+        rating = _finite_number(candidate.get("rating"))
+        rating_used = _clamp(default_rating if rating is None else rating, 0.0, RATING_FULL_SCORE)
+        factors_precision = {
+            "skill": 1.0,
+            "distance": distance_factor(distance, allowed_radius),
+            "load": load_factor(today_count, limit),
+            "rating": rating_factor(rating_used),
         }
-        score = weighted_score(factors, parsed_weights)
+        contributions = {name: factors_precision[name] * parsed_weights[index] for index, name in enumerate(FACTOR_NAMES)}
+        base_score = sum(contributions.values())
         is_focus = bool(candidate.get("is_focus"))
-        if is_focus:
-            score *= FOCUS_PENALTY
+        penalty = FOCUS_PENALTY if is_focus else 1.0
+        score = base_score * penalty
 
         scored.append(
             {
                 "staff_id": candidate.get("staff_id"),
                 "name": candidate.get("name") or "",
                 "distance_km": round(distance, SCORE_DIGITS),
+                "distance_km_precision": distance,
                 "score": round(score, SCORE_DIGITS),
-                "factors": factors,
-                "contributions": {
-                    name: round(factors[name] * parsed_weights[index], SCORE_DIGITS)
-                    for index, name in enumerate(FACTOR_NAMES)
-                },
-                "penalty": FOCUS_PENALTY if is_focus else 1.0,
+                "score_precision": score,
+                "base_score": base_score,
+                "factors": {name: round(value, SCORE_DIGITS) for name, value in factors_precision.items()},
+                "factors_precision": factors_precision,
+                "weights": [round(weight, SCORE_DIGITS) for weight in parsed_weights],
+                "weights_precision": list(parsed_weights),
+                "contributions": contributions,
+                "penalty": penalty,
+                "allowed_radius_km": allowed_radius,
+                "daily_limit": limit,
+                "rating_used": rating_used,
+                "rating_is_default": rating is None,
                 "reason": _build_reason(
                     required=required,
                     distance_km=distance,
                     today_count=today_count,
-                    rating=rating,
-                    default_rating=rating_default,
+                    rating=None if rating is None else rating_used,
+                    default_rating=default_rating,
                     is_focus=is_focus,
                 ),
                 "today_count": today_count,
-                "rating": None if rating is None else round(float(rating), SCORE_DIGITS),
+                "rating": None if rating is None else round(rating, SCORE_DIGITS),
                 "is_focus": is_focus,
             }
         )
 
-    scored.sort(key=lambda row: (-row["score"], row["distance_km"], row["staff_id"] or 0))
+    scored.sort(key=lambda row: (-row["score_precision"], row["distance_km_precision"], row["today_count"], row["staff_id"] or 0))
+    for rank, row in enumerate(scored, 1):
+        row["rank"] = rank
     if top_n is not None and top_n >= 0:
         return scored[: int(top_n)]
     return scored

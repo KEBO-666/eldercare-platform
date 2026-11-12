@@ -1,0 +1,29 @@
+{
+  "recorded_at_utc": "2026-11-12T11:24:43.511049+00:00",
+  "original_local_source_commit": "0f9d0bb9e2d61fe386a75b503f2afe464ce76e3c",
+  "original_local_parent": "b8fd6dde09b817b9b2694333226c11beccae81cd",
+  "public_parent": "78b25ac81121c4935250db2e65d381a4c7dbcf28",
+  "notice": "Actual user-guided dispatch iteration. Original history preserved; no database/cache export.",
+  "changed_source_files": [
+    "README.md",
+    "app/algorithms/dispatch.py",
+    "app/api/v1/dispatch.py",
+    "app/services/dispatch_service.py",
+    "app/static/js/app.js",
+    "app/static/js/dispatch-feedback.js",
+    "app/templates/dispatch/index.html",
+    "app/web/routes.py",
+    "docs/CONTRACTS.md",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/智能派单完善.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/frontend/appointment_feedback.test.cjs",
+    "tests/frontend/dispatch_feedback.test.cjs",
+    "tests/integration/test_dispatch_explanation.py",
+    "tests/unit/test_dispatch_ranking.py"
+  ],
+  "pytest_tests": 508,
+  "coverage_percent": 89.35,
+  "node_tests": 87,
+  "edge_checks": 31
+}

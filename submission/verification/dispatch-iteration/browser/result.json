@@ -1,0 +1,173 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "pending-accept appointment has no dispatch action",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real ranked candidates and runtime weights rendered",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "factor contributions score and default rating explained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "definitions include service day and unrounded tie rule",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px candidate modal does not overflow horizontally",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px candidate list scroll reaches last assign button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual assign creates one order with permanent code and detail link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "confirmed assign disables every candidate and original row",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "confirmed order detail link works",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "GET failure is not falsely shown as no candidates",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTML 200 recommendation remains error with no manual bypass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "GET timeout recovers controls without fake candidate list",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "closed-modal stale response cannot replace current candidates",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "known assign conflict requires recalculation and forbids old candidates",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending assign sends once and modal cannot close",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "uncertain assign locks writes but allows closing and checking lists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "uncertain assignment stays permanent on board",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real no candidates shows mutually exclusive filter counts and guidance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no candidate view offers coordination and never all-staff assignment",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px no-candidate scroll reaches coordinate submit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "coordination reason is required focused permanent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recalculation retains coordination reason draft",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending coordination submits only once and freezes reason",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual coordination persists without creating work order",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "coordination result survives reload and disables duplicate application",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "backend repeated coordination returns original reason without notifications",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px no-candidate modal remains within screen",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recovered resources show candidates while retaining coordination history",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real coordinate rechecks resources and rejects stale empty result",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recalculate after coordinate conflict shows recovered candidates",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unhandled browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "isolated Edge browser and SQLite; real dispatch endpoints",
+  "fixtures": [
+    "runtime weights 0.1/0.2/0.3/0.4",
+    "old evaluations outside 30 days for default-rating demonstration",
+    "temporarily inactive isolated staff to demonstrate no candidates"
+  ],
+  "injections": [
+    "held and stale GET",
+    "GET 500 and malformed JSON",
+    "shortened GET timeout",
+    "assign 409/500",
+    "held coordinate"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "verified_at_utc": "2026-11-12T11:23:50.230584+00:00",
+  "source_parent": "b8fd6dde09b817b9b2694333226c11beccae81cd",
+  "user_request": "在智能派单完善候选排序、权重解释、无人可派时的处理",
+  "validation": {
+    "pytest_tests": 508,
+    "pytest_failures": 0,
+    "pytest_errors": 0,
+    "pytest_skipped": 0,
+    "pytest_seconds": 303.056,
+    "lines_covered": 6895,
+    "lines_valid": 7717,
+    "coverage_percent": 89.35,
+    "node_tests": 87,
+    "edge_checks": 31,
+    "ruff": "passed",
+    "pip_check": "passed"
+  },
+  "browser_report": "reports/dispatch-feedback-browser/20261112-192117/result.json",
+  "browser_method": "isolated Edge browser and SQLite; real dispatch endpoints",
+  "browser_fixtures": [
+    "runtime weights 0.1/0.2/0.3/0.4",
+    "old evaluations outside 30 days for default-rating demonstration",
+    "temporarily inactive isolated staff to demonstrate no candidates"
+  ],
+  "fault_injections": [
+    "held and stale GET",
+    "GET 500 and malformed JSON",
+    "shortened GET timeout",
+    "assign 409/500",
+    "held coordinate"
+  ],
+  "baseline_report": "reports/dispatch-iteration-baseline/comparison.json",
+  "changes": [
+    "Rank with unrounded score, distance, service-day load and staff ID",
+    "Actual normalized runtime/environment/default weights and contributions",
+    "Shared hard eligibility and mutually exclusive first-rejection counts",
+    "No-candidate manual coordination with reason, logs, audit, scoped notifications and sequential deduplication",
+    "Persistent confirmed outcome; uncertain writes locked for verification; no all-staff bypass",
+    "Whitespace skills and overflowed weight fallback corrected during cross-review"
+  ],
+  "validation_notes": [
+    "Initial full run interrupted at 28 percent for cross-review fixes; final 508 is a complete rerun",
+    "One Node floating-point fixture corrected; final 87 passed",
+    "Earlier browser harness failures preserved locally, final report is one complete successful run"
+  ],
+  "limits": [
+    "No database-level cross-process scheduling exclusivity or coordination unique constraint",
+    "PDF and MP4 remain earlier snapshots",
+    "No contest portal upload",
+    "Actual new user request; summaries do not replace complete prompt-chain exports"
+  ],
+  "changed_source_sha256": {
+    "README.md": "522020564c8d559af2f82dc195f853d76f429c7d34d691fd844c918cc71b2d0d",
+    "app/algorithms/dispatch.py": "4cf0886d8da73df7644e9d0ada230edd339e7f25b74a8a0fa310d9d67209cfae",
+    "app/api/v1/dispatch.py": "2602f8f6a47866cfb035bff089afc4a2ec78d588fb3f16970520924c7bdc3090",
+    "app/services/dispatch_service.py": "9b7db8f71b002d3e3147ecb0bc360b18f75c3ce69dae5a5e530b4bb05e4f144e",
+    "app/static/js/app.js": "99f0c46ee5600413366d2367d49571f2287c91513d5a2267be9c9f5ffbdd422b",
+    "app/static/js/dispatch-feedback.js": "c31467fe887529a1ea845a23c3c41f22593fa30ff81fb2c383480d2c24597780",
+    "app/templates/dispatch/index.html": "9096542c29ed1f0ff6c025a0ea8720357495f9884446fd5b7b4ec4f55ac03552",
+    "app/web/routes.py": "2303fe023bcdf6420fec1106188e2dbf4e329410cf664556c9b0fb75cec6d339",
+    "docs/CONTRACTS.md": "fb7c96914410de09e1d463af6877e45323581a00addbca5fef9ca9efb872df3d",
+    "docs/chuanzhi/智能派单完善.md": "bb9e71f336ec821f7fe063aa71aa6040b6dece81ab3b6d71d95968bae25cdcb8",
+    "docs/chuanzhi/AI协同与演进索引.md": "3991e7bc641bde6fd9955fe9856b98bdb568733e8240431e5ddecd10b028903e",
+    "scripts/build_chuanzhi_submission.py": "d5af4b116be6e8c6bc32cd6d893fce60ec4dfb3a20f9829e004c9c1c8824a2fc",
+    "tests/frontend/appointment_feedback.test.cjs": "40f1c31c99befcf8dab60fb2b97ecb7cf6d631ac8f3b60bb9875333ea8f3d25a",
+    "tests/frontend/dispatch_feedback.test.cjs": "6430b4796e1a6d1419e720f15f1522f173be825f75b1629013dcad1389d96d88",
+    "tests/integration/test_dispatch_explanation.py": "971eaf3a65251c9851e344a0de215e32bbf451d6720a3ea1ea567f1253c460c8",
+    "tests/unit/test_dispatch_ranking.py": "fe9db49496470248bf63ed68ffb4f03339e32ecaa9b68acd5bf27c110f42c896"
+  }
+}

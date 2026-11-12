@@ -140,6 +140,17 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
         for path in feedback_runs[-1].iterdir():
             if path.name == "result.json" or path.suffix.lower() == ".png":
                 add(path)
+    for name in ("dispatch-iteration-summary.json", "dispatch-iteration-frontend.tap"):
+        add(reports / name)
+    for name in ("junit.xml", "coverage.xml"):
+        add(reports / "dispatch-iteration-full" / name)
+    for name in ("comparison.json", "compare_dispatch.py", "dispatch_original_b8fd6dd.py"):
+        add(reports / "dispatch-iteration-baseline" / name)
+    dispatch_runs = sorted(path.parent for path in (reports / "dispatch-feedback-browser").glob("*/result.json"))
+    if dispatch_runs:
+        for path in dispatch_runs[-1].iterdir():
+            if path.name == "result.json" or path.suffix.lower() == ".png":
+                add(path)
     ai_runs = sorted(path.parent for path in (reports / "chuanzhi-ai-recording").glob("*/result.json"))
     if ai_runs:
         ai_run = ai_runs[-1]

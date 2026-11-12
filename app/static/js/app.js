@@ -105,7 +105,7 @@
     }
 
     App.api = {
-        get: function (url) { return request("GET", url); },
+        get: function (url, opts) { return request("GET", url, undefined, opts); },
         post: function (url, body, opts) { return request("POST", url, body === undefined ? {} : body, opts); },
         put: function (url, body) { return request("PUT", url, body === undefined ? {} : body); },
         del: function (url) { return request("DELETE", url); },
