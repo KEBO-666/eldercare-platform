@@ -1,0 +1,2 @@
+# Preserve original verification artifact bytes on every platform.
+submission/** -text
