@@ -149,8 +149,11 @@ def build(source: Path, output: Path, evidence_video: Path | None = None,
         image.save(slide_dir / f"slide-{index:02}.png")
     evidence = work / "evidence.mp4"
     if evidence_video:
-        run([str(FFMPEG), "-y", "-i", str(evidence_video), "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
-             "-vf", "scale=1920:1080,fps=30", "-t", "122", "-c:v", "libx264", "-preset", "medium",
+        cover = evidence_video.parent.parent / "evidence-step-00.png"
+        run([str(FFMPEG), "-y", "-i", str(evidence_video), "-loop", "1", "-i", str(cover),
+             "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+             "-filter_complex", "[0:v]scale=1920:1080[base];[1:v]scale=1920:1080[cover];[base][cover]overlay=0:0:enable='lt(t,6.5)',fps=30[v]",
+             "-map", "[v]", "-map", "2:a", "-t", "122", "-c:v", "libx264", "-preset", "medium",
              "-crf", "20", "-c:a", "aac", "-b:a", "96k", "-pix_fmt", "yuv420p", str(evidence)])
     else:
         run([str(FFMPEG), "-y", "-framerate", "2/19", "-i", str(slide_dir / "slide-%02d.png"),
@@ -158,7 +161,7 @@ def build(source: Path, output: Path, evidence_video: Path | None = None,
              "-t", str(len(slides) * SLIDE_SECONDS), "-c:v", "libx264", "-preset", "medium", "-crf", "20",
              "-c:a", "aac", "-b:a", "96k", "-pix_fmt", "yuv420p", str(evidence)])
     normalized = work / "supplied-normalized.mp4"
-    source_args = ["-t", "230"] if browser_video else []
+    source_args = ["-ss", "10", "-t", "230"] if browser_video else []
     run([str(FFMPEG), "-y", "-i", str(source), *source_args, "-r", "30", "-c:v", "libx264", "-preset", "medium",
          "-crf", "20", "-c:a", "aac", "-b:a", "96k", "-ar", "44100", "-pix_fmt", "yuv420p",
          "-movflags", "+faststart", str(normalized)])
@@ -188,11 +191,13 @@ def build(source: Path, output: Path, evidence_video: Path | None = None,
         "output": str(output), "source": str(source), "duration_seconds": duration,
         "source_duration_seconds": 348.86, "evidence_slides": len(slides),
         "source_segment_seconds": 230 if browser_video else 348.86,
+        "source_start_seconds": 10 if browser_video else 0,
         "current_browser_source": str(browser_video) if browser_video else None,
         "current_browser_seconds": 77 if browser_video else 0,
         "evidence_seconds": 122 if evidence_video else len(slides) * SLIDE_SECONDS, "resolution": "1920x1080",
         "format": "MP4/H.264/AAC", "ai_evidence_is_appended_slides": evidence_video is None,
         "interactive_evidence_source": str(evidence_video) if evidence_video else None,
+        "evidence_opening_treatment": "first 6.5 seconds covered by same-run first-card screenshot to correct initial browser recording scale" if evidence_video else None,
         "integrity": "feature demo normalized from supplied video; evidence is a labeled replay of actual visible records and live checks",
         "sha256": hashlib.sha256(output.read_bytes()).hexdigest(), "bytes": output.stat().st_size,
     }
