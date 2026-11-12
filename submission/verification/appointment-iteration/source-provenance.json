@@ -1,0 +1,23 @@
+{
+  "original_local_source_commit": "abebc0a5941ec59f9a9daa0eab9c0b8b0d8fe461",
+  "original_local_parent": "169b263e24b0ad5c311e92d8cd5c9e778241e2ae",
+  "public_parent": "e2935a5108ccfd362a69a6af449c5d440dbe265f",
+  "notice": "New actual iteration. Commit date is current; original local history not rewritten. No database/cache export.",
+  "changed_source_files": [
+    "README.md",
+    "app/api/v1/appointments.py",
+    "app/services/appointment_service.py",
+    "app/services/dispatch_service.py",
+    "app/templates/appointments/list.html",
+    "app/templates/appointments/new.html",
+    "app/web/routes.py",
+    "docs/CONTRACTS.md",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/预约功能迭代.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/integration/test_appointment_iteration.py",
+    "tests/unit/test_dispatch.py"
+  ],
+  "baseline_failure_count": 5,
+  "tests": 438
+}

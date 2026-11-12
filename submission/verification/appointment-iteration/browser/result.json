@@ -1,0 +1,115 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "local four-date plan",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "preview read-only and four results",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "input invalidates preview",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "in-flight stale response ignored",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "delayed HTTP preview cannot replace changed plan",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile sidebar collapsed after resize transition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile menu opens on request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile menu closes by keyboard without covering form",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "390px usable width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "weekly creates exactly four",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "list shows weekly tags and success",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "preview conflict identifies occurrence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "conflict keeps inputs and creates nothing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "500 failure preserves input and retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending cancellation sends only one request",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "pending cancellation cannot close and lose status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual cancel returns fee and released count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "feedback remains after reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "cancel one preserves other three",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "same elder same time rebook after cancellation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no browser errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "isolated Edge automated browser",
+  "test_injection": [
+    "deferred preview response",
+    "500 cancellation failure"
+  ]
+}

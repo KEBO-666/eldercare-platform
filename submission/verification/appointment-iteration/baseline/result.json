@@ -1,0 +1,24 @@
+{
+  "baseline_commit": "169b263e24b0ad5c311e92d8cd5c9e778241e2ae",
+  "method": "git archive whitelist export plus current new regression test; reused known dependencies",
+  "source_directory": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\appointment-iteration-baseline\\20261112-183524\\source",
+  "current_test_sha256": "92692a6f8e7cdb349dc66d2628d096010947b747cefb9e6e9fb4425f1f46e80b",
+  "command": [
+    "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "tests/integration/test_appointment_iteration.py",
+    "-vv",
+    "--tb=short",
+    "-k",
+    "test_long_appointment_actual_intervals or test_repeated_cancel_cannot_change_reason_or_fee or test_linked_order_failure_rolls_back_entire_ending",
+    "--junitxml=D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\appointment-iteration-baseline\\20261112-183524\\junit.xml"
+  ],
+  "elapsed_seconds": 6.765,
+  "pytest_exit_code": 1,
+  "expected_baseline_failure": true,
+  "production_source_modified": false,
+  "production_database_used": false,
+  "recorded_after_run_at_utc": "2026-11-12T10:35:33.504799+00:00",
+  "time_note": "Original runner collected this UTC timestamp after subprocess completion; actual test start is preserved in junit.xml testsuite timestamp. No exact subprocess start timestamp was captured."
+}

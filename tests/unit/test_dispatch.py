@@ -1,7 +1,7 @@
 """智能派单单元测试（B 模块）：四因子纯函数 + 超时顺延。"""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from freezegun import freeze_time
@@ -124,6 +124,65 @@ def test_weights_change_candidate_order():
         [near_low_rating, far_high_rating], (0.1, 0.1, 0.4, 0.4)
     )]
     assert rating_heavy == [2, 1]
+
+
+@pytest.mark.parametrize(
+    ("start_minutes", "end_minutes", "status", "expected"),
+    [
+        (-25 * 60, 30, "accepted", True),
+        (-25 * 60, -1, "accepted", False),
+        (-25 * 60, 0, "accepted", False),
+        (60, 120, "accepted", False),
+        (-25 * 60, 30, "cancelled", False),
+        (-25 * 60, 30, "completed", False),
+    ],
+    ids=["long-overlap", "long-ended", "adjacent-before", "adjacent-after", "cancelled", "completed"],
+)
+def test_busy_order_uses_explicit_end_without_24_hour_cutoff(
+    db, accounts, start_minutes, end_minutes, status, expected,
+):
+    order = WorkOrder(
+        code="WO-LONG-SNAPSHOT",
+        elder_id=accounts["elder"].id,
+        service_item_id=accounts["item"].id,
+        nurse_id=accounts["staff"].id,
+        community_org_id=accounts["elder"].community_org_id,
+        status=status,
+        scheduled_start=BASE + timedelta(minutes=start_minutes),
+        scheduled_end=BASE + timedelta(minutes=end_minutes),
+    )
+    db.add(order)
+    db.commit()
+
+    busy = dispatch_service.find_busy_order(db, accounts["staff"].id, BASE, BASE + timedelta(hours=1))
+
+    assert (busy is not None) is expected
+    if expected:
+        assert busy.id == order.id
+        assert dispatch_service.find_busy_order(
+            db, accounts["staff"].id, BASE, BASE + timedelta(hours=1), exclude_order_id=order.id,
+        ) is None
+
+
+def test_busy_order_without_end_uses_full_catalog_duration(db, accounts):
+    accounts["item"].standard_duration_min = 26 * 60
+    order = WorkOrder(
+        code="WO-LONG-FALLBACK",
+        elder_id=accounts["elder"].id,
+        service_item_id=accounts["item"].id,
+        nurse_id=accounts["staff"].id,
+        community_org_id=accounts["elder"].community_org_id,
+        status="accepted",
+        scheduled_start=BASE - timedelta(hours=25),
+        scheduled_end=None,
+    )
+    db.add(order)
+    db.commit()
+
+    busy = dispatch_service.find_busy_order(db, accounts["staff"].id, BASE, BASE + timedelta(hours=1))
+
+    assert busy is not None
+    assert busy.id == order.id
 
 
 # ---------------- 派单服务：接单超时顺延 ----------------

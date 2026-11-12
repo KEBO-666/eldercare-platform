@@ -181,12 +181,15 @@ appt.status = new_status
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
 | POST | `/appointments` | 提交预约（三重校验）；weekly 原子生成连续四周 | appointment:create |
+| POST | `/appointments/preview` | 只读检查单次/四周日期，不创建或锁定；提交重新校验 | appointment:create |
 | GET | `/appointments` | 列表（status/elder_id/日期） | appointment:read |
 | GET | `/appointments/{id}` | 详情（含状态日志） | appointment:read |
 | POST | `/appointments/{id}/accept` | 受理 | appointment:accept |
 | POST | `/appointments/{id}/cancel` | 取消 `{reason}`（2 小时计费规则） | appointment:cancel |
 | POST | `/appointments/{id}/to-dispatch` | 转待派单 | appointment:accept |
 | POST | `/appointments/{id}/no-show` | 登记爽约 `{reason}` 并取消关联工单 | appointment:accept |
+
+预约冲突保留开始时间前后两小时（包含边界）规则，另检查实际服务区间重叠。`preview`请求字段同创建，返回`reservation_created=false`、`occurrence_count`和每次`desired_start/desired_end`；周期冲突的`NEEDS_MANUAL`数据包含`occurrence_number`、`occurrence_count`及冲突记录。取消/爽约返回`released_order_count`，预约与关联工单、日志和审计整体成功或回滚；每周预约各次独立取消。详见[本轮预约迭代](chuanzhi/预约功能迭代.md)。
 
 ### dispatch（B）
 | 方法 | 路径 | 说明 | 权限 |

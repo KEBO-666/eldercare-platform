@@ -11,7 +11,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import Request
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.algorithms.dispatch import (
@@ -50,7 +50,6 @@ from app.services import catalog_service
 BUSY_EXCLUDED_STATUSES = (OrderStatus.CANCELLED.value, OrderStatus.COMPLETED.value)
 DISPATCH_WEIGHTS_KEY = "dispatch.weights"
 DEFAULT_ORDER_MINUTES = 60
-MAX_ORDER_MINUTES = 24 * 60
 ORDER_STATUS_NAMES = {
     OrderStatus.PENDING_ACCEPT.value: "待接单",
     OrderStatus.ACCEPTED.value: "已接单",
@@ -122,15 +121,14 @@ def find_busy_order(
     exclude_order_id: int | None = None,
 ) -> WorkOrder | None:
     """查找护理员在 [start, end) 内与之重叠的在途工单。"""
-    margin = timedelta(minutes=MAX_ORDER_MINUTES)
     rows = db.execute(
         select(WorkOrder, ServiceItem.standard_duration_min)
         .join(ServiceItem, ServiceItem.id == WorkOrder.service_item_id, isouter=True)
         .where(
             WorkOrder.nurse_id == nurse_id,
             WorkOrder.status.notin_(BUSY_EXCLUDED_STATUSES),
-            WorkOrder.scheduled_start >= start - margin,
             WorkOrder.scheduled_start < end,
+            or_(WorkOrder.scheduled_end.is_(None), WorkOrder.scheduled_end > start),
         )
         .order_by(WorkOrder.scheduled_start.asc())
     ).all()

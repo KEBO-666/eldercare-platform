@@ -59,6 +59,18 @@ def create_appointment(
     return ok(data, "预约提交成功")
 
 
+@router.post("/preview", summary="检查单次或四周预约时段（只读，不占位）")
+def preview_appointments(
+    payload: AppointmentCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require("appointment:create")),
+) -> dict:
+    return ok(appointment_service.preview_appointments(
+        db, service_item_id=payload.service_item_id, desired_start=payload.desired_start,
+        elder_id=payload.elder_id, cycle_rule=payload.cycle_rule, user=user,
+    ), "时段检查通过，尚未创建预约；提交时会再次校验")
+
+
 @router.get("", summary="预约列表")
 def list_appointments(
     status: str | None = Query(None, description="预约状态过滤"),

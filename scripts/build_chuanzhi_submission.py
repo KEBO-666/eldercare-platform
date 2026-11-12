@@ -117,6 +117,21 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
                     add(path)
     add(reports / "chuanzhi-pdf" / "qa.json")
     add(reports / "chuanzhi-artifacts-qa.json")
+    # New appointment iteration: only explicit review evidence, never exported source/DB/venv.
+    add(reports / "appointment-iteration-summary.json")
+    for name in ("appointment-iteration-targeted.xml", "appointment-iteration-regression.xml"):
+        add(reports / name)
+    for name in ("junit.xml", "coverage.xml", "result.json"):
+        add(reports / "appointment-iteration-full" / name)
+    for run in (reports / "appointment-iteration-baseline").glob("*"):
+        if run.is_dir():
+            for name in ("result.json", "pytest.log", "junit.xml", "source-sha256.json", "review.md"):
+                add(run / name)
+    iteration_runs = sorted(path.parent for path in (reports / "appointment-iteration-browser").glob("*/result.json"))
+    if iteration_runs:
+        for path in iteration_runs[-1].iterdir():
+            if path.name == "result.json" or path.suffix.lower() == ".png":
+                add(path)
     ai_runs = sorted(path.parent for path in (reports / "chuanzhi-ai-recording").glob("*/result.json"))
     if ai_runs:
         ai_run = ai_runs[-1]

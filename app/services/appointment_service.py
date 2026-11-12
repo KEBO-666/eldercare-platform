@@ -1,7 +1,7 @@
 """预约受理业务逻辑：三重校验、状态机流转、取消计费、状态日志与审计。
 
 校验不通过且需人工介入的场景统一抛 `NeedsManual`（HTTP 422 / code=NEEDS_MANUAL）：
-1. 同一老人 desired_start ±2 小时内已有未取消的预约或工单；
+1. 同一老人 desired_start ±2 小时内已有有效预约或工单，或实际服务区间重叠；
 2. 老人所在社区不在当前用户可服务范围（网格员/机构管理员按本机构，老人/家属按绑定老人社区）；
 3. 服务项目 `applicable_levels` 非空且不包含老人能力等级。
 项目已下架则直接拒单（RuleViolation，HTTP 400）。
@@ -226,34 +226,50 @@ def _conflict_window(desired_start: datetime) -> tuple[datetime, datetime]:
     return desired_start - delta, desired_start + delta
 
 
-def _check_appointment_conflict(db: Session, elder_id: int, desired_start: datetime) -> None:
+def _service_duration(minutes: float | None) -> timedelta:
+    return timedelta(minutes=max(1, int(minutes or 60)))
+
+
+def _check_appointment_conflict(
+    db: Session, elder_id: int, desired_start: datetime, duration: timedelta,
+) -> None:
     low, high = _conflict_window(desired_start)
-    duplicate = db.execute(
-        select(Appointment.id).where(
+    desired_end = desired_start + duration
+    # 不设开始时间下界：数小时前开始的长服务仍可能占用当前时段。
+    appointments = db.execute(
+        select(Appointment, ServiceItem.standard_duration_min)
+        .outerjoin(ServiceItem, ServiceItem.id == Appointment.service_item_id)
+        .where(
             Appointment.elder_id == elder_id,
             Appointment.status.notin_(INACTIVE_APPOINTMENT_STATUSES),
-            Appointment.desired_start >= low,
-            Appointment.desired_start <= high,
-        )
-    ).first()
-    if duplicate is not None:
-        raise NeedsManual(
-            f"该老人在 {desired_start:%Y-%m-%d %H:%M} 前后 {CONFLICT_WINDOW_HOURS:g} 小时内已存在预约单，"
-            "需转人工受理"
-        )
-    order_conflict = db.execute(
-        select(WorkOrder.id).where(
+            Appointment.desired_start <= max(high, desired_end),
+        ).order_by(Appointment.desired_start, Appointment.id)
+    ).all()
+    orders = db.execute(
+        select(WorkOrder, ServiceItem.standard_duration_min)
+        .outerjoin(ServiceItem, ServiceItem.id == WorkOrder.service_item_id)
+        .where(
             WorkOrder.elder_id == elder_id,
             WorkOrder.status.notin_(INACTIVE_ORDER_STATUSES),
-            WorkOrder.scheduled_start >= low,
-            WorkOrder.scheduled_start <= high,
-        )
-    ).first()
-    if order_conflict is not None:
-        raise NeedsManual(
-            f"该老人在 {desired_start:%Y-%m-%d %H:%M} 前后 {CONFLICT_WINDOW_HOURS:g} 小时内已存在工单，"
-            "需转人工受理"
-        )
+            WorkOrder.scheduled_start <= max(high, desired_end),
+        ).order_by(WorkOrder.scheduled_start, WorkOrder.id)
+    ).all()
+    for source, label, rows in (("appointment", "预约单", appointments), ("work_order", "工单", orders)):
+        for record, minutes in rows:
+            start = record.desired_start if source == "appointment" else record.scheduled_start
+            end = (record.scheduled_end if source == "work_order" else None) or (start + _service_duration(minutes))
+            nearby = low <= start <= high
+            overlap = start < desired_end and end > desired_start
+            if nearby or overlap:
+                explanation = f"开始时间前后 {CONFLICT_WINDOW_HOURS:g} 小时内" if nearby else "实际服务时段重叠"
+                raise NeedsManual(
+                    f"该老人在 {desired_start:%Y-%m-%d %H:%M} 已存在{label} {record.code}"
+                    f"（{start:%Y-%m-%d %H:%M} 至 {end:%Y-%m-%d %H:%M}），{explanation}；"
+                    "本次未创建，请调整时段或联系网格员",
+                    data={"conflict": {"source": source, "code": record.code,
+                                       "start": start.isoformat(), "end": end.isoformat(),
+                                       "rule": "start_window" if nearby else "service_overlap"}},
+                )
 
 
 def _check_ability(item: ServiceItem, elder: Elder) -> None:
@@ -333,6 +349,46 @@ def appointment_to_dict(db: Session, appointment: Appointment, *, with_logs: boo
 
 
 # ---------------- 创建预约 ----------------
+def preview_appointments(
+    db: Session, *, service_item_id: int, desired_start: datetime,
+    elder_id: int | None = None, cycle_rule: str | None = None, user: User | None = None,
+) -> dict[str, Any]:
+    """只读检查全部日期；不创建、不占位，提交仍在事务中重新校验。"""
+    rule = str(cycle_rule or "").strip() or None
+    if rule not in (None, "weekly"):
+        raise RuleViolation("周期规则仅支持 weekly（每周固定，连续 4 周）")
+    start = to_naive(desired_start)
+    if start is None:
+        raise RuleViolation("预约时间 desired_start 必填")
+    item = db.get(ServiceItem, service_item_id)
+    if item is None or item.is_deleted:
+        raise NotFound("服务项目不存在")
+    _check_item_available(item)
+    elder = _resolve_elder(db, user, elder_id)
+    _check_community_scope(db, user, elder)
+    _check_ability(item, elder)
+    count = 4 if rule == "weekly" else 1
+    occurrences = []
+    for week in range(count):
+        try:
+            occurrence_start = start + timedelta(weeks=week)
+            occurrence_end = occurrence_start + _service_duration(item.standard_duration_min)
+            if any(row["desired_end"] > occurrence_start for row in occurrences):
+                raise NeedsManual("周期内的服务时段互相重叠，请缩短服务时长或改为单次预约")
+            _check_appointment_conflict(db, elder.id, occurrence_start, occurrence_end - occurrence_start)
+        except OverflowError as exc:
+            raise RuleViolation("预约日期超出支持范围，请调整开始日期") from exc
+        except NeedsManual as exc:
+            detail = {**(exc.data or {}), "occurrence_number": week + 1, "occurrence_count": count,
+                      "desired_start": occurrence_start.isoformat()}
+            message = exc.message if count == 1 else f"第 {week + 1} 次预约校验失败：{exc.message}；4 次均未创建"
+            raise NeedsManual(message, data=detail) from exc
+        occurrences.append({"occurrence_number": week + 1, "desired_start": occurrence_start,
+                            "desired_end": occurrence_end})
+    return {"cycle_rule": rule, "occurrence_count": count, "occurrences": occurrences,
+            "reservation_created": False}
+
+
 def create_appointment(
     db: Session,
     *,
@@ -346,15 +402,15 @@ def create_appointment(
     request: Request | None = None,
 ) -> dict[str, Any]:
     """每周固定预约一次生成 4 周，每次独立校验，任一次失败则整组回滚。"""
-    rule = str(cycle_rule or "").strip() or None
-    if rule not in (None, "weekly"):
-        raise RuleViolation("周期规则仅支持 weekly（每周固定，连续 4 周）")
     occurrences = []
     with db.begin_nested():
-        for week in range(4 if rule == "weekly" else 1):
+        plan = preview_appointments(db, service_item_id=service_item_id, desired_start=desired_start,
+                                    elder_id=elder_id, cycle_rule=cycle_rule, user=user)
+        rule = plan["cycle_rule"]
+        for occurrence in plan["occurrences"]:
             occurrences.append(_create_single_appointment(
                 db, service_item_id=service_item_id,
-                desired_start=desired_start + timedelta(weeks=week),
+                desired_start=occurrence["desired_start"],
                 elder_id=elder_id, address=address, remark=remark, cycle_rule=rule,
                 user=user, request=request,
             ))
@@ -389,7 +445,7 @@ def _create_single_appointment(
     _check_item_available(item)
 
     elder = _resolve_elder(db, user, elder_id)
-    _check_appointment_conflict(db, elder.id, start)
+    _check_appointment_conflict(db, elder.id, start, _service_duration(item.standard_duration_min))
     _check_community_scope(db, user, elder)
     _check_ability(item, elder)
 
@@ -535,6 +591,16 @@ def to_dispatch_appointment(
 
 
 def no_show_appointment(
+    db: Session, appointment_id: int, *, user: User | None,
+    reason: str | None = None, request: Request | None = None,
+) -> dict[str, Any]:
+    with db.begin_nested():
+        data = _no_show_appointment(db, appointment_id, user=user, reason=reason, request=request)
+    db.commit()
+    return data
+
+
+def _no_show_appointment(
     db: Session,
     appointment_id: int,
     *,
@@ -551,7 +617,8 @@ def no_show_appointment(
         ensure_visible(db, user, appointment)
     before = {"status": appointment.status}
     transition_appointment(db, appointment, "no_show", user=user, remark=reason or "老人爽约")
-    _cancel_linked_orders(db, appointment, user=user, reason=f"爽约：{reason}", request=request)
+    appointment.cancel_reason = reason[:255]
+    released = _cancel_linked_orders(db, appointment, user=user, reason=f"爽约：{reason}", request=request)
     write_audit(
         db,
         user=user,
@@ -563,11 +630,23 @@ def no_show_appointment(
         detail=f"预约爽约 {appointment.code}",
         request=request,
     )
-    db.commit()
-    return appointment_to_dict(db, appointment, with_logs=True)
+    data = appointment_to_dict(db, appointment, with_logs=True)
+    data["released_order_count"] = released
+    return data
 
 
 def cancel_appointment(
+    db: Session, appointment_id: int, *, reason: str,
+    user: User | None, request: Request | None = None,
+) -> dict[str, Any]:
+    """预约、关联工单、费用、状态日志和审计在同一保存点内变更。"""
+    with db.begin_nested():
+        data = _cancel_appointment(db, appointment_id, reason=reason, user=user, request=request)
+    db.commit()
+    return data
+
+
+def _cancel_appointment(
     db: Session,
     appointment_id: int,
     *,
@@ -586,6 +665,7 @@ def cancel_appointment(
     if user is not None:
         ensure_visible(db, user, appointment)
 
+    APPOINTMENT.next(appointment.status, "cancel")
     item = db.get(ServiceItem, appointment.service_item_id)
     hours_left = (appointment.desired_start - datetime.now()).total_seconds() / 3600.0
     free_hours = float(settings.cancel_free_hours)
@@ -608,7 +688,7 @@ def cancel_appointment(
     appointment.cancellation_fee = fee
     appointment.cancel_reason = reason_text[:255]
     to_status = transition_appointment(db, appointment, "cancel", user=user, remark=reason_text)
-    _cancel_linked_orders(db, appointment, user=user, reason=reason_text, request=request)
+    released = _cancel_linked_orders(db, appointment, user=user, reason=reason_text, request=request)
     write_audit(
         db,
         user=user,
@@ -629,29 +709,32 @@ def cancel_appointment(
         ),
         request=request,
     )
-    db.commit()
     data = appointment_to_dict(db, appointment, with_logs=True)
     data["hours_to_start"] = round(hours_left, 4)
     data["free_hours"] = free_hours
     data["from_status"] = from_status
+    data["released_order_count"] = released
     return data
 
 
 # ---------------- 供其它模块复用 ----------------
 def _cancel_linked_orders(
     db: Session, appointment: Appointment, *, user: User | None, reason: str, request: Request | None,
-) -> None:
+) -> int:
     orders = db.scalars(select(WorkOrder).where(
         WorkOrder.appointment_id == appointment.id,
         WorkOrder.status != OrderStatus.CANCELLED.value,
     )).all()
-    for order in orders:
+    # 全部确认可取消后再写入，异常由上层保存点回滚。
+    targets = [ORDER.next(order.status, "cancel") for order in orders]
+    for order, target in zip(orders, targets, strict=True):
         previous = order.status
-        order.status = ORDER.next(previous, "cancel")
+        order.status = target
         order.summary = f"预约结束：{reason}"
         write_audit(db, user=user, action=AuditAction.UPDATE.value, entity_type="work_order",
                     entity_id=order.id, before={"status": previous}, after={"status": order.status},
                     detail=f"预约 {appointment.code} 结束，释放护理员时段：{reason}", request=request)
+    return len(orders)
 
 
 def requeue_appointment(

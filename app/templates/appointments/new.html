@@ -52,7 +52,7 @@
                         <option value="">仅本次</option>
                         <option value="weekly">每周固定（连续 4 周）</option>
                     </select>
-                    <div class="hint">每周同一时间上门；任一周冲突会提示原因，整组不提交。</div>
+                    <div class="hint">每周同一时间上门，共 4 次；每次独立受理、派单与取消。任一次冲突则 4 次均不创建。</div>
                 </div>
                 <div class="form-field" style="grid-column:1/-1">
                     <label for="remark">备注（可选）</label>
@@ -60,12 +60,20 @@
                 </div>
             </form>
 
+            <section class="mt-2" aria-labelledby="schedule-title">
+                <h2 id="schedule-title" style="font-size:20px">预约日期计划</h2>
+                <div class="table-wrap" id="schedule-preview"></div>
+                <p class="hint small mt-1">预计结束时间按项目标准时长计算。日期计划不占用时段；检查通过后提交仍会重新校验。</p>
+                <div id="preview-status" class="notice" role="status" aria-live="polite">尚未检查时段。</div>
+            </section>
+
             <div class="btn-row mt-2">
+                <button class="btn btn-secondary" type="button" id="btn-preview">检查时段</button>
                 <button class="btn btn-primary" type="button" id="btn-submit">✓ 提交预约</button>
                 <a class="btn btn-ghost" href="/appointments">返回列表</a>
             </div>
-            <div class="demo-tip" id="form-tip">
-                提交后由网格员受理；不符合规则的预约会提示原因并转人工受理。
+            <div class="demo-tip" id="form-tip" role="status" aria-live="polite">
+                提交后由网格员受理。校验失败不会创建预约，请调整时间或联系网格员协助。
             </div>
         </div>
     </section>
@@ -74,8 +82,9 @@
         <div class="card-header"><span>🧾 预约须知</span></div>
         <div class="card-body">
             <ul style="font-size:17px;line-height:1.9;padding-left:20px">
-                <li><strong>三重校验</strong>：时间冲突、服务范围、能力适配，任一不满足转人工。</li>
-                <li><strong>取消规则</strong>：距服务开始 &lt; 2 小时取消将按规则计费并留痕。</li>
+                <li><strong>三重校验</strong>：时间冲突、服务范围、能力适配；失败时不创建预约，可联系网格员协助。</li>
+                <li><strong>周期预约</strong>：连续 4 周共 4 次，全部通过才创建；以后取消某次不会取消其余预约。</li>
+                <li><strong>取消规则</strong>：距服务开始不足 {{ cancel_free_hours }} 小时取消可能计费，实际费用以取消结果为准；取消会释放关联工单的时段。</li>
                 <li><strong>派单规则</strong>：技能匹配 → 3 公里半径 → 当日 &lt; 6 单 → 时段无冲突，四因子加权排序取 Top3。</li>
                 <li><strong>上门留痕</strong>：签到定位偏差 &gt; 200 米需填写说明，服务过程逐项勾选并拍照。</li>
             </ul>
@@ -90,6 +99,10 @@
     (function () {
         var form = document.getElementById("appt-form");
         var tip = document.getElementById("form-tip");
+        var previewButton = document.getElementById("btn-preview");
+        var submitButton = document.getElementById("btn-submit");
+        var previewStatus = document.getElementById("preview-status");
+        var revision = 0;
 
         // 默认时间：明天上午 9 点
         var d = new Date();
@@ -99,35 +112,125 @@
         document.getElementById("desired_start").value =
             d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T09:00";
 
-        document.getElementById("btn-submit").addEventListener("click", function () {
-            var btn = this;
+        function formatDate(value) {
+            var date = value instanceof Date ? value : new Date(value);
+            if (isNaN(date.getTime())) { return "时间无效"; }
+            return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) +
+                " " + pad(date.getHours()) + ":" + pad(date.getMinutes());
+        }
+
+        function renderSchedule(occurrences) {
+            var box = document.getElementById("schedule-preview");
+            if (!occurrences.length) {
+                box.textContent = "选择服务项目和上门时间后，将显示本次或四次预约的日期及预计结束时间。";
+                return;
+            }
+            box.innerHTML = '<table class="data-table"><caption class="small">计划共 ' + occurrences.length + ' 次预约</caption>' +
+                '<thead><tr><th scope="col">次数</th><th scope="col">上门时间</th><th scope="col">预计结束</th></tr></thead><tbody>' +
+                occurrences.map(function (entry, index) {
+                    return '<tr><th scope="row">第 ' + (entry.occurrence_number || index + 1) + ' 次</th><td>' +
+                        App.esc(formatDate(entry.desired_start)) + '</td><td>' + App.esc(formatDate(entry.desired_end)) + '</td></tr>';
+                }).join("") + '</tbody></table>';
+        }
+
+        function localSchedule() {
+            var selection = document.getElementById("service_item_id");
+            var option = selection.options[selection.selectedIndex];
+            var start = new Date(document.getElementById("desired_start").value);
+            var duration = option ? Number(option.getAttribute("data-duration")) : 0;
+            var count = document.getElementById("cycle_rule").value === "weekly" ? 4 : 1;
+            var entries = [];
+            if (selection.value && !isNaN(start.getTime()) && duration > 0) {
+                for (var i = 0; i < count; i += 1) {
+                    var date = new Date(start.getTime());
+                    date.setDate(date.getDate() + i * 7);
+                    entries.push({ occurrence_number: i + 1, desired_start: date, desired_end: new Date(date.getTime() + duration * 60000) });
+                }
+            }
+            renderSchedule(entries);
+        }
+
+        function invalidatePreview() {
+            revision += 1;
+            previewStatus.className = "notice";
+            previewStatus.textContent = "内容已更新，尚未检查当前时段。日期计划不会创建预约。";
+            tip.textContent = "提交后由网格员受理。校验失败不会创建预约，请调整时间或联系网格员协助。";
+            localSchedule();
+        }
+        form.addEventListener("input", invalidatePreview);
+        form.addEventListener("change", invalidatePreview);
+        localSchedule();
+
+        function readPayload() {
             var elderId = document.getElementById("elder_id").value;
             var itemId = document.getElementById("service_item_id").value;
             var start = document.getElementById("desired_start").value;
             if (!elderId || !itemId || !start) {
                 App.toast("请完整填写老人、服务项目与时间", "warn");
-                return;
+                form.reportValidity();
+                return null;
             }
-            var payload = {
+            if (!form.reportValidity()) { return null; }
+            return {
                 elder_id: Number(elderId),
                 service_item_id: Number(itemId),
                 cycle_rule: document.getElementById("cycle_rule").value || undefined,
                 desired_start: start.replace("T", " ") + (start.length === 16 ? ":00" : ""),
                 remark: document.getElementById("remark").value || undefined
             };
+        }
+
+        previewButton.addEventListener("click", function () {
+            if (previewButton.disabled || submitButton.disabled) { return; }
+            var payload = readPayload();
+            if (!payload) { return; }
+            var requestedRevision = revision;
+            previewButton.disabled = true;
+            previewButton.setAttribute("aria-busy", "true");
+            previewButton.textContent = "正在检查…";
+            previewStatus.textContent = "正在检查所选时段，尚未创建预约…";
+            App.api.post("/appointments/preview", payload).then(function (res) {
+                if (revision !== requestedRevision) { return; }
+                var data = res.data || {};
+                renderSchedule(data.occurrences || []);
+                previewStatus.className = "notice success";
+                previewStatus.textContent = "当前 " + (data.occurrence_count || 1) + " 次时段检查通过，尚未创建或锁定预约；提交时会再次校验。";
+            }).catch(function (err) {
+                if (revision !== requestedRevision || (err && err.message === "UNAUTHORIZED")) { return; }
+                previewStatus.className = "notice danger";
+                previewStatus.textContent = "检查未通过：" + (err.message || "请重试") + "。本次未创建预约，请调整时间或联系网格员。";
+            }).finally(function () {
+                previewButton.disabled = false;
+                previewButton.removeAttribute("aria-busy");
+                previewButton.textContent = "检查时段";
+            });
+        });
+
+        submitButton.addEventListener("click", function () {
+            var btn = this;
+            if (btn.disabled) { return; }
+            var payload = readPayload();
+            if (!payload) { return; }
+            revision += 1;
             btn.disabled = true;
             btn.setAttribute("aria-busy", "true");
             btn.textContent = "正在提交…";
             App.api.post("/appointments", payload).then(function (res) {
                 var data = res.data || {};
-                App.toast(data.occurrence_count ? "已提交 " + data.occurrence_count + " 周预约" : "预约提交成功", "success");
-                tip.textContent = "预约提交成功，正在跳转列表…";
+                var count = data.occurrence_count || 1;
+                var successMessage = count > 1 ? "已创建 " + count + " 次预约，每次独立受理与取消；取消本次不影响其余预约。" : "预约提交成功，等待网格员受理。";
+                App.toast(successMessage, "success");
+                try { sessionStorage.setItem("eldercare-appointment-feedback", JSON.stringify({ message: successMessage, createdAt: Date.now() })); } catch (e) { /* 本页提示仍可见 */ }
+                tip.textContent = successMessage + " 正在跳转列表…";
                 window.setTimeout(function () { window.location.href = "/appointments"; }, 900);
             }).catch(function (err) {
                 if (err && err.message !== "UNAUTHORIZED") {
                     var payloadErr = err.payload || {};
                     var msg = payloadErr.message || err.message;
-                    tip.innerHTML = '<span style="color:#a11616;font-weight:700">提交失败：' + App.esc(msg) + "</span>";
+                    var rejected = err.status >= 400 && err.status < 500;
+                    var failure = rejected ? ((payload.cycle_rule === "weekly" ? "四次预约均未创建。" : "本次预约未创建。") + "请调整时间或联系网格员协助。") :
+                        "提交结果尚未确认，请先查看预约列表，避免重复提交；需要时联系网格员。";
+                    tip.innerHTML = '<span style="color:#a11616;font-weight:700">提交失败：' + App.esc(msg) + "。" + App.esc(failure) + "</span>";
                     App.toast(msg, "error");
                 }
                 btn.disabled = false;

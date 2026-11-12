@@ -1197,6 +1197,7 @@ def appointment_list(
         can_cancel=_has_perm(user, "appointment:cancel"),
         can_create=_has_perm(user, "appointment:create"),
         can_dispatch=_has_perm(user, "order:dispatch"),
+        cancel_free_hours=settings.cancel_free_hours,
     )
     return _render(request, "appointments/list.html", ctx)
 
@@ -1211,11 +1212,18 @@ def appointment_new(
         return _login_redirect(request)
 
     role = _role_code(user)
-    elder_options = _rows(db, select(Elder).where(Elder.is_deleted == 0).order_by(Elder.id.asc()).limit(300))
+    elder_stmt = _scoped(select(Elder).where(Elder.is_deleted == 0), Elder, user, db)
+    elder_options = _rows(db, elder_stmt.order_by(Elder.id.asc()).limit(300))
     my_elder = None
     if role == "elder":
-        my_elder = next((e for e in elder_options if e.user_id == user.id), None)
-    items = _rows(db, select(ServiceItem).where(ServiceItem.status == ItemStatus.ON.value).order_by(ServiceItem.id.asc()))
+        from app.core.deps import get_elder_of_user
+
+        my_elder = get_elder_of_user(db, user)
+        elder_options = [my_elder] if my_elder is not None and not my_elder.is_deleted else []
+        my_elder = elder_options[0] if elder_options else None
+    items = _rows(db, select(ServiceItem).where(
+        ServiceItem.status == ItemStatus.ON.value, ServiceItem.is_deleted == 0,
+    ).order_by(ServiceItem.id.asc()))
     prices: dict[int, Any] = {}
     version_ids = {i.current_price_version_id for i in items if i.current_price_version_id}
     if version_ids:
@@ -1233,6 +1241,7 @@ def appointment_new(
         items=items,
         prices=prices,
         role=role,
+        cancel_free_hours=settings.cancel_free_hours,
     )
     return _render(request, "appointments/new.html", ctx)
 

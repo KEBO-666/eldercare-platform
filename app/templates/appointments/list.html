@@ -3,6 +3,7 @@
 {% block title %}预约服务{% endblock %}
 
 {% block content %}
+<div id="appointment-feedback" class="notice success hidden" role="status" aria-live="polite"></div>
 <section class="card">
     <div class="card-header">
         <span>📅 预约单</span>
@@ -48,7 +49,13 @@
                 <td><strong>{{ appt.code }}</strong></td>
                 <td>{{ (elders.get(appt.elder_id).name if elders.get(appt.elder_id) else '-')|mask_name }}</td>
                 <td>{{ items.get(appt.service_item_id).name if items.get(appt.service_item_id) else '-' }}</td>
-                <td class="small">{{ appt.desired_start|dt }}</td>
+                <td class="small">
+                    {{ appt.desired_start|dt }}
+                    {% if appt.cycle_rule == 'weekly' %}
+                        <div><span class="badge badge-blue">每周预约</span></div>
+                        <div class="small muted">本次独立受理与取消</div>
+                    {% endif %}
+                </td>
                 <td>
                     <span class="badge {{ APPOINTMENT_STATUS_BADGE.get(appt.status, 'badge-gray') }}">
                         {{ APPOINTMENT_STATUS_NAMES.get(appt.status, appt.status) }}
@@ -59,7 +66,13 @@
                 </td>
                 <td class="small">{{ appt.created_at|short }}</td>
                 <td class="small">
-                    {% if appt.cancel_reason %}取消原因：{{ appt.cancel_reason }}{% else %}{{ appt.remark or '-' }}{% endif %}
+                    {% if appt.cancel_reason %}{{ '爽约' if appt.status == 'no_show' else '取消' }}原因：{{ appt.cancel_reason }}{% else %}{{ appt.remark or '-' }}{% endif %}
+                    {% if appt.status == 'cancelled' %}
+                        <div>取消费用：{{ '%.2f'|format(appt.cancellation_fee or 0) }} 元</div>
+                        <div class="muted">本次预约已结束，不再占用时段</div>
+                    {% elif appt.status == 'no_show' %}
+                        <div>爽约不计费，本次预约不再占用时段</div>
+                    {% endif %}
                 </td>
                 <td class="actions">
                     {% if can_accept and appt.status == 'pending_accept' %}
@@ -94,29 +107,82 @@
 {% block scripts %}
 <script>
     (function () {
+        var feedback = document.getElementById("appointment-feedback");
+        try {
+            var saved = JSON.parse(sessionStorage.getItem("eldercare-appointment-feedback") || "null");
+            sessionStorage.removeItem("eldercare-appointment-feedback");
+            if (saved && typeof saved.message === "string" && Date.now() - saved.createdAt < 60000) {
+                feedback.textContent = saved.message;
+                feedback.classList.remove("hidden");
+            }
+        } catch (e) { /* 没有可用会话存储时，列表仍展示状态与实际费用 */ }
+
         document.addEventListener("click", function (ev) {
             var target = ev.target.closest("[data-act]");
-            if (!target) { return; }
+            if (!target || target.disabled) { return; }
             var act = target.getAttribute("data-act");
             var id = target.getAttribute("data-id");
             if (act === "cancel" || act === "no-show") {
+                if (document.querySelector('[data-appointment-dialog="' + id + '"]')) { return; }
                 var noShow = act === "no-show";
-                App.modal({
+                var pending = false;
+                var reasonLabel = noShow ? "爽约原因" : "取消原因";
+                var dialog = App.modal({
                     title: noShow ? "登记爽约" : "取消预约",
-                    html: '<p>' + (noShow ? '登记后释放护理员时段，请填写核实原因：' : '距离服务开始不足 2 小时的取消将产生计费，请填写原因：') + '</p>' +
-                        '<div class="form-field"><label>取消原因</label>' +
-                        '<input id="cancel-reason" type="text" maxlength="100" placeholder="例如：老人临时住院"></div>',
+                    html: '<p>此操作仅影响本次预约，周期中的其他预约保持不变。</p><p>' +
+                        (noShow ? '登记爽约不计费，并释放关联工单的时段。请填写核实原因：' : '取消将释放关联工单的时段；距服务开始不足 {{ cancel_free_hours }} 小时可能计费，实际费用以操作结果为准。请填写原因：') + '</p>' +
+                        '<div class="form-field"><label for="cancel-reason">' + reasonLabel + '（必填）</label>' +
+                        '<input id="cancel-reason" type="text" maxlength="255" placeholder="例如：老人临时住院"></div>' +
+                        '<div id="cancel-feedback" class="mt-1" role="status" aria-live="polite"></div>',
                     buttons: [
                         { text: "返回", cls: "btn-secondary" },
                         {
-                            text: "确认登记", cls: "btn-danger", onClick: function (modal) {
+                            text: noShow ? "确认爽约" : "确认取消本次", cls: "btn-danger", onClick: function (modal, close) {
+                                if (pending) { return true; }
                                 var reason = (modal.querySelector("#cancel-reason").value || "").trim();
-                                if (!reason) { App.toast("请填写取消原因", "warn"); return true; }
-                                App.action(target, "/appointments/" + id + "/" + act, { reason: reason }, "登记成功");
+                                if (!reason) { App.toast("请填写" + reasonLabel, "warn"); return true; }
+                                pending = true;
+                                target.disabled = true;
+                                var buttons = Array.from(modal.querySelectorAll("button"));
+                                buttons.forEach(function (button) { button.disabled = true; });
+                                modal.setAttribute("aria-busy", "true");
+                                var status = modal.querySelector("#cancel-feedback");
+                                status.textContent = "正在处理，请稍候…";
+                                App.api.post("/appointments/" + id + "/" + act, { reason: reason }).then(function (res) {
+                                    var data = res.data || {};
+                                    var message = noShow ? "已登记本次爽约，不计费。" : "本次预约已取消，实际取消费用 " + App.money(data.cancellation_fee) + " 元。";
+                                    if (typeof data.released_order_count === "number") {
+                                        message += " 已释放 " + data.released_order_count + " 个关联工单的时段。";
+                                    }
+                                    message += " 周期中的其余预约不受影响。";
+                                    try { sessionStorage.setItem("eldercare-appointment-feedback", JSON.stringify({ message: message, createdAt: Date.now() })); } catch (e) { /* 页面即时反馈仍可用 */ }
+                                    feedback.textContent = message;
+                                    feedback.classList.remove("hidden");
+                                    App.toast(message, "success");
+                                    close();
+                                    window.setTimeout(function () { window.location.reload(); }, 900);
+                                }).catch(function (err) {
+                                    if (err && err.message !== "UNAUTHORIZED") {
+                                        status.textContent = "操作未完成：" + (err.message || "请重试") + "。已保留原因；如网络中断，请先核对列表状态。";
+                                        App.toast(err.message || "操作失败", "error");
+                                    }
+                                    pending = false;
+                                    target.disabled = false;
+                                    buttons.forEach(function (button) { button.disabled = false; });
+                                    modal.removeAttribute("aria-busy");
+                                });
+                                return true;
                             }
                         }
                     ]
                 });
+                dialog.el.setAttribute("data-appointment-dialog", id);
+                dialog.el.addEventListener("keydown", function (event) {
+                    if (pending && event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); }
+                }, true);
+                dialog.el.addEventListener("click", function (event) {
+                    if (pending && event.target === dialog.el) { event.preventDefault(); event.stopImmediatePropagation(); }
+                }, true);
                 return;
             }
             if (act === "accept") {
