@@ -9,32 +9,61 @@
 - **安全**：JWT + RBAC（35 个权限点 / 6 类角色）+ 四级数据范围 + AES-256-GCM 字段加密 + HMAC 摘要检索 + 审计哈希链
 - **适老化**：正文 18px+、按钮 ≥44px、高对比配色、表格斑马纹、红色预警置顶、键盘可访问
 
+2026-11-12 已补齐四周周期预约、按派单时刻计算的超时顺延、取消/爽约释放时段、跨网格读写校验、账单明细范围控制与累计退费上限，并增加三级字号切换。改动、验证方法和实际能力边界见 [赛题验收优化说明](docs/赛题验收优化说明.md)。
+
+一键验收：`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1`（Ruff → 全量测试与覆盖率 → 临时库种子幂等 → 真实 HTTP 六角色页面检查）。可穿戴模拟：`python -m scripts.simulate_wearable --elder-id 1 --scenario abnormal --dry-run`；移除 `--dry-run` 后交互登录并上报。
+
 ---
 
 ## 一、快速开始（Windows · 演示环境）
 
+前提：Windows PowerShell 5.1+、可用的Python 3.10+（已验证3.12.14）、首次安装可访问Python包索引。Python须已安装，前置安装Python的时间不计入应用复现。项目路径可包含中文和空格；无需激活虚拟环境，也不依赖系统PowerShell执行策略永久修改。
+
 ```powershell
-# 0) 进入项目根目录
+# 0) 进入项目根目录（新副本请替换为实际解压/克隆位置）
 cd 'D:\Program Files (x86)\巅峰\python\eldercare-platform'
 
-# 1) 创建并激活虚拟环境（已存在可跳过）
+# 1) 检查Python，再创建虚拟环境（已有环境可跳过）
+python --version
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
 
 # 2) 安装依赖
 & '.\.venv\Scripts\python.exe' -m pip install -r requirements.txt
+& '.\.venv\Scripts\python.exe' -m pip check
 
-# 3) 建库 + 写入演示数据（幂等，可重复执行）
+# 3) 仅在新副本、没有.env时复制演示模板；不覆盖既有配置
+if (-not (Test-Path -LiteralPath '.env')) {
+    Copy-Item -LiteralPath '.env.example' -Destination '.env'
+}
+
+# 4) 建库 + 写入演示数据（幂等，可重复执行，不使用--reset）
 & '.\.venv\Scripts\python.exe' -m scripts.seed
 
-# 4) 启动服务
-powershell -ExecutionPolicy Bypass -File scripts\run_dev.ps1
+# 5) 启动服务
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_dev.ps1
 ```
 
 打开 <http://127.0.0.1:8000> 即可登录（默认密码 **`Admin@123`**）；接口文档 <http://127.0.0.1:8000/docs>。
 
-> `scripts/run_dev.ps1` 会自动把 `TEMP/TMP` 指向项目内 `data\tmp`、缺库时自动执行种子脚本，
-> 然后以 `uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload` 启动。
+> `scripts/run_dev.ps1` 会检查端口、创建缺失的虚拟环境并安装依赖，缺少`.env`时复制模板；按实际配置定位SQLite，缺库时初始化。外部命令失败会终止，已有数据库和配置不覆盖。默认启用`--reload`；录制和验收可用`-NoReload`。`TEMP/TMP`指向项目内`data\tmp`。
+
+**常见问题：**
+
+- `python --version`失败、`venv/ensurepip`失败：先修复Python安装或使用有效解释器绝对路径创建环境。系统PATH可能指向损坏的旧Python；不要只凭找到`python.exe`判断环境可用。自动启动时可传`-BasePython 'C:\实际位置\python.exe'`。
+- 虚拟环境已存在但依赖不完整：执行上面的`pip install -r requirements.txt`重试，随后`pip check`；启动脚本会明确报错而不继续建库。
+- 依赖下载失败：检查网络、代理或学校允许的包索引后重试；初次安装需要网络，安装完成后静态前端资源不依赖CDN。
+- 8000端口被占用：停止自己此前启动的服务，或添加`-Port 8001`并访问`http://127.0.0.1:8001`。脚本不会终止其他进程。
+- PostgreSQL：需自行准备数据库并显式执行种子初始化；该路线不属于已验证的SQLite快速演示路线。
+
+### 传智杯复现与开发过程材料
+
+传智杯侧重真实AI协作、Git演进、环境复现及完整业务闭环。现有2次Git提交不足以代表完整细粒度开发史；完整Prompt链与真实新增迭代应分别归档，不能将本次重放描述为早期开发。
+
+- [传智杯参赛计划](docs/传智杯参赛计划.md)
+- [快速开始与复现范围](docs/chuanzhi/快速开始.md)
+- [干净副本复现记录](docs/chuanzhi/复现记录.md)
+
+计时复验命令：`.\.venv\Scripts\python.exe -m scripts.verify_reproduction`。它将白名单复制当前源码至独立新目录，创建全新环境与数据库，安装依赖，并通过启动脚本验证六角色登录及关键页面；保留完整日志与SHA-256。它测量本地源码副本安装，**不是远程仓库克隆耗时，也不包含Python预安装或全量测试**。结果见`reports/chuanzhi-reproduction.json`，最终仓库冻结后应另行核查远程获取与访问权限。
 
 ### 种子脚本常用命令
 
