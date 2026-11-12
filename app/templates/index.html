@@ -14,7 +14,7 @@
 
 {% if red_alerts and red_alerts > 0 %}
 <div class="notice danger">
-    🚨 当前有 <strong>{{ red_alerts }}</strong> 条<strong>红色预警</strong>待处置（要求 5 分钟内响应、30 分钟内闭环）。
+    🚨 当前有 <strong>{{ red_alerts }}</strong> 条<strong>红色预警</strong>待处置，请按对应预警的截止时间优先处理。
     <a class="btn btn-danger btn-sm" href="/alerts?level=red&amp;status=pending">立即前往处置</a>
 </div>
 {% endif %}
@@ -42,7 +42,7 @@
 </div>
 
 <div class="grid grid-2">
-    <section class="card">
+    {% if can_alert_read %}<section class="card">
         <div class="card-header">
             <span>🚨 待处置预警</span>
             {# 颜色优先级：红色置顶 #}
@@ -79,10 +79,10 @@
                 </table>
             </div>
             {% else %}
-            <div class="empty-state"><span class="icon">✅</span>暂无待处置预警，一切正常</div>
+            <div class="empty-state"><span class="icon">📋</span>暂无待处置预警，请按需查看转诊随访与健康记录。</div>
             {% endif %}
         </div>
-    </section>
+    </section>{% endif %}
 
     <section class="card">
         <div class="card-header">
@@ -152,7 +152,7 @@
                 <a class="btn btn-secondary" href="/dispatch">🧭 智能派单</a>
             {% endif %}
             <a class="btn btn-secondary" href="/orders">🧰 工单</a>
-            <a class="btn btn-secondary" href="/alerts">🚨 预警</a>
+            {% if can_alert_read %}<a class="btn btn-secondary" href="/alerts">🚨 预警</a>{% endif %}
             {% if role in ('grid', 'org_admin', 'street', 'super') %}
                 <a class="btn btn-secondary" href="/stats">📊 统计看板</a>
             {% endif %}

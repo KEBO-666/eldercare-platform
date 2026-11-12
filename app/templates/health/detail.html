@@ -10,7 +10,7 @@
         </span>
         <span class="btn-row">
             <a class="btn btn-secondary btn-sm" href="/elders/{{ elder.id }}">👵 档案</a>
-            <a class="btn btn-ghost btn-sm" href="/alerts">🚨 预警看板</a>
+            {% if can_alert_read %}<a class="btn btn-ghost btn-sm" href="/alerts">🚨 预警看板</a>{% endif %}
         </span>
     </div>
     <div class="card-body">
@@ -129,7 +129,7 @@
         </div>
     </section>
 
-    <section class="card">
+    {% if can_alert_read %}<section class="card">
         <div class="card-header"><span>🚨 该老人预警记录</span></div>
         <div class="card-body tight">
             {% if alerts %}
@@ -152,20 +152,20 @@
                 {{ empty('暂无预警记录', '✅') }}
             {% endif %}
         </div>
-    </section>
+    </section>{% endif %}
 </div>
 
 <script type="application/json" id="vitals-data">{{ vitals_json|safe }}</script>
 <script type="application/json" id="spo2-data">{{ spo2_json|safe }}</script>
 <script type="application/json" id="steps-data">{{ steps_json|safe }}</script>
-<section class="card">
+{% if can_alert_read %}<section class="card">
     <div class="card-header"><span>本页当前启用的预警规则</span><a href="/alerts">查看规则与处置队列</a></div>
     <div class="card-body">
         {% for rule in health_rules %}
         <p class="small"><strong>{{ rule.name }}</strong>：{% if rule.rule_type == 'silence' %}{{ rule.silence_hours }}小时无数据{% if rule.code != 'SILENCE' %}（仅配置留存，当前扫描只执行SILENCE静默规则）{% endif %}{% elif rule.rule_type == 'consecutive' %}连续{{ rule.window_size }}次 {{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator }} {{ rule.threshold }}{% else %}{{ METRIC_NAMES.get(rule.metric_code, rule.metric_code) }} {{ rule.operator }} {{ rule.threshold }}{% endif %} → {{ ALERT_LEVEL_NAMES.get(rule.level, rule.level) }}；冷却{{ rule.cooldown_minutes }}分钟，未闭环{{ rule.escalate_minutes }}分钟后可升级。</p>
         {% else %}<p class="notice warn">当前没有启用的预警规则，请联系管理员检查。</p>{% endfor %}
     </div>
-</section>
+</section>{% endif %}
 {% endblock %}
 
 {% block scripts %}

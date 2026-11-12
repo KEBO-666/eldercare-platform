@@ -97,6 +97,17 @@
   "verification/health-alert/full/junit.xml": "8ab260cf41c0e2d57bd95c933c64a37eff33881e1386618b570fb9d11921ac5b",
   "verification/health-alert/source-provenance.json": "2eee17d27636eae893fe5761958793aecf9e803cc568c398c2afad5748d4d4e8",
   "verification/health-alert/summary.json": "2279976107d1cd7bf270c1fe0526cc351cd4e4359bced0fab1d968f5b0c147f8",
+  "verification/health-alert-assurance/browser/audit-dom.json": "073cbc07b3dcf2ed9f364823e586f89f1e6ff87cea2c458c1f222f257ac846d4",
+  "verification/health-alert-assurance/browser/exact-alert-audit-expanded.png": "8cfe5050cc604badf20955b42fe1b4ef201517e20ffc132a70d9365b6c921958",
+  "verification/health-alert-assurance/browser/grid-audit-denied.png": "af12b424ed39efb59efbc319b15ef90a10df0227b47ff370b31d1f4a247ac5c1",
+  "verification/health-alert-assurance/browser/health-only-monitoring.png": "71be8dd8e0e3da081c065795267f092fba4ed6f3a188d6b0b2f27f64e740cc42",
+  "verification/health-alert-assurance/browser/result.json": "3d4361c8c96a8147b35d21044a9241d4bb7b8d9b4ce65306420efa1daf238224",
+  "verification/health-alert-assurance/browser/super-alert-audit-link.png": "9f5af1864abb77aa8325a8426deead670a0244b1861f0e41cd0ceca9bca0667e",
+  "verification/health-alert-assurance/frontend.tap": "3cd64d685021e6787d58533b90efcb287276900258e288a50b0a5df35baa63b6",
+  "verification/health-alert-assurance/full/coverage.xml": "9d458fd59429df4b17e44c4dd4781d35043a702469ac1c174c318e017849465e",
+  "verification/health-alert-assurance/full/junit.xml": "3b4bb61b498059dc5a5c36c2a0c39ca505366a987d8a185b83dc102990773bd7",
+  "verification/health-alert-assurance/source-provenance.json": "d79375708bb9ca448015b62d23d4ae4f73364fd0954901ebdfb8d77547577e5f",
+  "verification/health-alert-assurance/summary.json": "ca3753bfb16f2083faa448b53aafce0c786c74d84f4dda4d34c09118cfb3fc8d",
   "verification/publication-review.json": "ad5c84aea7800aaff91ca70a62d7af8d74b08411330f152b4fe504449485de13",
   "verification/reproduction-final.json": "9ce673ad1b8338d10b0b3b5995e0a475290d0260cc8e8617e481c4197bb39276"
 }

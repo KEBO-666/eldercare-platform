@@ -552,6 +552,7 @@ def list_audit_logs(
     size: int = 20,
     action: str | None = None,
     entity_type: str | None = None,
+    entity_id: int | None = None,
     user_id: int | None = None,
     username: str | None = None,
     start: Any = None,
@@ -564,6 +565,8 @@ def list_audit_logs(
         stmt = stmt.where(AuditLog.action == str(action))
     if entity_type:
         stmt = stmt.where(AuditLog.entity_type == str(entity_type))
+    if entity_id is not None:
+        stmt = stmt.where(AuditLog.entity_id == _as_int(entity_id, "entity_id"))
     if user_id is not None:
         stmt = stmt.where(AuditLog.user_id == _as_int(user_id, "user_id"))
     if username:

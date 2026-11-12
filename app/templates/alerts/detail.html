@@ -2,7 +2,7 @@
 {% block title %}预警闭环追踪{% endblock %}
 {% block content %}
 <section class="card">
-    <div class="card-header"><span>预警 #{{ alert.id }} · {{ alert.elder_name|mask_name }}</span><span class="btn-row"><a href="/monitoring/{{ alert.elder_id }}" class="btn btn-ghost btn-sm">健康监测</a><a href="/alerts" class="btn btn-secondary btn-sm">返回预警看板</a></span></div>
+    <div class="card-header"><span>预警 #{{ alert.id }} · {{ alert.elder_name|mask_name }}</span><span class="btn-row">{% if can_health_read %}<a href="/monitoring/{{ alert.elder_id }}" class="btn btn-ghost btn-sm">健康监测</a>{% endif %}<a href="/alerts" class="btn btn-secondary btn-sm">返回预警看板</a>{% if can_audit %}<a href="/admin/audit?entity_type=alert&amp;entity_id={{ alert.id }}" class="btn btn-ghost btn-sm">关联审计记录</a>{% endif %}</span></div>
     <div class="card-body">
         <div id="alert-state" aria-live="polite"><strong>{{ alert.summary }}</strong><p>{{ alert.lifecycle_name }} · {{ alert.level_name }}</p></div>
         <button id="alert-refresh" type="button" class="btn btn-secondary">刷新追踪记录</button>

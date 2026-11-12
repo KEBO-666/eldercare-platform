@@ -1,0 +1,51 @@
+{
+  "verified_at_utc": "2026-11-12T13:04:05.355758+00:00",
+  "source_parent": "e96827ab9753014181dd59885f4cf967bc942a16",
+  "request": "确保权限正确、状态完整、操作可追溯",
+  "validation": {
+    "pytest_tests": 675,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 427.807,
+    "coverage_percent": 90.28,
+    "lines_covered": 7214,
+    "lines_valid": 7991,
+    "frontend_tests": 115,
+    "edge_checks": 18,
+    "ruff": "passed"
+  },
+  "browser_report": "reports/health-alert-assurance-browser/20261112-204814/result.json",
+  "method": "real Edge, isolated synthetic SQLite, actual HTTP writes",
+  "limits": [
+    "Synthetic isolated verification databases",
+    "STREET remains unrestricted by existing contract",
+    "SMS is simulated; PDF/video remain earlier snapshots",
+    "No cross-process exactly-once guarantee",
+    "No contest portal submission"
+  ],
+  "source_sha256": {
+    "README.md": "ed616e4c58811a760d7c480753082596ef4e226f195f70a3b233841da673001f",
+    "app/api/v1/admin.py": "ddcbe9c06a9ea07cbb4f273404a21a8ff9721803b81b78f2a4b5194c206432b2",
+    "app/api/v1/alerts.py": "23536acd7bf5358f71ccf84274dc71f2bfa190403867f8d02f3d7f3ca388cf02",
+    "app/api/v1/health.py": "891e774a2f39c3e0b28eba4d44e137faab68c14b7a30ef16b026d2d01b29e78b",
+    "app/services/admin_service.py": "840749af5e5896e016798fbf9f59a15583f50856b1d129f6ebf4b271c09b0c36",
+    "app/services/alert_service.py": "16006ee203a612cd1bd7172d93b9c9ae420158809f838e8352fb589ed284c7f0",
+    "app/services/health_service.py": "72880c3557b64268b12665b77f9b692bdaab21950bf68d3aa216e095d6791aaf",
+    "app/web/routes.py": "72181f95187c7d96b5e1990670dd8aedc4583f6ecc9c8758c8872fdffe4aa7a7",
+    "app/templates/admin/audit.html": "6351d935f898893a76b1906929d4ded8c950c5e8afe0fcc2cdec56167e551b69",
+    "app/templates/alerts/detail.html": "7a4f5d77c55dae16e6842e740f451a7b0a5c650fd2e1ad37e63bfb3a2da6e300",
+    "app/templates/health/detail.html": "420f277bec656e462fac4bfee049752efdc32f10a94fd86076a52b474720e39e",
+    "app/templates/index.html": "4a20c36fda68740940cc9e93a70ba27ff3949b08469a1582aa191fe0bfd35bd5",
+    "docs/CONTRACTS.md": "e4fccc7be691635fbb14b378d82e33543282483fadd6b07917451607746f04c2",
+    "docs/chuanzhi/AI协同与演进索引.md": "3b713c2064c385bc7925412b8680d1e679f909c30cd77de8e9f470ddb7f63fbf",
+    "docs/chuanzhi/健康预警权限状态与追溯.md": "1a7cfc52d2ac1d7b02f82049ff339c0cfa4a8a0a42736b1310d2466d48d91131",
+    "scripts/build_chuanzhi_submission.py": "30b53ecbb299ffb9120ddb9f9358d88795e33f02595d0156d8d1f2f1bd7acfd8",
+    "tests/integration/test_alert_lifecycle_contract.py": "996a4aa8e8f8e513269293dc5adf7e706b370b5b0ddd377b019312c641cf4ff0",
+    "tests/integration/test_health_alert_permissions.py": "659a918d339b49e06a676c3a268c63e71039a49a95884e10ac11c4d752786aaa",
+    "tests/integration/test_alert_transition_matrix.py": "f5b52b053eef38c61c356e00ca64c5073261874ddea1ea411805f35e606edd1e",
+    "tests/integration/test_alert_traceability.py": "da96f3d98b3c10f66eb1b9d2c69669081ad9d52672dad926cafee721608f34f3",
+    "tests/integration/test_alert_assurance_pages.py": "b7689bd01f3eec89bde1461034ff1dcb15391098417bb123ec28c440ebc7f6a5",
+    "tests/integration/test_web_smoke.py": "ab2ae61db2f24d0eceb7c195eccc856d780a1accd76cb4a3aba80057594c045c"
+  }
+}

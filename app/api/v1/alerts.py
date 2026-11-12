@@ -147,10 +147,11 @@ def update_rule(
 
 @router.post("/alerts/scan", summary="手动触发静默检测与超时升级")
 def scan_alerts(
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require("alert:rule")),
 ):
-    return ok(alert_service.scan_alerts(db))
+    return ok(alert_service.scan_alerts(db, user=user, request=request))
 
 
 @router.post("/alerts/report", summary="人工异常上报并生成待处置预警")

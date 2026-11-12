@@ -13,12 +13,14 @@ import math
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from fastapi import Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.audit import write_audit
 from app.core.enums import MetricCode, MetricSource
 from app.core.exceptions import BizError, Conflict, NotFound, RuleViolation
-from app.models import Device, Elder, HealthMetric, WorkOrder
+from app.models import Device, Elder, HealthMetric, User, WorkOrder
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +160,7 @@ def _call_evaluate_metric(db: Session, metric: HealthMetric, func: Any, operator
 
 def evaluate_metric_report_safe(
     db: Session, metric: HealthMetric, operator_id: int | None = None,
+    request: Request | None = None,
 ) -> dict[str, Any]:
     """指标先独立保存；预警副作用独立提交，失败时返回可辨识的评估状态。"""
     metric_id = metric.id
@@ -168,10 +171,19 @@ def evaluate_metric_report_safe(
             report = _call_evaluate_metric(db, metric, evaluate_metric_report, operator_id)
             briefs = [_alert_brief(alert) for alert in report["alerts"]]
             evaluation = {key: value for key, value in report.items() if key != "alerts"}
+            write_audit(db, user=db.get(User, operator_id) if operator_id else None,
+                        action="evaluate", entity_type="health_metric", entity_id=metric_id,
+                        after={**evaluation, "alert_ids": [a["id"] for a in briefs]},
+                        detail="健康指标预警评估", request=request)
         db.commit()
     except Exception:  # noqa: BLE001 - 预警失败不能回滚已独立提交的指标
         logger.exception("预警评估失败（指标已入库）metric_id=%s", metric_id)
         db.rollback()
+        write_audit(db, user=db.get(User, operator_id) if operator_id else None,
+                    action="evaluate", entity_type="health_metric", entity_id=metric_id,
+                    after={"status": "error", "alert_ids": []},
+                    detail="指标已保存，预警评估失败，需人工核实", request=request)
+        db.commit()
         return {
             "alerts": [],
             "alert_evaluation": {
@@ -212,6 +224,7 @@ def create_metric_report(
     work_order_id: int | None = None,
     recorded_by: int | None = None,
     raw: dict | None = None,
+    request: Request | None = None,
 ) -> dict[str, Any]:
     """写入单条指标并返回保存结果与可辨识的预警评估状态。"""
     elder = get_elder_or_404(db, elder_id)
@@ -248,11 +261,16 @@ def create_metric_report(
         recorded_by=recorded_by,
         raw=raw,
     )
-    db.add(metric)
+    with db.begin_nested():
+        db.add(metric)
+        db.flush()
+        write_audit(db, user=db.get(User, recorded_by) if recorded_by else None,
+                    action="create", entity_type="health_metric", entity_id=metric.id,
+                    after=metric_to_dict(metric), detail="录入健康指标", request=request)
     db.commit()
     db.refresh(metric)
     result = {"metric_id": metric.id, "metric": metric_to_dict(metric)}
-    result.update(evaluate_metric_report_safe(db, metric, operator_id=recorded_by))
+    result.update(evaluate_metric_report_safe(db, metric, operator_id=recorded_by, request=request))
     return result
 
 
@@ -268,6 +286,7 @@ def create_metrics_batch(
     *,
     operator_id: int | None = None,
     user: Any | None = None,
+    request: Request | None = None,
 ) -> dict[str, Any]:
     """批量写入：逐条独立成败，返回 {success, failed:[{index, reason}], alerts_count}。"""
     success = 0
@@ -296,6 +315,7 @@ def create_metrics_batch(
                 work_order_id=item.get("work_order_id"),
                 recorded_by=operator_id,
                 raw=item.get("raw"),
+                request=request,
             )
             success += 1
             alerts_count += len(result["alerts"])

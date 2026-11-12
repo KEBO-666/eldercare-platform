@@ -155,6 +155,7 @@ def _photo_url(path: Any) -> str:
 
 templates.env.filters.update(
     {
+        "json_readable": lambda value: json.dumps(value, ensure_ascii=False, indent=2, default=str),
         "money": _fmt_money,
         "dt": _fmt_dt,
         "date": _fmt_date,
@@ -490,6 +491,9 @@ def _build_nav(user: User | None) -> list[dict[str, Any]]:
     for item in NAV_DEFS:
         if role not in item["roles"]:
             continue
+        permission = {"alerts": "alert:read", "health": "health:read", "admin_audit": "admin:audit"}.get(item.get("key"))
+        if permission and not _has_perm(user, permission):
+            continue
         if item.get("divider"):
             items.append({"divider": True, "label": item["label"]})
             continue
@@ -786,8 +790,11 @@ def dashboard(
             [OrderStatus.PENDING_ACCEPT.value, OrderStatus.ACCEPTED.value, OrderStatus.IN_SERVICE.value]
         ),
     )
+    can_alert_read = _has_perm(user, "alert:read")
     alert_ids = _visible_elder_ids(db, user)
     alert_conds: list[Any] = []
+    if not can_alert_read:
+        alert_conds.append(false())
     if alert_ids is not None:
         alert_conds.append(Alert.elder_id.in_(alert_ids or [-1]))
     pending_alerts = _count(db, Alert, Alert.status == AlertStatus.PENDING.value, *alert_conds)
@@ -868,7 +875,7 @@ def dashboard(
             {
                 "label": "待处置预警",
                 "value": pending_alerts,
-                "hint": f"红色 {red_alerts} 条（5 分钟内响应）",
+                "hint": f"红色 {red_alerts} 条（优先核实，按预警截止时间处置）",
                 "icon": "🚨",
                 "url": "/alerts",
                 "cls": "danger" if red_alerts else "",
@@ -882,6 +889,9 @@ def dashboard(
                 "cls": "ok",
             },
         ]
+
+    if not can_alert_read:
+        cards = [card for card in cards if card.get("url") != "/alerts"]
 
     # ---- 趋势图（近 14 天） ----
     order_rows = _rows(
@@ -978,6 +988,7 @@ def dashboard(
         trend_json=json.dumps(trend_spec, ensure_ascii=False),
         pie_json=json.dumps(pie_spec, ensure_ascii=False),
         recent_alerts=recent_alerts,
+        can_alert_read=can_alert_read,
         alert_elders=alert_elders,
         pending_appts=pending_appts,
         appt_elders=appt_elders,
@@ -1597,10 +1608,11 @@ def health_detail(
         .order_by(HealthMetric.measured_at.desc())
         .limit(30),
     )
+    can_alert_read = _has_perm(user, "alert:read")
     alerts = _rows(
         db,
         select(Alert).where(Alert.elder_id == elder_id).order_by(Alert.id.desc()).limit(8),
-    )
+    ) if can_alert_read else []
     devices = _rows(db, select(Device).where(Device.elder_id == elder_id))
 
     from app.services import alert_service, health_service
@@ -1620,8 +1632,9 @@ def health_detail(
         steps_json=json.dumps(steps_spec, ensure_ascii=False),
         days=days,
         can_write=_has_perm(user, "health:write"),
+        can_alert_read=can_alert_read,
         metric_ranges=health_service.METRIC_RANGES,
-        health_rules=_rows(db, select(AlertRule).where(AlertRule.enabled.is_(True)).order_by(AlertRule.id)),
+        health_rules=_rows(db, select(AlertRule).where(AlertRule.enabled.is_(True)).order_by(AlertRule.id)) if can_alert_read else [],
         metric_options=[(m.value, _METRICS.get(m.value, m.value)) for m in MetricCode],
     )
     return _render(request, "health/detail.html", ctx)
@@ -1733,6 +1746,7 @@ def alert_detail(
     return _render(request, "alerts/detail.html", _base_ctx(
         request, user, "alerts", f"预警追踪 · #{alert_id}", breadcrumb="首页 / 预警看板 / 闭环追踪",
         alert=jsonable_encoder(alert), can_handle=_has_perm(user, "alert:handle"),
+        can_health_read=_has_perm(user, "health:read"), can_audit=_has_perm(user, "admin:audit"),
     ))
 
 
@@ -2185,6 +2199,7 @@ def admin_audit(
     request: Request,
     action: str = "",
     entity_type: str = "",
+    entity_id: int | None = None,
     page: int = 1,
     size: int = 30,
     db: Session = Depends(get_db),
@@ -2200,6 +2215,8 @@ def admin_audit(
         stmt = stmt.where(AuditLog.action == action)
     if entity_type:
         stmt = stmt.where(AuditLog.entity_type == entity_type)
+    if entity_id is not None:
+        stmt = stmt.where(AuditLog.entity_id == entity_id)
     stmt = stmt.order_by(AuditLog.id.desc())
     rows, total, page, pages = _paged(db, stmt, page, size)
 
@@ -2217,6 +2234,7 @@ def admin_audit(
         size=size,
         action=action,
         entity_type=entity_type,
+        entity_id=entity_id,
         actions=actions,
     )
     return _render(request, "admin/audit.html", ctx)

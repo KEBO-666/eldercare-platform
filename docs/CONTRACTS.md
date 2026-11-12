@@ -110,6 +110,10 @@ ensure_elder_visible(db, user, elder_id)   # 越权抛 403
 ```
 规则：super/street 不限；org_admin 按 `community_org_id/org_id`；grid 按 `grid_org_id`；nurse 按 `nurse_id`；elder 按 `elder_id`。
 
+健康预警补充：护理员读取无 `nurse_id` 的指标、设备、预警及老人档案时，通过本人护理员工单关联的老人收窄；老人/家属仅绑定档案。缺少机构、绑定档案或服务关系时返回空范围，不扩大授权。`STREET` 沿用本项目“不限制”的既有约定，本轮未增加跨街道租户隔离。
+
+`health:read`、`health:write`、`alert:read`、`alert:handle`、`alert:rule`、`admin:audit` 分别检查，单一权限不隐含其他权限。仅健康只读账号的健康页与首页不查询/展示预警摘要、数量及规则区块，不提供预警入口；预警详情的健康监测及关联审计链接也分别受权限保护。页面隐藏入口不能代替 API 的权限与对象范围校验。
+
 ### 3.4 敏感字段
 ```python
 from app.core.security import encrypt_field, decrypt_field, field_digest, mask_id_card, mask_phone
@@ -124,6 +128,10 @@ write_audit(db, user=user, action="update", entity_type="elder", entity_id=elder
             before=before_dict, after=after_dict, request=request)
 ```
 必须记录的动作：登录/登录失败、档案变更、导出、派单/改派、退费、删除、备份/恢复、二次授权。
+
+健康预警的指标保存与评估分别写 `health_metric/create`、`health_metric/evaluate`；预警生成、首次响应、处置、进展、回访、最终闭环及自动升级写关联 `alert` 实体审计，保存状态前后值与完整处置文字。手动/定时扫描另写 `alert_scan/scan`，通过触发来源及用户区分；自动升级另有具体预警的 `alert/escalate`。HTTP 调用可记录用户、IP 和 User-Agent；定时任务以系统身份记录。
+
+审计查询页面与 API 均需 `admin:audit`，支持 `entity_type` 与 `entity_id` 联合精确筛选；受保护页面以转义后的可读中文 JSON 展示 `before_json/after_json`。`hash/prev_hash` 用于检测已覆盖内容及链接被修改，校验结果以 `valid/checked/broken_id` 为准；它不等同于外部签名或不可修改的独立存储。
 
 ---
 
@@ -246,6 +254,8 @@ appt.status = new_status
 
 健康预警2026-11-12补充：实际生命周期为`unacknowledged/responded/handling/awaiting_followup/closed`，详情与列表均返回`lifecycle_status/lifecycle_name/closed/first_responded_at/closed_at/closure_seconds/source`。保留旧`status=referred`及`resolved_at`作为转诊登记兼容字段，最终闭环以`closed`为准；统计使用`lifecycle_open/lifecycle_closed/referral_followup_pending`，旧`closed`是历史“已登记处置”口径，不能用于最终闭环计数。记录进展或直接处置会自动记录首次响应；已闭环不再接收新处置，重复响应不会新增流水。处置、响应、进展、随访和扫描失败时数据库副作用整体回滚；指标先独立保存，评估失败返回明确error，不得视作正常或重复录入。带时区输入转为UTC+8的无时区时间，缺省时间保留项目本地时钟（部署北京时间）。静默扫描执行启用的内置`SILENCE`规则；停用后不新增静默警，已有未闭环事项仍可超时升级；转诊待随访也参与未闭环追踪。
 
+本轮权限、状态与追溯补充：写预警前先对范围内记录执行不改变业务列的 `UPDATE` 获取写锁，再以 `FOR UPDATE` 和 `populate_existing=True` 刷新当前状态，避免旧 Session 覆盖已提交的处置或闭环；SQLite 下写锁由前述 `UPDATE` 获得。自动升级也在更新前复检未闭环、截止时间及未升级条件。直接处置先记录首次响应，再取处置时间，确保 `first_responded_at <= resolved_at`；首次响应流水先 flush 再写审计，保留微秒精度，不用整数秒倒推新记录时刻。数据库保存与对应审计、流水、通知同成同败；模拟短信文件不属于数据库事务，不能据此承诺外部发送恰好一次。完整说明与验证边界见[健康预警权限状态与追溯](chuanzhi/健康预警权限状态与追溯.md)，结果见汇总报告 `reports/health-alert-assurance-summary.json`。
+
 ### quality（C）
 | 方法 | 路径 | 说明 | 权限 |
 |---|---|---|---|
@@ -289,13 +299,13 @@ appt.status = new_status
 | GET/POST | `/admin/users`、`PUT /admin/users/{id}`、`POST /admin/users/{id}/reset-password` | 用户管理 | admin:user |
 | GET | `/admin/roles`、`/admin/permissions` | 角色权限 | admin:user |
 | GET/POST | `/admin/orgs` | 组织 | admin:org |
-| GET | `/admin/audit-logs` | 审计查询（action/entity/时间） | admin:audit |
+| GET | `/admin/audit-logs` | 审计查询（action/entity_type/entity_id/用户/时间），实体类型与编号联合定位 | admin:audit |
 | GET | `/admin/audit/verify` | 审计链校验 | admin:audit |
 | POST | `/admin/backup`、`GET /admin/backups`、`POST /admin/restore` | 备份与恢复 | admin:backup |
 | GET/PUT | `/admin/config` | 运行期配置（派单权重等） | admin:config |
 
 ### 页面（F）
-`/login`、`/`、`/elders`、`/elders/{id}`、`/appointments`、`/dispatch`、`/orders`、`/orders/{id}`、`/monitoring`、`/monitoring/{elder_id}`、`/alerts`、`/quality`、`/billing`、`/stats`、`/admin/users`、`/admin/audit`、`/admin/backup`、`/admin/config`
+`/login`、`/`、`/elders`、`/elders/{id}`、`/appointments`、`/dispatch`、`/orders`、`/orders/{id}`、`/monitoring`、`/monitoring/{elder_id}`、`/alerts`、`/alerts/{alert_id}`、`/quality`、`/billing`、`/stats`、`/admin/users`、`/admin/audit`、`/admin/backup`、`/admin/config`
 
 > 注意：页面健康监测路由为 `/monitoring`（避免与系统健康检查 `GET /health` 冲突），接口仍为 `/api/v1/health/*`。
 
@@ -322,6 +332,8 @@ def test_create_appointment(client, headers, accounts):
 | 提供方 | 函数 | 用途 |
 |---|---|---|
 | D | `app.services.alert_service.evaluate_metric(db, metric, operator_id=None) -> list[Alert]` | 任何模块写入 `HealthMetric` 后调用，返回新生成的预警 |
+| D | `app.services.alert_service.evaluate_metric_report(db, metric, operator_id=None) -> dict` | 返回预警与评估状态，不自行提交；调用方负责事务与失败反馈 |
+| D | `app.services.health_service.create_metric_report(db, **kwargs) -> dict` | 保存指标及审计、独立评估并返回明确结果；健康 API 使用此接口，旧 `create_metric` 保留 tuple 兼容 |
 | D | `app.services.alert_service.ensure_default_rules(db) -> int` | 幂等写入默认规则（血压/心率/血氧/静默） |
 | D | `app.tasks.alert_timeout.run_alert_timeout_scan() -> dict` | 超时升级 + 静默检测 |
 | E | `app.services.billing_service.create_refund(db, work_order_id, amount, reason, operator_id) -> dict` | 投诉结论成立时生成红冲，C 只在结论为 refund 时调用 |
@@ -338,6 +350,8 @@ except Exception:  # 模块尚未就绪时降级
 if evaluate_metric:
     evaluate_metric(db, metric, operator_id=user.id)
 ```
+
+上例是早期并行开发的兼容接入方式。当前健康录入必须使用完整报告契约，不能把评估异常静默转换为“未触发预警”；评估结果与已保存指标的事实分别反馈。
 
 ## 7. 交付与沟通
 

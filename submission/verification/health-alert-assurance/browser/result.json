@@ -1,0 +1,108 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "super detail exposes exact-entity audit link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "audit form retains entity type and exact id",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "audit table excludes other alert records",
+      "passed": true,
+      "detail": [
+        "alert #7",
+        "alert #7",
+        "alert #7",
+        "alert #7"
+      ]
+    },
+    {
+      "name": "audit expands actual before and after closure state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "automatic first response precedes resolution in actual audit snapshot",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "audit preserves complete long measure and supplemental note",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "audit shows request IP and user agent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Chinese audit notes are readable without escaped unicode",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "submitting exact id changes audit query",
+      "passed": true,
+      "detail": [
+        "alert #8",
+        "alert #8"
+      ]
+    },
+    {
+      "name": "audit UI verifies real hash chain",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid can read allowed alert without audit link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid direct audit page denied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid audit API denied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "health-only monitoring excludes alert summaries and links",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "health-only monitoring excludes rule contents",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "health-only direct alert page denied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "health-only alert API denied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unhandled browser exceptions",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "method": "real Edge, isolated synthetic SQLite, actual HTTP writes",
+  "fixtures": [
+    "seed demo",
+    "custom role with only health:read"
+  ]
+}

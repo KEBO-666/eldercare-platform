@@ -24,11 +24,12 @@
             <label for="entity_type">实体</label>
             <select id="entity_type" name="entity_type">
                 <option value="">全部实体</option>
-                {% for e in ['elder', 'user', 'appointment', 'work_order', 'bill', 'alert', 'complaint', 'backup', 'auth'] %}
+                {% for e in ['elder', 'user', 'appointment', 'work_order', 'bill', 'alert', 'health_metric', 'alert_scan', 'complaint', 'backup', 'auth'] %}
                     <option value="{{ e }}" {% if entity_type == e %}selected{% endif %}>{{ e }}</option>
                 {% endfor %}
             </select>
         </div>
+        <div class="form-field"><label for="entity_id">实体编号</label><input id="entity_id" name="entity_id" type="number" min="1" value="{{ entity_id if entity_id is not none else '' }}" placeholder="如预警编号"></div>
         <div class="btn-row">
             <button class="btn btn-primary" type="submit">🔍 查询</button>
             <a class="btn btn-ghost" href="/admin/audit">重置</a>
@@ -53,7 +54,7 @@
                     {% else %}<span class="badge badge-gray">{{ log.action }}</span>{% endif %}
                 </td>
                 <td class="small">{{ log.entity_type or '-' }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</td>
-                <td class="small">{{ log.detail or '-' }}</td>
+                <td class="small" style="overflow-wrap:anywhere">{{ log.detail or '-' }}<details><summary>查看状态前后值与请求来源</summary><p>操作前</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{ log.before_json|json_readable }}</pre><p>操作后</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{ log.after_json|json_readable }}</pre><p>客户端：{{ log.ua or '-' }}</p></details></td>
                 <td class="small">{{ log.ip or '-' }}</td>
                 <td class="small" title="{{ log.hash }}"><code>{{ (log.hash or '')[:12] }}</code></td>
             </tr>
@@ -61,7 +62,7 @@
             </tbody>
         </table>
     </div>
-    {{ pager(page, pages, total, '/admin/audit', 'action=' ~ action ~ '&entity_type=' ~ entity_type) }}
+    {{ pager(page, pages, total, '/admin/audit', 'action=' ~ action ~ '&entity_type=' ~ entity_type ~ ('&entity_id=' ~ entity_id if entity_id is not none else '')) }}
     {% else %}
         {{ empty('暂无审计日志', '🛡️') }}
     {% endif %}

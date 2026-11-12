@@ -1,0 +1,30 @@
+{
+  "original_local_source_commit": "ebd6a26d0f6022428f708e5fd5226d2c9c7728aa",
+  "original_local_parent": "e96827ab9753014181dd59885f4cf967bc942a16",
+  "public_parent": "d0c139126d4ac14097718ffa002f601907f3a91b",
+  "changed_source_files": [
+    "README.md",
+    "app/api/v1/admin.py",
+    "app/api/v1/alerts.py",
+    "app/api/v1/health.py",
+    "app/services/admin_service.py",
+    "app/services/alert_service.py",
+    "app/services/health_service.py",
+    "app/templates/admin/audit.html",
+    "app/templates/alerts/detail.html",
+    "app/templates/health/detail.html",
+    "app/templates/index.html",
+    "app/web/routes.py",
+    "docs/CONTRACTS.md",
+    "docs/chuanzhi/AI协同与演进索引.md",
+    "docs/chuanzhi/健康预警权限状态与追溯.md",
+    "scripts/build_chuanzhi_submission.py",
+    "tests/integration/test_alert_assurance_pages.py",
+    "tests/integration/test_alert_lifecycle_contract.py",
+    "tests/integration/test_alert_traceability.py",
+    "tests/integration/test_alert_transition_matrix.py",
+    "tests/integration/test_health_alert_permissions.py",
+    "tests/integration/test_web_smoke.py"
+  ],
+  "notice": "Actual user follow-up; app/tests preserved byte-for-byte in Git; synthetic isolated verification only."
+}

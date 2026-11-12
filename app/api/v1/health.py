@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -58,6 +58,7 @@ class DeviceBindIn(BaseModel):
 @router.post("/health/metrics", summary="录入单条健康指标")
 def create_metric(
     payload: MetricCreateIn,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require("health:write")),
 ) -> dict:
@@ -77,6 +78,7 @@ def create_metric(
         device_id=payload.device_id,
         work_order_id=payload.work_order_id,
         recorded_by=user.id,
+        request=request,
     )
     return ok(result, message="录入成功")
 
@@ -84,6 +86,7 @@ def create_metric(
 @router.post("/health/metrics/batch", summary="批量录入健康指标")
 def create_metrics_batch(
     payload: MetricBatchIn,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require("health:write")),
 ) -> dict:
@@ -95,6 +98,7 @@ def create_metrics_batch(
         payload.items,
         operator_id=user.id,
         user=user,
+        request=request,
     )
     return ok(result, message=f"批量录入完成：成功 {result['success']} 条")
 

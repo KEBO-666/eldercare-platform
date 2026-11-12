@@ -108,14 +108,15 @@ def test_role_menus_differ(client, accounts):
     assert "统计看板" not in body
     assert "费用账单" not in body
 
-    # 老人/家属：我的预约、我的账单、我的健康，没有老人档案库与系统管理
+    # 老人/家属：按默认授权显示预约和账单，无 health:read 则不显示健康入口。
     resp = page_login(client, "elder")
     assert resp.status_code == 303
     body = client.get("/").text
     assert "老人/家属" in body
     assert "我的预约" in body
     assert "我的账单" in body
-    assert "我的健康" in body
+    assert "我的健康" not in body
+    assert client.get("/monitoring").status_code == 403
     assert "老人档案" not in body
     assert "用户管理" not in body
 

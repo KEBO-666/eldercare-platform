@@ -235,7 +235,9 @@ def test_escalation_includes_referred_open_at_deadline_but_never_closed(db, acco
     before = counts(db)
     with freeze_time(NOW + timedelta(minutes=31)):
         assert alert_service.scan_alerts(db)['escalated'] == 0
-    assert counts(db) == before
+    # A repeated scan adds its own execution audit, without repeating actions or notifications.
+    after = counts(db)
+    assert after == [before[0], before[1] + 1, before[2]]
 
 
 def test_scan_notification_failure_can_be_caught_without_partial_escalation(db, accounts, monkeypatch):

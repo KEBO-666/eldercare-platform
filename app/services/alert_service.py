@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Request
-from sqlalchemy import case, exists, func, select
+from sqlalchemy import case, exists, func, select, update
 from sqlalchemy.orm import Session
 
 from app.algorithms.alert_rules import is_silent, rule_matches
@@ -488,6 +488,15 @@ def serialize_action(action: AlertAction) -> dict[str, Any]:
     }
 
 
+def _audit_snapshot(db: Session, alert: Alert) -> dict[str, Any]:
+    """Keep the state and full disposition text in the protected audit trail."""
+    data = serialize_alert(db, alert)
+    keys = ("id", "elder_id", "level", "summary", "status", "lifecycle_status", "closed", "first_responded_at",
+            "closed_at", "closure_seconds", "response_seconds", "handling_seconds", "resolution_type",
+            "measure", "resolution_note", "resolved_at", "resolved_by", "escalated_at")
+    return {key: data[key] for key in keys}
+
+
 # ---------------------------------------------------------------- 数据范围
 def _scoped_stmt(db: Session, user: User, stmt):
     """先按通用数据范围过滤，再收敛到可见老人（Alert 表无组织字段）。"""
@@ -618,6 +627,7 @@ def _create_alert(
     metric_value: float | None = None,
     detail: dict[str, Any] | None = None,
     operator_id: int | None = None,
+    request: Request | None = None,
 ) -> Alert:
     escalate = rule.escalate_minutes if rule is not None and rule.escalate_minutes is not None else settings.alert_escalate_minutes
     level_value = str(level)
@@ -655,6 +665,10 @@ def _create_alert(
     if level_value == AlertLevel.RED.value:
         _write_sms_log(alert, elder, now)
     db.flush()
+    write_audit(db, user=db.get(User, operator_id) if operator_id else None,
+                action="create", entity_type="alert", entity_id=alert.id,
+                after={**_audit_snapshot(db, alert), "source": detail, "summary": alert.summary},
+                detail="生成健康预警并记录通知", request=request)
     return alert
 
 
@@ -841,19 +855,24 @@ def _escalate_overdue(db: Session, now: datetime) -> int:
     followed_up = exists(select(AlertAction.id).where(
         AlertAction.alert_id == Alert.id, AlertAction.action_type == "followup_close",
     ))
+    conditions = (
+        Alert.status.in_((AlertStatus.PENDING.value, AlertStatus.REFERRED.value)),
+        ~followed_up, Alert.deadline_at.is_not(None), Alert.deadline_at <= now,
+        Alert.escalated_at.is_(None),
+    )
     overdue_alerts = db.execute(
         select(Alert)
-        .where(
-            Alert.status.in_((AlertStatus.PENDING.value, AlertStatus.REFERRED.value)),
-            ~followed_up,
-            Alert.deadline_at.is_not(None),
-            Alert.deadline_at <= now,
-            Alert.escalated_at.is_(None),
-        )
+        .where(*conditions)
         .order_by(Alert.id.asc())
     ).scalars().all()
     escalated = 0
     for alert in overdue_alerts:
+        locked = db.execute(update(Alert).where(Alert.id == alert.id, *conditions)
+                            .values(updated_at=Alert.updated_at).execution_options(synchronize_session=False))
+        if locked.rowcount != 1:
+            continue
+        db.refresh(alert)
+        before = _audit_snapshot(db, alert)
         elder = db.get(Elder, alert.elder_id) if alert.elder_id else None
         street_id = _street_org_id(db, elder)
         alert.escalated_at = now
@@ -870,14 +889,22 @@ def _escalate_overdue(db: Session, now: datetime) -> int:
             )
         )
         _notify_escalation(db, elder, alert, now, street_id)
+        db.flush()
+        write_audit(db, user=None, action="escalate", entity_type="alert", entity_id=alert.id,
+                    before=before, after=_audit_snapshot(db, alert), detail="未闭环预警超时升级至街道")
         escalated += 1
     return escalated
 
 
-def scan_alerts(db: Session, now: datetime | None = None) -> dict[str, int]:
+def scan_alerts(
+    db: Session, now: datetime | None = None, *, user: User | None = None, request: Request | None = None,
+) -> dict[str, int]:
     with db.begin_nested():
         _ensure_default_rules(db)
         result = _scan_alerts(db, now)
+        write_audit(db, user=user, action="scan", entity_type="alert_scan",
+                    after={**result, "trigger": "manual" if user else "scheduled"},
+                    detail="手动扫描健康预警" if user else "系统扫描健康预警", request=request)
     db.commit()
     return result
 
@@ -1005,10 +1032,7 @@ def ack_alert(
 
 
 def _ack_alert(db: Session, user: User, alert_id: int, request: Request | None = None) -> dict[str, Any]:
-    stmt = _scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id))
-    alert = db.execute(stmt).scalar_one_or_none()
-    if alert is None:
-        raise NotFound("预警不存在或无权访问")
+    alert = _get_scoped_alert(db, user, alert_id)
     if str(alert.status) != AlertStatus.PENDING.value:
         raise Conflict("预警已转诊或闭环，无法确认响应")
     now = utcnow()
@@ -1016,6 +1040,7 @@ def _ack_alert(db: Session, user: User, alert_id: int, request: Request | None =
                                                    AlertAction.action_type == "ack").order_by(AlertAction.id)).first()
     if existing is not None or alert.response_seconds is not None:
         return {**serialize_alert(db, alert, include_actions=True, now=now), "already_acknowledged": True}
+    before = _audit_snapshot(db, alert)
     start = alert.pushed_at or alert.created_at or now
     if alert.response_seconds is None:
         alert.response_seconds = max(0, int((now - start).total_seconds()))
@@ -1030,13 +1055,15 @@ def _ack_alert(db: Session, user: User, alert_id: int, request: Request | None =
             action_at=now,
         )
     )
+    db.flush()
     write_audit(
         db,
         user=user,
         action="ack",
         entity_type="alert",
         entity_id=alert.id,
-        after={"response_seconds": alert.response_seconds},
+        before=before,
+        after=_audit_snapshot(db, alert),
         detail="确认响应预警",
         request=request,
     )
@@ -1073,15 +1100,12 @@ def _handle_alert(
     if not (measure or note) or len(measure) > 2000 or len(note) > 255:
         raise RuleViolation("处置措施或备注至少填写一项；措施不超过2000字，备注不超过255字")
 
-    stmt = _scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id))
-    alert = db.execute(stmt).scalar_one_or_none()
-    if alert is None:
-        raise NotFound("预警不存在或无权访问")
+    alert = _get_scoped_alert(db, user, alert_id)
 
-    now = utcnow()
-    before = {"status": str(alert.status), "resolution_type": alert.resolution_type}
+    before = _audit_snapshot(db, alert)
     target = ALERT.next(str(alert.status), action)
     _ack_alert(db, user, alert_id, request)
+    now = utcnow()
     alert.status = target
     alert.resolution_type = resolution
     alert.measure = (measure or "").strip() or None
@@ -1108,12 +1132,7 @@ def _handle_alert(
         entity_type="alert",
         entity_id=alert.id,
         before=before,
-        after={
-            "status": str(alert.status),
-            "resolution_type": resolution,
-            "measure": alert.measure,
-            "handling_seconds": alert.handling_seconds,
-        },
+        after=_audit_snapshot(db, alert),
         detail="登记预警处置结果",
         request=request,
     )
@@ -1158,17 +1177,26 @@ def _required_note(note: str) -> str:
 
 
 def _get_scoped_alert(db: Session, user: User, alert_id: int) -> Alert:
-    alert = db.scalar(_scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id)))
+    # Acquire a write lock before reading the current state. The no-op update
+    # also serializes SQLite writers, where SELECT FOR UPDATE is ignored.
+    allowed = _scoped_stmt(db, user, select(Alert.id).where(Alert.id == alert_id))
+    db.execute(update(Alert).where(Alert.id.in_(allowed)).values(updated_at=Alert.updated_at)
+               .execution_options(synchronize_session=False))
+    alert = db.scalar(_scoped_stmt(db, user, select(Alert).where(Alert.id == alert_id))
+                      .with_for_update().execution_options(populate_existing=True))
     if alert is None:
         raise NotFound("预警不存在或无权访问")
     return alert
 
 
 def _append_tracking(db: Session, user: User, alert: Alert, action: str, note: str, request: Request | None) -> None:
+    before = _audit_snapshot(db, alert)
     db.add(AlertAction(alert_id=alert.id, action_type=action, channel="inapp", operator_id=user.id,
                        note=note, action_at=utcnow()))
+    db.flush()
     write_audit(db, user=user, action=action, entity_type="alert", entity_id=alert.id,
-                after={"status": alert.status, "note": note}, detail="记录预警处置追踪", request=request)
+                before=before, after={**_audit_snapshot(db, alert), "note": note},
+                detail="记录预警处置追踪", request=request)
     db.flush()
 
 
@@ -1185,7 +1213,7 @@ def report_alert(
             raise NotFound("老人档案不存在")
         ensure_elder_visible(db, user, elder_id)
         alert = _create_alert(db, elder=elder, rule=None, level=level, summary=summary, now=utcnow(),
-                              detail={"source": "manual_report", "note": note}, operator_id=user.id)
+                              detail={"source": "manual_report", "note": note}, operator_id=user.id, request=request)
         _append_tracking(db, user, alert, "report", note, request)
         data = serialize_alert(db, alert, include_actions=True)
     db.commit()
