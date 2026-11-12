@@ -1,7 +1,7 @@
 # 社区智慧养老服务与健康监测平台
 
-> **传智杯参赛材料｜本科B组｜2132417｜唐克波**  
-> [技术文档 PDF](submission/2132417-唐克波-技术文档.pdf) · [演示视频 MP4](submission/2132417-唐克波-演示视频.mp4) · [公开版本与历史说明](docs/chuanzhi/公开版本说明.md) · [AI协同证据](docs/chuanzhi/AI协同与演进索引.md) · [验证原始产物](submission/verification/)  
+> **传智杯参赛材料｜本科B组｜2132417｜唐克波**<br>
+> [技术文档 PDF](submission/2132417-唐克波-技术文档.pdf) · [演示视频 MP4](submission/2132417-唐克波-演示视频.mp4) · [公开版本与历史说明](docs/chuanzhi/公开版本说明.md) · [AI协同证据](docs/chuanzhi/AI协同与演进索引.md) · [验证原始产物](submission/verification/)<br>
 > 已通过410项测试、89.14%覆盖率及28项Edge检查。公开历史是排除运行数据和缓存后的独立过滤副本，原/公开哈希映射见[commit-map.json](submission/commit-map.json)。
 
 
