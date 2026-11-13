@@ -234,13 +234,6 @@
         });
     };
 
-    /* ---------------- 侧边栏 ---------------- */
-    App.toggleSidebar = function () {
-        var el = document.getElementById("sidebar");
-        if (el) { el.classList.toggle("open"); }
-    };
-    window.toggleSidebar = App.toggleSidebar;
-
     /* ---------------- 简易表单提交 ---------------- */
     App.formToJson = function (form) {
         var data = {};

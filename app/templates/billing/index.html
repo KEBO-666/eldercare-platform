@@ -81,7 +81,7 @@
                 <td class="num">{{ bill.subsidy_amount|money }}</td>
                 <td class="num">{{ bill.ltc_amount|money }}</td>
                 <td class="num">{{ bill.self_pay_amount|money }}</td>
-                <td class="num" {% if (bill.diff_ratio or 0) > diff_threshold %}style="color:#b3261e;font-weight:800"{% endif %}>
+                <td class="num{% if (bill.diff_ratio or 0) > diff_threshold %} amount-warning{% endif %}">
                     {{ (bill.diff_ratio or 0)|pct(2) }}
                 </td>
                 <td><span class="badge {{ BILL_STATUS_BADGE.get(bill.status, 'badge-gray') }}">{{ BILL_STATUS_NAMES.get(bill.status, bill.status) }}</span></td>

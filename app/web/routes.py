@@ -390,6 +390,8 @@ def _base_ctx(
         "notice_type": notice_type,
         "now": datetime.now(),
         "perms": _perm_codes(user) if user else set(),
+        "ui_theme": {"elder": "warm", "nurse": "care", "grid": "blue", "org_admin": "blue",
+                     "street": "night", "super": "night"}.get(_role_code(user), "blue") if user else "blue",
     }
     ctx.update(extra)
     return ctx
@@ -491,7 +493,11 @@ def _build_nav(user: User | None) -> list[dict[str, Any]]:
     for item in NAV_DEFS:
         if role not in item["roles"]:
             continue
-        permission = {"alerts": "alert:read", "health": "health:read", "admin_audit": "admin:audit"}.get(item.get("key"))
+        permission = {"elders": "elder:read", "appointments": "appointment:read", "dispatch": "order:dispatch",
+                      "orders": "order:read", "alerts": "alert:read", "health": "health:read",
+                      "billing": "bill:read", "stats": "stats:read", "admin_users": "admin:user",
+                      "admin_orgs": "admin:org", "admin_audit": "admin:audit", "admin_backup": "admin:backup",
+                      "admin_config": "admin:config"}.get(item.get("key"))
         if permission and not _has_perm(user, permission):
             continue
         if item.get("divider"):
@@ -806,18 +812,16 @@ def dashboard(
         *alert_conds,
     )
     last_month = (now.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
-    bill_total = _scalar(
-        db,
-        select(func.coalesce(func.sum(Bill.total_amount), 0)).where(Bill.period == last_month),
-        0,
-    )
-    bill_unpaid = _scalar(
-        db,
-        select(func.coalesce(func.sum(Bill.self_pay_amount), 0)).where(
-            Bill.period == last_month, Bill.status.in_([BillStatus.CONFIRMED.value, BillStatus.PENDING_REVIEW.value])
-        ),
-        0,
-    )
+    bill_total = bill_unpaid = Decimal("0")
+    if _has_perm(user, "bill:read"):
+        from app.services import billing_service
+
+        visible_bills = _rows(db, billing_service._bill_scope(select(Bill).where(Bill.period == last_month), user, db))
+        for bill in visible_bills:
+            view = billing_service.bill_view(db, bill, user)
+            bill_total += Decimal(str(view["total_amount"]))
+            if bill.status in (BillStatus.CONFIRMED.value, BillStatus.PENDING_REVIEW.value):
+                bill_unpaid += Decimal(str(view["self_pay_amount"]))
     elders_total = _scoped_count(db, Elder, user, Elder.is_deleted == 0)
 
     cards: list[dict[str, Any]] = []
@@ -890,8 +894,9 @@ def dashboard(
             },
         ]
 
-    if not can_alert_read:
-        cards = [card for card in cards if card.get("url") != "/alerts"]
+    card_permissions = {"/orders": "order:read", "/appointments": "appointment:read",
+                        "/alerts": "alert:read", "/billing": "bill:read"}
+    cards = [card for card in cards if _has_perm(user, card_permissions[card["url"]])]
 
     # ---- 趋势图（近 14 天） ----
     order_rows = _rows(
@@ -1818,6 +1823,8 @@ def billing_page(
 ) -> Response:
     if user is None:
         return _login_redirect(request)
+    if not _has_perm(user, "bill:read"):
+        return _error_page(request, user, "无权查看", "您没有查看账单的权限。", status_code=403)
 
     from types import SimpleNamespace
 

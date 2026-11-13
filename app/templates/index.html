@@ -15,7 +15,7 @@
 {% if red_alerts and red_alerts > 0 %}
 <div class="notice danger">
     🚨 当前有 <strong>{{ red_alerts }}</strong> 条<strong>红色预警</strong>待处置，请按对应预警的截止时间优先处理。
-    <a class="btn btn-danger btn-sm" href="/alerts?level=red&amp;status=pending">立即前往处置</a>
+    <a class="btn btn-danger btn-sm" href="/alerts?level=red&amp;status=pending">{{ '立即前往处置' if 'alert:handle' in perms or '*' in perms else '查看预警进展' }}</a>
 </div>
 {% endif %}
 
@@ -72,7 +72,7 @@
                         <td>{{ (alert_elders.get(alert.elder_id).name if alert_elders.get(alert.elder_id) else '-')|mask_name }}</td>
                         <td>{{ alert.summary or (METRIC_NAMES.get(alert.metric_code, alert.metric_code or '') ~ ' ' ~ (alert.metric_value or '')) }}</td>
                         <td class="small">{{ alert.created_at|short }}</td>
-                        <td><a class="btn btn-secondary btn-sm" href="/alerts?level={{ alert.level }}&amp;status=pending">处置</a></td>
+                        <td><a class="btn btn-secondary btn-sm" href="/alerts?level={{ alert.level }}&amp;status=pending">{{ '处置' if 'alert:handle' in perms or '*' in perms else '查看' }}</a></td>
                     </tr>
                     {% endfor %}
                     </tbody>
@@ -142,21 +142,21 @@
     </div>
     <div class="card-body">
         <div class="btn-row">
-            {% if role in ('elder', 'grid', 'org_admin', 'super') %}
+            {% if 'appointment:create' in perms or '*' in perms %}
                 <a class="btn btn-primary" href="/appointments/new">＋ 提交预约</a>
             {% endif %}
-            {% if role in ('nurse', 'grid', 'org_admin', 'street', 'super') %}
-                <a class="btn btn-secondary" href="/elders">👵 老人档案</a>
+            {% if 'elder:read' in perms or '*' in perms %}
+                <a class="btn btn-secondary" href="/elders">👵 {{ '我的档案' if role == 'elder' else '老人档案' }}</a>
             {% endif %}
-            {% if role in ('grid', 'super') %}
+            {% if 'order:dispatch' in perms or '*' in perms %}
                 <a class="btn btn-secondary" href="/dispatch">🧭 智能派单</a>
             {% endif %}
-            <a class="btn btn-secondary" href="/orders">🧰 工单</a>
+            {% if 'order:read' in perms or '*' in perms %}<a class="btn btn-secondary" href="/orders">🧰 工单</a>{% endif %}
             {% if can_alert_read %}<a class="btn btn-secondary" href="/alerts">🚨 预警</a>{% endif %}
-            {% if role in ('grid', 'org_admin', 'street', 'super') %}
+            {% if 'stats:read' in perms or '*' in perms %}
                 <a class="btn btn-secondary" href="/stats">📊 统计看板</a>
             {% endif %}
-            {% if role in ('street', 'super') %}
+            {% if 'admin:audit' in perms or '*' in perms %}
                 <a class="btn btn-ghost" href="/admin/audit">🛡️ 审计日志</a>
             {% endif %}
             <a class="btn btn-ghost" href="/login">⇄ 切换账号</a>
