@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "duration_seconds": 429.02,
+  "resolution": "1920x1080",
+  "decode_all_frames": "passed",
+  "evidence_replay_seconds": 122,
+  "live_evidence_checks": true,
+  "video_sha256": "a6607f5bf249ffd3df36a190bd039fe050f22c8c788925baa41860c4146464c5",
+  "pdf_pages": 19,
+  "pdf_sha256": "7a3c66670b8f993953c8be478d6c4a79ab5593a5a7d33ae80c4c59db239d58a5",
+  "pdf_text_check": "passed",
+  "visual_review": "passed: all 19 rendered pages inspected; no clipped text, table overlap or missing glyphs",
+  "contact_sheet": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-video-qa\\contact.png",
+  "notice": "New PDF and original conversation chains synchronized; video remains the Nov12 snapshot. Format checks do not certify contest eligibility.",
+  "video_qa_scope": "existing Nov12 full decode and sampled-frame checks retained; unchanged MP4 hash rechecked Nov13"
+}

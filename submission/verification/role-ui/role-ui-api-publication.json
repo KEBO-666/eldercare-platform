@@ -1,0 +1,9 @@
+{
+  "transport": "GitHub REST Git API after git HTTPS network failure",
+  "parent": "bdf845d1aeb88158e194bfd5fd57b31a847808f7",
+  "prepared_public_commit": "22cae48d5784d823b0924110759ffab12ad20e36",
+  "public_commit": "8a8e726e78f600202c5456f447a7ed370caf7693",
+  "reviewed_tree_unchanged": "ef420a21d74adc0608c4b7cc48dc03461d62d68f",
+  "blob_uploads": 16,
+  "force": false
+}

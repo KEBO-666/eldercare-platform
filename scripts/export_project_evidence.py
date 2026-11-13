@@ -36,13 +36,24 @@ def export_evidence(source: Path, start: int, end: int, output: Path) -> dict[st
     records: list[dict[str, Any]] = []
     exclusions: Counter[str] = Counter()
     redactions: Counter[str] = Counter()
+    credential_call_ids = set()
+    for line in lines[start - 1:end]:
+        row = json.loads(line)
+        payload = row.get("payload", {})
+        if row.get("type") == "response_item" and payload.get("type") in {"custom_tool_call", "function_call"}:
+            arguments = str(payload.get("input", payload.get("arguments", "")))
+            if re.search(r"(?i)auth\.json|credential.{0,40}fill|credential.{0,40}reject|credentials?\.json", arguments):
+                credential_call_ids.add(payload.get("call_id"))
 
     def clean(text: str) -> str:
         patterns = {
             "jwt": r"\beyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}\b",
             "api_key": r"\b(?:sk|ghp|github_pat)[-_][A-Za-z0-9_-]{20,}\b",
+            "github_oauth_token": r"\bgh[ousr]_[A-Za-z0-9_]{20,}\b",
             "private_key": r"-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----",
             "unavailable_encrypted_text": r"\bgAAAA[A-Za-z0-9_=-]{60,}",
+            "credential_url": r"(?:https?|postgres(?:ql)?(?:\+[A-Za-z0-9]+)?|mysql)://[A-Za-z0-9_.%+-]+:[A-Za-z0-9_.%+!~*-]+@",
+            "authorization_literal": r"(?i)\b(?:Bearer|Basic) [A-Za-z0-9_+/.=-]{24,}",
         }
         for name, pattern in patterns.items():
             text, count = re.subn(pattern, "[REDACTED:" + name + "]", text)
@@ -69,6 +80,12 @@ def export_evidence(source: Path, start: int, end: int, output: Path) -> dict[st
             continue
         payload = row.get("payload", {})
         kind = payload.get("type")
+        if row.get("metadata", {}).get("compaction_output"):
+            exclusions["internal_compaction_summary"] += 1
+            continue
+        if payload.get("call_id") and payload.get("call_id") in credential_call_ids:
+            exclusions["credential_access_tool_record"] += 1
+            continue
         base = {
             "timestamp": row.get("timestamp"), "source_line": number,
             "source_record_sha256": digest(lines[number - 1]), "type": kind,
@@ -129,6 +146,7 @@ def export_evidence(source: Path, start: int, end: int, output: Path) -> dict[st
             "Replacement characters, if present in source text, are retained without reconstruction.",
             "Transcript evidence does not create missing fine-grained Git history.",
             "Encrypted inter-agent text cannot be recovered and is omitted, never reconstructed as raw evidence.",
+            "Internal compaction summaries and credential access tool records are excluded.",
         ],
     }
     (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "cutoff_source_line": 5205,
+  "records": 942,
+  "user_prompts": 12,
+  "checks": [
+    {
+      "chain": "appointment",
+      "records": 183,
+      "user_prompts": 2,
+      "source_and_export_hashes": "passed",
+      "compaction_and_internal_roles_excluded": true,
+      "sensitive_literal_patterns": "no matches",
+      "exact_user_prompt_anchors": "passed"
+    },
+    {
+      "chain": "dispatch",
+      "records": 239,
+      "user_prompts": 2,
+      "source_and_export_hashes": "passed",
+      "compaction_and_internal_roles_excluded": true,
+      "sensitive_literal_patterns": "no matches",
+      "exact_user_prompt_anchors": "passed"
+    },
+    {
+      "chain": "health-alert",
+      "records": 348,
+      "user_prompts": 3,
+      "source_and_export_hashes": "passed",
+      "compaction_and_internal_roles_excluded": true,
+      "sensitive_literal_patterns": "no matches",
+      "exact_user_prompt_anchors": "passed"
+    },
+    {
+      "chain": "role-ui",
+      "records": 170,
+      "user_prompts": 4,
+      "source_and_export_hashes": "passed",
+      "compaction_and_internal_roles_excluded": true,
+      "sensitive_literal_patterns": "no matches",
+      "exact_user_prompt_anchors": "passed"
+    },
+    {
+      "chain": "sync-request",
+      "records": 2,
+      "user_prompts": 1,
+      "source_and_export_hashes": "passed",
+      "compaction_and_internal_roles_excluded": true,
+      "sensitive_literal_patterns": "no matches",
+      "exact_user_prompt_anchors": "passed"
+    }
+  ],
+  "scope": "Verifies exported visible records and lexical sensitive patterns; does not certify contest eligibility or recover excluded encrypted/media content."
+}

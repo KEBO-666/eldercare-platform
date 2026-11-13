@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ENTRY = "2132417"
 NAME = "唐克波"
 SOURCE_DIRS = ("app", "scripts", "tests", "docs", "docker")
-SOURCE_FILES = ("README.md", "requirements.txt", "pyproject.toml", "pytest.ini", ".env.example", ".gitignore")
+SOURCE_FILES = ("README.md", "requirements.txt", "pyproject.toml", "pytest.ini", ".env.example", ".gitignore", ".gitattributes")
 EXCLUDED_PARTS = {
     ".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".ruff_cache",
     "node_modules", "uploads", "backups", "pip-cache", "tmp", "authoring-venv",
@@ -117,6 +117,10 @@ def collect_sources(root: Path, browser_run: Path | None = None) -> tuple[dict[s
                     add(path)
     add(reports / "chuanzhi-pdf" / "qa.json")
     add(reports / "chuanzhi-artifacts-qa.json")
+    # Reviewed latest UI evidence is copied from isolated synthetic browser runs.
+    for path in (reports / "role-ui-final").rglob("*"):
+        if path.is_file() and path.suffix.lower() in REPORT_EXTENSIONS:
+            add(path)
     # New appointment iteration: only explicit review evidence, never exported source/DB/venv.
     add(reports / "appointment-iteration-summary.json")
     for name in ("appointment-iteration-targeted.xml", "appointment-iteration-regression.xml"):
@@ -218,9 +222,9 @@ Python需预安装；首次运行安装依赖并初始化合成演示数据。�
 
 ## 必须保留的说明
 
-公开仓库：https://github.com/KEBO-666/eldercare-platform 。发布状态、匿名访问实测和版本关系见`docs/chuanzhi/GitHub发布记录.md`。公开仓库采用独立过滤副本，排除全部历史中的运行数据与缓存，原本地仓库保留；本包不含`.git`或Git bundle，不能替代真实细粒度历史。旧PDF/视频中的未发布表述是发布前快照，以发布记录为准。
+公开仓库：https://github.com/KEBO-666/eldercare-platform 。发布状态、匿名访问实测和版本关系见`docs/chuanzhi/GitHub发布记录.md`。公开仓库采用独立过滤副本，排除全部历史中的运行数据与缓存，原本地仓库保留；本包不含`.git`或Git bundle，不能替代真实细粒度历史。技术PDF已同步2026年11月13日后续功能与角色UI；视频保留11月12日快照，尚未补录最新UI。
 
-已取得真实优化轮及三个核心主题的索引，尚未证实三条独立完整人类Prompt链。部分委派正文在本地会话中为加密内容；导出未解密、未伪造。请阅读`docs/chuanzhi/AI协同与演进索引.md`。
+已整理预约、智能派单、健康预警三条真实用户需求—后续反馈—修复—验证链，完整可见导出与来源行号、时间、哈希见`docs/chuanzhi/三条完整AI迭代证据链.md`。另含角色UI需求、方案选择与交付记录。部分早期委派正文不可读，导出未解密、未重建；原始推理、内部压缩摘要及认证操作不纳入公开证据。早期粗粒度Git历史仍如实披露。
 
 设备数据及短信通知含模拟实现；实际验证范围、未完成功能和规则事项见`docs/chuanzhi/来源与能力边界.md`、`规则核实与时间线.md`及`提交核对.md`。
 

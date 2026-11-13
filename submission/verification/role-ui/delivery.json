@@ -1,0 +1,26 @@
+{
+  "source_commit": "b3ae886446efb7e886eb7d94717cfcc262affc64",
+  "public_commit": "8a8e726e78f600202c5456f447a7ed370caf7693",
+  "anonymous_api_source_matches": true,
+  "public_remote_head_matches": true,
+  "app_and_tests_blobs_equal": true,
+  "pytest": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "685",
+    "time": "498.073",
+    "timestamp": "2026-11-13T13:31:31.973477+08:00",
+    "hostname": "WIN-E4PFKRRQD8U"
+  },
+  "coverage_percent": 90.33,
+  "frontend_tests": 121,
+  "zip_verification": {
+    "archive_members": 508,
+    "hashed_files": 507,
+    "missing_artifacts": [],
+    "crc_and_sha256": "passed"
+  },
+  "zip_sha256": "e59e004f2418c11cf17c598df38b113d30b9532c5095231eb2bf6595c10f7605"
+}

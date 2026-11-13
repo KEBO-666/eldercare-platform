@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "elder closed mobile sidebar has no leaking shadow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "nurse closed mobile sidebar has no leaking shadow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "grid closed mobile sidebar has no leaking shadow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "super closed mobile sidebar has no leaking shadow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super no console errors or warnings",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "screenshots": [],
+  "base_url": "http://127.0.0.1:57961",
+  "browser": "real Edge headless",
+  "fallback_reason": "Browser plugin not available",
+  "matrix_evidence": "20261113-133156/result.json (344/344)",
+  "scope": "final pie labels/legend, stat-card spacing, read-only alert copy; refresh four theme homes",
+  "check_count": 8,
+  "failed_count": 0
+}

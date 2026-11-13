@@ -1,0 +1,108 @@
+{
+  "pdf": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\output\\pdf\\2132417-唐克波-技术文档.pdf",
+  "page_count": 19,
+  "source": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\docs\\chuanzhi\\技术文档.md",
+  "pages": [
+    {
+      "page": 1,
+      "text_characters": 297,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-01.png"
+    },
+    {
+      "page": 2,
+      "text_characters": 418,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-02.png"
+    },
+    {
+      "page": 3,
+      "text_characters": 420,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-03.png"
+    },
+    {
+      "page": 4,
+      "text_characters": 519,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-04.png"
+    },
+    {
+      "page": 5,
+      "text_characters": 437,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-05.png"
+    },
+    {
+      "page": 6,
+      "text_characters": 449,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-06.png"
+    },
+    {
+      "page": 7,
+      "text_characters": 435,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-07.png"
+    },
+    {
+      "page": 8,
+      "text_characters": 428,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-08.png"
+    },
+    {
+      "page": 9,
+      "text_characters": 431,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-09.png"
+    },
+    {
+      "page": 10,
+      "text_characters": 440,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-10.png"
+    },
+    {
+      "page": 11,
+      "text_characters": 493,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-11.png"
+    },
+    {
+      "page": 12,
+      "text_characters": 219,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-12.png"
+    },
+    {
+      "page": 13,
+      "text_characters": 420,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-13.png"
+    },
+    {
+      "page": 14,
+      "text_characters": 455,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-14.png"
+    },
+    {
+      "page": 15,
+      "text_characters": 552,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-15.png"
+    },
+    {
+      "page": 16,
+      "text_characters": 685,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-16.png"
+    },
+    {
+      "page": 17,
+      "text_characters": 544,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-17.png"
+    },
+    {
+      "page": 18,
+      "text_characters": 411,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-18.png"
+    },
+    {
+      "page": 19,
+      "text_characters": 512,
+      "image": "D:\\Program Files (x86)\\巅峰\\python\\eldercare-platform\\reports\\chuanzhi-pdf\\page-19.png"
+    }
+  ],
+  "renderer": "PyMuPDF (Poppler unavailable)",
+  "visual_review": "passed: all 19 rendered pages inspected; no clipped text, table overlap or missing glyphs",
+  "pdf_sha256": "7a3c66670b8f993953c8be478d6c4a79ab5593a5a7d33ae80c4c59db239d58a5",
+  "text_check": "passed",
+  "text_bounds": "passed",
+  "page_limit": "passed"
+}

@@ -1,0 +1,23 @@
+{
+  "source_commit": "b3ae886446efb7e886eb7d94717cfcc262affc64",
+  "public_parent": "bdf845d1aeb88158e194bfd5fd57b31a847808f7",
+  "source_files": [
+    "README.md",
+    "app/static/css/role-themes.css",
+    "app/static/img/favicon.svg",
+    "app/static/js/app.js",
+    "app/static/js/charts.js",
+    "app/static/js/navigation.js",
+    "app/templates/auth/login.html",
+    "app/templates/billing/index.html",
+    "app/templates/errors/error.html",
+    "app/templates/index.html",
+    "app/templates/layouts/base.html",
+    "app/templates/partials/icons.html",
+    "app/web/routes.py",
+    "docs/chuanzhi/身份主题与基础组件优化.md",
+    "tests/frontend/charts.test.cjs",
+    "tests/integration/test_role_ui_contract.py"
+  ],
+  "note": "Role-based UI component restyle; accepted A/B/C/D; tests use synthetic isolated fixtures."
+}

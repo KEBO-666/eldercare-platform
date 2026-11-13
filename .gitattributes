@@ -1,2 +1,7 @@
-# Preserve original verification artifact bytes on every platform.
-submission/** -text
+# Preserve exported evidence bytes so manifest SHA-256 survives Git checkout.
+docs/chuanzhi/evidence/history/2026-11-13-complete-iterations/** -text
+reports/role-ui-final/** -text
+reports/chuanzhi-pdf/qa.json -text
+reports/chuanzhi-artifacts-qa.json -text
+submission/verification/role-ui/** -text
+submission/verification/materials-20261113/** -text

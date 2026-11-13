@@ -1,0 +1,150 @@
+{
+  "scope": "Three full functional iteration ranges, role UI and latest synchronization request; cutoff before current evidence task delegation. Old snapshots preserved.",
+  "cutoff_source_line": 5205,
+  "chains": [
+    {
+      "name": "appointment",
+      "lines": [
+        1470,
+        2209
+      ],
+      "records": 183,
+      "user_messages": 2,
+      "redactions": {
+        "jwt": 0,
+        "api_key": 0,
+        "github_oauth_token": 0,
+        "private_key": 0,
+        "unavailable_encrypted_text": 20,
+        "credential_url": 0,
+        "authorization_literal": 0
+      },
+      "exclusions": {
+        "event_msg": 334,
+        "token_usage_record": 87,
+        "reasoning": 67,
+        "inter_agent_communication_metadata": 31,
+        "agent_message": 31,
+        "non_text_content": 6,
+        "turn_context": 3,
+        "internal_compaction_summary": 2,
+        "compacted": 1,
+        "world_state": 1
+      }
+    },
+    {
+      "name": "dispatch",
+      "lines": [
+        2210,
+        3166
+      ],
+      "records": 239,
+      "user_messages": 2,
+      "redactions": {
+        "jwt": 0,
+        "api_key": 0,
+        "github_oauth_token": 0,
+        "private_key": 0,
+        "unavailable_encrypted_text": 29,
+        "credential_url": 0,
+        "authorization_literal": 0
+      },
+      "exclusions": {
+        "event_msg": 407,
+        "token_usage_record": 115,
+        "reasoning": 77,
+        "inter_agent_communication_metadata": 56,
+        "agent_message": 56,
+        "non_text_content": 5,
+        "turn_context": 3,
+        "internal_compaction_summary": 2,
+        "compacted": 1,
+        "world_state": 1
+      }
+    },
+    {
+      "name": "health-alert",
+      "lines": [
+        3167,
+        4527
+      ],
+      "records": 348,
+      "user_messages": 3,
+      "redactions": {
+        "jwt": 0,
+        "api_key": 0,
+        "github_oauth_token": 0,
+        "private_key": 0,
+        "unavailable_encrypted_text": 36,
+        "credential_url": 0,
+        "authorization_literal": 0
+      },
+      "exclusions": {
+        "event_msg": 570,
+        "token_usage_record": 165,
+        "reasoning": 127,
+        "inter_agent_communication_metadata": 70,
+        "agent_message": 70,
+        "non_text_content": 3,
+        "credential_access_tool_record": 4,
+        "turn_context": 3,
+        "internal_compaction_summary": 1,
+        "compacted": 1,
+        "world_state": 1,
+        "message": 1
+      }
+    },
+    {
+      "name": "role-ui",
+      "lines": [
+        4532,
+        5201
+      ],
+      "records": 170,
+      "user_messages": 4,
+      "redactions": {
+        "jwt": 0,
+        "api_key": 0,
+        "github_oauth_token": 0,
+        "private_key": 0,
+        "unavailable_encrypted_text": 15,
+        "credential_url": 0,
+        "authorization_literal": 0
+      },
+      "exclusions": {
+        "event_msg": 298,
+        "reasoning": 63,
+        "token_usage_record": 80,
+        "non_text_content": 16,
+        "message": 1,
+        "world_state": 4,
+        "turn_context": 5,
+        "inter_agent_communication_metadata": 23,
+        "agent_message": 23,
+        "internal_compaction_summary": 2,
+        "compacted": 1
+      }
+    },
+    {
+      "name": "sync-request",
+      "lines": [
+        5202,
+        5205
+      ],
+      "records": 2,
+      "user_messages": 1,
+      "redactions": {
+        "jwt": 0,
+        "api_key": 0,
+        "github_oauth_token": 0,
+        "private_key": 0,
+        "unavailable_encrypted_text": 0,
+        "credential_url": 0,
+        "authorization_literal": 0
+      },
+      "exclusions": {
+        "event_msg": 2
+      }
+    }
+  ]
+}

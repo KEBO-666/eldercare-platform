@@ -1,0 +1,5184 @@
+{
+  "passed": true,
+  "base_url": "http://127.0.0.1:61004",
+  "browser": "Edge headless",
+  "browser_availability": "Absent",
+  "fallback_reason": "Browser plugin not available",
+  "flow": "six roles login -> themed home -> allowed list/form -> mobile menu and font interactions -> readable dialog and warnings",
+  "viewports": [
+    [
+      1440,
+      1000
+    ],
+    [
+      390,
+      900
+    ]
+  ],
+  "checks": [
+    {
+      "name": "elder actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/appointments",
+        "/orders",
+        "/alerts",
+        "/quality",
+        "/billing"
+      ]
+    },
+    {
+      "name": "elder protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/appointments",
+        "/orders",
+        "/alerts",
+        "/quality",
+        "/billing"
+      ]
+    },
+    {
+      "name": "elder/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 50,
+          "w": 137.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 50,
+          "w": 100.734375
+        },
+        {
+          "text": "处置",
+          "h": 70.1875,
+          "w": 51.171875
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 50,
+          "w": 134.453125
+        },
+        {
+          "text": "👵 我的档案",
+          "h": 50,
+          "w": 141.15625
+        },
+        {
+          "text": "🧰 工单",
+          "h": 50,
+          "w": 104.796875
+        },
+        {
+          "text": "🚨 预警",
+          "h": 50,
+          "w": 104.796875
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 50,
+          "w": 131.890625
+        }
+      ]
+    },
+    {
+      "name": "elder/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 50,
+          "w": 128
+        },
+        {
+          "text": "菜单",
+          "h": 50,
+          "w": 92
+        },
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 50,
+          "w": 137.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 50,
+          "w": 100.734375
+        },
+        {
+          "text": "处置",
+          "h": 70.1875,
+          "w": 46.1875
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 50,
+          "w": 134.453125
+        },
+        {
+          "text": "👵 我的档案",
+          "h": 50,
+          "w": 141.15625
+        },
+        {
+          "text": "🧰 工单",
+          "h": 50,
+          "w": 104.796875
+        },
+        {
+          "text": "🚨 预警",
+          "h": 50,
+          "w": 104.796875
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 50,
+          "w": 131.890625
+        }
+      ]
+    },
+    {
+      "name": "elder/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments",
+        "title": "预约服务 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 50,
+          "w": 124.453125
+        },
+        {
+          "text": "🔍 查询",
+          "h": 50,
+          "w": 104.078125
+        },
+        {
+          "text": "重置",
+          "h": 50,
+          "w": 74.375
+        },
+        {
+          "text": "取消",
+          "h": 50,
+          "w": 64
+        }
+      ]
+    },
+    {
+      "name": "elder/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments",
+        "title": "预约服务 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 50,
+          "w": 128
+        },
+        {
+          "text": "菜单",
+          "h": 50,
+          "w": 92
+        },
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 50,
+          "w": 124.453125
+        },
+        {
+          "text": "🔍 查询",
+          "h": 50,
+          "w": 104.078125
+        },
+        {
+          "text": "重置",
+          "h": 50,
+          "w": 74.375
+        },
+        {
+          "text": "取消",
+          "h": 70.1875,
+          "w": 46
+        }
+      ]
+    },
+    {
+      "name": "elder/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments/new",
+        "title": "提交预约 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "检查时段",
+          "h": 50,
+          "w": 110
+        },
+        {
+          "text": "✓ 提交预约",
+          "h": 50,
+          "w": 128.84375
+        },
+        {
+          "text": "返回列表",
+          "h": 50,
+          "w": 110.734375
+        }
+      ]
+    },
+    {
+      "name": "elder/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments/new",
+        "title": "提交预约 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "elder/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "warm"
+    },
+    {
+      "name": "elder/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 50,
+          "w": 128
+        },
+        {
+          "text": "菜单",
+          "h": 50,
+          "w": 92
+        },
+        {
+          "text": "退出",
+          "h": 50,
+          "w": 64.375
+        },
+        {
+          "text": "检查时段",
+          "h": 50,
+          "w": 110
+        },
+        {
+          "text": "✓ 提交预约",
+          "h": 50,
+          "w": 128.84375
+        },
+        {
+          "text": "返回列表",
+          "h": 50,
+          "w": 110.734375
+        }
+      ]
+    },
+    {
+      "name": "elder mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "elder font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#586a60",
+          "legend": "#586a60",
+          "tooltip": "#293d35",
+          "tooltipBg": "#fffefa",
+          "muted": "#586a60",
+          "text": "#293d35",
+          "surface": "#fffefa"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#586a60",
+          "tooltip": "#293d35",
+          "tooltipBg": "#fffefa",
+          "muted": "#586a60",
+          "text": "#293d35",
+          "surface": "#fffefa"
+        }
+      ]
+    },
+    {
+      "name": "elder all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "elder all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "elder native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 11.47654730141733,
+          "color": "rgb(41, 61, 53)",
+          "bg": [
+            255,
+            254,
+            250
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 11.47654730141733,
+          "color": "rgb(41, 61, 53)",
+          "bg": [
+            255,
+            254,
+            250
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 5.561856328528778,
+          "color": "rgb(140, 87, 13)",
+          "bg": [
+            255,
+            245,
+            223
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 5.475927344556626,
+          "color": "rgb(177, 55, 48)",
+          "bg": [
+            255,
+            240,
+            237
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 5.120863477765082,
+          "color": "rgb(37, 116, 71)",
+          "bg": [
+            234,
+            245,
+            237
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 8.909108816698838,
+          "color": "rgb(47, 80, 61)",
+          "bg": [
+            255,
+            254,
+            250
+          ]
+        }
+      ]
+    },
+    {
+      "name": "elder modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "elder assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "nurse actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality"
+      ]
+    },
+    {
+      "name": "nurse protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality"
+      ]
+    },
+    {
+      "name": "nurse/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 48.625
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "nurse/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "nurse/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "nurse/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        }
+      ]
+    },
+    {
+      "name": "nurse/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/monitoring/1",
+        "title": "健康监测 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "👵 档案",
+          "h": 44,
+          "w": 83.796875
+        },
+        {
+          "text": "🚨 预警看板",
+          "h": 44,
+          "w": 114.15625
+        },
+        {
+          "text": "✓ 保存并检测预警",
+          "h": 46.640625,
+          "w": 326
+        },
+        {
+          "text": "提交异常并生成预警",
+          "h": 46.640625,
+          "w": 191
+        }
+      ]
+    },
+    {
+      "name": "nurse/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/monitoring/1",
+        "title": "健康监测 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "nurse/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "care"
+    },
+    {
+      "name": "nurse/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "👵 档案",
+          "h": 44,
+          "w": 83.796875
+        },
+        {
+          "text": "🚨 预警看板",
+          "h": 44,
+          "w": 114.15625
+        },
+        {
+          "text": "✓ 保存并检测预警",
+          "h": 46.640625,
+          "w": 320
+        },
+        {
+          "text": "提交异常并生成预警",
+          "h": 46.640625,
+          "w": 191
+        }
+      ]
+    },
+    {
+      "name": "nurse mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "nurse font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#506e6c",
+          "legend": "#506e6c",
+          "tooltip": "#173d3c",
+          "tooltipBg": "#fff",
+          "muted": "#506e6c",
+          "text": "#173d3c",
+          "surface": "#fff"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#506e6c",
+          "tooltip": "#173d3c",
+          "tooltipBg": "#fff",
+          "muted": "#506e6c",
+          "text": "#173d3c",
+          "surface": "#fff"
+        }
+      ]
+    },
+    {
+      "name": "nurse all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "nurse all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "nurse native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 11.869919624854282,
+          "color": "rgb(23, 61, 60)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 11.869919624854282,
+          "color": "rgb(23, 61, 60)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 5.561856328528778,
+          "color": "rgb(140, 87, 13)",
+          "bg": [
+            255,
+            245,
+            223
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 5.475927344556626,
+          "color": "rgb(177, 55, 48)",
+          "bg": [
+            255,
+            240,
+            237
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 5.120863477765082,
+          "color": "rgb(37, 116, 71)",
+          "bg": [
+            234,
+            245,
+            237
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 7.5080873701321655,
+          "color": "rgb(7, 95, 91)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "nurse modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "nurse assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "grid actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/dispatch",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats"
+      ]
+    },
+    {
+      "name": "grid protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/dispatch",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats"
+      ]
+    },
+    {
+      "name": "grid/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧭 智能派单",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "grid/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧭 智能派单",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "grid/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments",
+        "title": "预约服务 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🧭 去派单",
+          "h": 44,
+          "w": 98.96875
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "转待派单",
+          "h": 44,
+          "w": 88
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "受理",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "去派单",
+          "h": 44,
+          "w": 73.546875
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        }
+      ]
+    },
+    {
+      "name": "grid/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/appointments",
+        "title": "预约服务 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🧭 去派单",
+          "h": 44,
+          "w": 98.96875
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "转待派单",
+          "h": 44,
+          "w": 88
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "受理",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "去派单",
+          "h": 44,
+          "w": 73.546875
+        },
+        {
+          "text": "取消",
+          "h": 44,
+          "w": 58
+        }
+      ]
+    },
+    {
+      "name": "grid/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/elders",
+        "title": "老人档案 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "grid/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/elders",
+        "title": "老人档案 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "grid/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "grid/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "grid mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "grid font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#596982",
+          "legend": "#596982",
+          "tooltip": "#1d2c4a",
+          "tooltipBg": "#fff",
+          "muted": "#596982",
+          "text": "#1d2c4a",
+          "surface": "#fff"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#596982",
+          "tooltip": "#1d2c4a",
+          "tooltipBg": "#fff",
+          "muted": "#596982",
+          "text": "#1d2c4a",
+          "surface": "#fff"
+        }
+      ]
+    },
+    {
+      "name": "grid all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "grid all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "grid native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 13.894425837262368,
+          "color": "rgb(29, 44, 74)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 13.894425837262368,
+          "color": "rgb(29, 44, 74)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 5.561856328528778,
+          "color": "rgb(140, 87, 13)",
+          "bg": [
+            255,
+            245,
+            223
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 5.475927344556626,
+          "color": "rgb(177, 55, 48)",
+          "bg": [
+            255,
+            240,
+            237
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 5.120863477765082,
+          "color": "rgb(37, 116, 71)",
+          "bg": [
+            234,
+            245,
+            237
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 9.368192864159,
+          "color": "rgb(40, 63, 150)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "grid modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "grid assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "org_admin actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/users"
+      ]
+    },
+    {
+      "name": "org_admin protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/users"
+      ]
+    },
+    {
+      "name": "org_admin/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "org_admin/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "org_admin/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "org_admin/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        }
+      ]
+    },
+    {
+      "name": "org_admin/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/elders",
+        "title": "老人档案 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "⬇ 导出 CSV",
+          "h": 46.640625,
+          "w": 126.6875
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "org_admin/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/elders",
+        "title": "老人档案 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "org_admin/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "blue"
+    },
+    {
+      "name": "org_admin/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "⬇ 导出 CSV",
+          "h": 46.640625,
+          "w": 126.6875
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "健康",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "org_admin mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "org_admin font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#596982",
+          "legend": "#596982",
+          "tooltip": "#1d2c4a",
+          "tooltipBg": "#fff",
+          "muted": "#596982",
+          "text": "#1d2c4a",
+          "surface": "#fff"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#596982",
+          "tooltip": "#1d2c4a",
+          "tooltipBg": "#fff",
+          "muted": "#596982",
+          "text": "#1d2c4a",
+          "surface": "#fff"
+        }
+      ]
+    },
+    {
+      "name": "org_admin all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "org_admin all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "org_admin native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 13.894425837262368,
+          "color": "rgb(29, 44, 74)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 13.894425837262368,
+          "color": "rgb(29, 44, 74)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 5.561856328528778,
+          "color": "rgb(140, 87, 13)",
+          "bg": [
+            255,
+            245,
+            223
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 5.475927344556626,
+          "color": "rgb(177, 55, 48)",
+          "bg": [
+            255,
+            240,
+            237
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 5.120863477765082,
+          "color": "rgb(37, 116, 71)",
+          "bg": [
+            234,
+            245,
+            237
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 9.368192864159,
+          "color": "rgb(40, 63, 150)",
+          "bg": [
+            255,
+            255,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "org_admin modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "org_admin console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "org_admin assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "street actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/audit",
+        "/admin/backup"
+      ]
+    },
+    {
+      "name": "street protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/audit",
+        "/admin/backup"
+      ]
+    },
+    {
+      "name": "street/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🛡️ 审计日志",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "street/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🛡️ 审计日志",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "street/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/alerts",
+        "title": "预警看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "查看追踪",
+          "h": 61.5,
+          "w": 73.875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 61.5,
+          "w": 73.875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 61.5,
+          "w": 73.875
+        },
+        {
+          "text": "查看追踪",
+          "h": 61.5,
+          "w": 73.875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 61.5,
+          "w": 73.875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 61.5,
+          "w": 73.875
+        }
+      ]
+    },
+    {
+      "name": "street/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/alerts",
+        "title": "预警看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "查看追踪",
+          "h": 105,
+          "w": 43.1875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 126.75,
+          "w": 43.1875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 126.75,
+          "w": 43.1875
+        },
+        {
+          "text": "查看追踪",
+          "h": 105,
+          "w": 43.1875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 126.75,
+          "w": 43.1875
+        },
+        {
+          "text": "响应 / 处置",
+          "h": 126.75,
+          "w": 43.1875
+        }
+      ]
+    },
+    {
+      "name": "street/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/admin/audit",
+        "title": "审计日志 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔗 校验哈希链",
+          "h": 44,
+          "w": 128.078125
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        }
+      ]
+    },
+    {
+      "name": "street/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/admin/audit",
+        "title": "审计日志 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "street/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "street/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔗 校验哈希链",
+          "h": 44,
+          "w": 128.078125
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        }
+      ]
+    },
+    {
+      "name": "street mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "street font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#acbad0",
+          "legend": "#acbad0",
+          "tooltip": "#e7edf7",
+          "tooltipBg": "#151f30",
+          "muted": "#acbad0",
+          "text": "#e7edf7",
+          "surface": "#151f30"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#acbad0",
+          "tooltip": "#e7edf7",
+          "tooltipBg": "#151f30",
+          "muted": "#acbad0",
+          "text": "#e7edf7",
+          "surface": "#151f30"
+        }
+      ]
+    },
+    {
+      "name": "street all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "street all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "street actual chart tooltip opens with readable content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 14.052490168937242,
+          "color": "rgb(231, 237, 247)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 14.052490168937242,
+          "color": "rgb(231, 237, 247)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 7.906190706895272,
+          "color": "rgb(237, 197, 119)",
+          "bg": [
+            58,
+            48,
+            34
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 7.8258549103447885,
+          "color": "rgb(255, 179, 167)",
+          "bg": [
+            62,
+            41,
+            49
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 7.2387094993554,
+          "color": "rgb(157, 213, 178)",
+          "bg": [
+            33,
+            59,
+            52
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 10.84179905412692,
+          "color": "rgb(183, 211, 255)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        }
+      ]
+    },
+    {
+      "name": "street modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "street assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "super actual navigation retains permitted list entry",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/dispatch",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/users",
+        "/admin/orgs",
+        "/admin/audit",
+        "/admin/backup",
+        "/admin/config"
+      ]
+    },
+    {
+      "name": "super protected audit navigation respects role",
+      "passed": true,
+      "detail": [
+        "/",
+        "/elders",
+        "/appointments",
+        "/dispatch",
+        "/orders",
+        "/monitoring",
+        "/alerts",
+        "/quality",
+        "/billing",
+        "/stats",
+        "/admin/users",
+        "/admin/orgs",
+        "/admin/audit",
+        "/admin/backup",
+        "/admin/config"
+      ]
+    },
+    {
+      "name": "super/home/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/home/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/home/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/home/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/home/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 46.421875
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 46.640625,
+          "w": 129.15625
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧭 智能派单",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🛡️ 审计日志",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "super/home/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/",
+        "title": "首页看板 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/home/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/home/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/home/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/home/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "立即前往处置",
+          "h": 44,
+          "w": 119.09375
+        },
+        {
+          "text": "全部预警",
+          "h": 44,
+          "w": 88.734375
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "处置",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "＋ 提交预约",
+          "h": 46.640625,
+          "w": 129.15625
+        },
+        {
+          "text": "👵 老人档案",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧭 智能派单",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🧰 工单",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "🚨 预警",
+          "h": 46.640625,
+          "w": 101.140625
+        },
+        {
+          "text": "📊 统计看板",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "🛡️ 审计日志",
+          "h": 46.640625,
+          "w": 135.5
+        },
+        {
+          "text": "⇄ 切换账号",
+          "h": 46.640625,
+          "w": 127.15625
+        }
+      ]
+    },
+    {
+      "name": "super/list/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/list/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/list/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/list/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/list/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/list/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "详情",
+          "h": 44,
+          "w": 58.375
+        }
+      ]
+    },
+    {
+      "name": "super/list/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/orders",
+        "title": "工单 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/list/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/list/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/list/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/list/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/list/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "🔍 查询",
+          "h": 46.640625,
+          "w": 100.40625
+        },
+        {
+          "text": "重置",
+          "h": 46.640625,
+          "w": 72.375
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        },
+        {
+          "text": "详情",
+          "h": 61.5,
+          "w": 43.1875
+        }
+      ]
+    },
+    {
+      "name": "super/form/desktop page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/admin/config",
+        "title": "系统配置 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/form/desktop recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/form/desktop no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "width": 1440,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/form/desktop no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/form/desktop actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/form/desktop visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "＋ 新增配置项",
+          "h": 44,
+          "w": 122.46875
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        },
+        {
+          "text": "修改",
+          "h": 44,
+          "w": 58
+        }
+      ]
+    },
+    {
+      "name": "super/form/mobile page identity and meaningful rendered content",
+      "passed": true,
+      "detail": {
+        "url": "http://127.0.0.1:61004/admin/config",
+        "title": "系统配置 · 社区智慧养老服务与健康监测平台",
+        "status": 200
+      }
+    },
+    {
+      "name": "super/form/mobile recommended role theme",
+      "passed": true,
+      "detail": "night"
+    },
+    {
+      "name": "super/form/mobile no document horizontal overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super/form/mobile no framework error overlay",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/form/mobile actual list or form exists",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/form/mobile visible basic buttons meet 44px height",
+      "passed": true,
+      "detail": [
+        {
+          "text": "关闭菜单",
+          "h": 44,
+          "w": 116
+        },
+        {
+          "text": "菜单",
+          "h": 44,
+          "w": 86
+        },
+        {
+          "text": "退出",
+          "h": 44,
+          "w": 58.375
+        },
+        {
+          "text": "＋ 新增配置项",
+          "h": 44,
+          "w": 122.46875
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        },
+        {
+          "text": "修改",
+          "h": 61.5,
+          "w": 43
+        }
+      ]
+    },
+    {
+      "name": "super mobile menu initially collapsed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super mobile menu opens with aria-expanded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super mobile menu isolates background and focuses close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super menu keyboard trap wraps to final navigation link",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super menu keyboard trap wraps back to close control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super Escape closes mobile menu and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super close button closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super backdrop closes sidebar and restores focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super navigation selection closes mobile menu",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super font control changes actual text size",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super mobile extra font avoids document overflow",
+      "passed": true,
+      "detail": {
+        "viewport": 390,
+        "width": 390,
+        "offenders": []
+      }
+    },
+    {
+      "name": "super font preference persists on reload",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super multiple charts use themed axes legend and tooltip",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698,
+          "axis": "#acbad0",
+          "legend": "#acbad0",
+          "tooltip": "#e7edf7",
+          "tooltipBg": "#151f30",
+          "muted": "#acbad0",
+          "text": "#e7edf7",
+          "surface": "#151f30"
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326,
+          "axis": null,
+          "legend": "#acbad0",
+          "tooltip": "#e7edf7",
+          "tooltipBg": "#151f30",
+          "muted": "#acbad0",
+          "text": "#e7edf7",
+          "surface": "#151f30"
+        }
+      ]
+    },
+    {
+      "name": "super all chart canvases actually resize to mobile",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        },
+        {
+          "id": "status-chart",
+          "host": 320,
+          "render": 320,
+          "canvas": 320
+        }
+      ]
+    },
+    {
+      "name": "super all chart canvases actually resize to desktop",
+      "passed": true,
+      "detail": [
+        {
+          "id": "trend-chart",
+          "host": 698,
+          "render": 698,
+          "canvas": 698
+        },
+        {
+          "id": "status-chart",
+          "host": 326,
+          "render": 326,
+          "canvas": 326
+        }
+      ]
+    },
+    {
+      "name": "super actual chart tooltip opens with readable content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super native modal is visible and labelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super modal and warning text contrast at least 4.5",
+      "passed": true,
+      "detail": [
+        {
+          "text": "操作状态与提示可读性    ×",
+          "ratio": 14.052490168937242,
+          "color": "rgb(231, 237, 247)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        },
+        {
+          "text": "请核对服务记录后继续，当前仅查看界面。",
+          "ratio": 14.052490168937242,
+          "color": "rgb(231, 237, 247)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        },
+        {
+          "text": "警告：仍有待处理事项，请核实后继续。",
+          "ratio": 7.906190706895272,
+          "color": "rgb(237, 197, 119)",
+          "bg": [
+            58,
+            48,
+            34
+          ]
+        },
+        {
+          "text": "异常：本次结果尚未确认，请查看实际状态。",
+          "ratio": 7.8258549103447885,
+          "color": "rgb(255, 179, 167)",
+          "bg": [
+            62,
+            41,
+            49
+          ]
+        },
+        {
+          "text": "成功：记录已保存，可继续追踪。",
+          "ratio": 7.2387094993554,
+          "color": "rgb(157, 213, 178)",
+          "bg": [
+            33,
+            59,
+            52
+          ]
+        },
+        {
+          "text": "关闭",
+          "ratio": 10.84179905412692,
+          "color": "rgb(183, 211, 255)",
+          "bg": [
+            21,
+            31,
+            48
+          ]
+        }
+      ]
+    },
+    {
+      "name": "super modal fits mobile viewport",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super modal Escape closes and restores previous focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super console has no application errors or warnings",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "name": "super assets and navigation have no failed HTTP responses",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "elder-home-desktop.png",
+    "elder-home-desktop-full.png",
+    "elder-home-mobile.png",
+    "elder-list-desktop.png",
+    "elder-list-mobile.png",
+    "elder-form-desktop.png",
+    "elder-form-mobile.png",
+    "elder-menu-mobile.png",
+    "elder-extra-font-mobile.png",
+    "elder-modal-desktop.png",
+    "elder-modal-mobile.png",
+    "nurse-home-desktop.png",
+    "nurse-home-desktop-full.png",
+    "nurse-home-mobile.png",
+    "nurse-list-desktop.png",
+    "nurse-list-mobile.png",
+    "nurse-form-desktop.png",
+    "nurse-form-mobile.png",
+    "nurse-menu-mobile.png",
+    "nurse-extra-font-mobile.png",
+    "nurse-modal-desktop.png",
+    "nurse-modal-mobile.png",
+    "grid-home-desktop.png",
+    "grid-home-desktop-full.png",
+    "grid-home-mobile.png",
+    "grid-list-desktop.png",
+    "grid-list-mobile.png",
+    "grid-form-desktop.png",
+    "grid-form-mobile.png",
+    "grid-menu-mobile.png",
+    "grid-extra-font-mobile.png",
+    "grid-modal-desktop.png",
+    "grid-modal-mobile.png",
+    "org_admin-home-desktop.png",
+    "org_admin-home-desktop-full.png",
+    "org_admin-home-mobile.png",
+    "org_admin-list-desktop.png",
+    "org_admin-list-mobile.png",
+    "org_admin-form-desktop.png",
+    "org_admin-form-mobile.png",
+    "org_admin-menu-mobile.png",
+    "org_admin-extra-font-mobile.png",
+    "org_admin-modal-desktop.png",
+    "org_admin-modal-mobile.png",
+    "street-home-desktop.png",
+    "street-home-desktop-full.png",
+    "street-home-mobile.png",
+    "street-list-desktop.png",
+    "street-list-mobile.png",
+    "street-form-desktop.png",
+    "street-form-mobile.png",
+    "street-menu-mobile.png",
+    "street-extra-font-mobile.png",
+    "street-chart-tooltip-desktop.png",
+    "street-modal-desktop.png",
+    "street-modal-mobile.png",
+    "super-home-desktop.png",
+    "super-home-desktop-full.png",
+    "super-home-mobile.png",
+    "super-list-desktop.png",
+    "super-list-mobile.png",
+    "super-form-desktop.png",
+    "super-form-mobile.png",
+    "super-menu-mobile.png",
+    "super-extra-font-mobile.png",
+    "super-charts-resized-mobile.png",
+    "super-charts-resized-desktop.png",
+    "super-chart-tooltip-desktop.png",
+    "super-modal-desktop.png",
+    "super-modal-mobile.png"
+  ],
+  "method": "synthetic isolated seed; no changes to real database; native UI modal fixture is read only",
+  "check_count": 344,
+  "failed_count": 0
+}

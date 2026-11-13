@@ -1,0 +1,1246 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "elder/desktop role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/desktop stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "elder/desktop pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#586a60"
+          },
+          "pageTextStyle": {
+            "color": "#586a60"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 326,
+        "host": 326
+      }
+    },
+    {
+      "name": "elder/desktop legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/desktop read-only alert link describes progress",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/mobile role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/mobile stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "elder/mobile pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#586a60"
+          },
+          "pageTextStyle": {
+            "color": "#586a60"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 320,
+        "host": 320
+      }
+    },
+    {
+      "name": "elder/mobile legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder/mobile read-only alert link describes progress",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "nurse/desktop role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/desktop stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "nurse/desktop pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#506e6c"
+          },
+          "pageTextStyle": {
+            "color": "#506e6c"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 326,
+        "host": 326
+      }
+    },
+    {
+      "name": "nurse/desktop legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/desktop read-only alert link describes progress",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/mobile role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/mobile stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "nurse/mobile pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#506e6c"
+          },
+          "pageTextStyle": {
+            "color": "#506e6c"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 320,
+        "host": 320
+      }
+    },
+    {
+      "name": "nurse/mobile legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse/mobile read-only alert link describes progress",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "grid/desktop role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/desktop stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "grid/desktop pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#596982"
+          },
+          "pageTextStyle": {
+            "color": "#596982"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 326,
+        "host": 326
+      }
+    },
+    {
+      "name": "grid/desktop legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/mobile role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid/mobile stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "grid/mobile pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#596982"
+          },
+          "pageTextStyle": {
+            "color": "#596982"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 320,
+        "host": 320
+      }
+    },
+    {
+      "name": "grid/mobile legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid no console errors or warnings",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "super/desktop role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/desktop stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "super/desktop pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#acbad0"
+          },
+          "pageTextStyle": {
+            "color": "#acbad0"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 326,
+        "host": 326
+      }
+    },
+    {
+      "name": "super/desktop legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/mobile role theme and document width",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super/mobile stats and notice have at least 20px separation",
+      "passed": true,
+      "detail": 22
+    },
+    {
+      "name": "super/mobile pie labels render inside and legend scrolls",
+      "passed": true,
+      "detail": {
+        "label": {
+          "position": "inside",
+          "color": "#102039",
+          "backgroundColor": "#ffffffea",
+          "borderRadius": 4,
+          "padding": [
+            3,
+            5
+          ],
+          "fontSize": 14,
+          "formatter": null,
+          "rotate": 0,
+          "show": true,
+          "overflow": "truncate",
+          "alignTo": "none",
+          "edgeDistance": "25%",
+          "bleedMargin": 10,
+          "distanceToLabelLine": 5
+        },
+        "legend": {
+          "type": "scroll",
+          "bottom": 0,
+          "textStyle": {
+            "fontSize": 15,
+            "color": "#acbad0"
+          },
+          "pageTextStyle": {
+            "color": "#acbad0"
+          },
+          "z": 4,
+          "show": true,
+          "orient": "horizontal",
+          "left": "center",
+          "top": null,
+          "align": "auto",
+          "backgroundColor": "rgba(0,0,0,0)",
+          "borderColor": "#ccc",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "padding": 5,
+          "itemGap": 10,
+          "itemWidth": 25,
+          "itemHeight": 14,
+          "symbolRotate": "inherit",
+          "symbolKeepAspect": true,
+          "inactiveColor": "#ccc",
+          "inactiveBorderColor": "#ccc",
+          "inactiveBorderWidth": "auto",
+          "itemStyle": {
+            "color": "inherit",
+            "opacity": "inherit",
+            "borderColor": "inherit",
+            "borderWidth": "auto",
+            "borderCap": "inherit",
+            "borderJoin": "inherit",
+            "borderDashOffset": "inherit",
+            "borderMiterLimit": "inherit"
+          },
+          "lineStyle": {
+            "width": "auto",
+            "color": "inherit",
+            "inactiveColor": "#ccc",
+            "inactiveWidth": 2,
+            "opacity": "inherit",
+            "type": "inherit",
+            "cap": "inherit",
+            "join": "inherit",
+            "dashOffset": "inherit",
+            "miterLimit": "inherit"
+          },
+          "selectedMode": true,
+          "selector": false,
+          "selectorLabel": {
+            "show": true,
+            "borderRadius": 10,
+            "padding": [
+              3,
+              5,
+              3,
+              5
+            ],
+            "fontSize": 12,
+            "fontFamily": "sans-serif",
+            "color": "#666",
+            "borderWidth": 1,
+            "borderColor": "#666"
+          },
+          "emphasis": {
+            "selectorLabel": {
+              "show": true,
+              "color": "#eee",
+              "backgroundColor": "#666"
+            }
+          },
+          "selectorPosition": "auto",
+          "selectorItemGap": 7,
+          "selectorButtonGap": 10,
+          "tooltip": {
+            "show": false
+          },
+          "scrollDataIndex": 0,
+          "pageButtonItemGap": 5,
+          "pageButtonGap": null,
+          "pageButtonPosition": "end",
+          "pageFormatter": "{current}/{total}",
+          "pageIcons": {
+            "horizontal": [
+              "M0,0L12,-10L12,10z",
+              "M0,0L-12,-10L-12,10z"
+            ],
+            "vertical": [
+              "M0,0L20,0L10,-20z",
+              "M0,0L20,0L10,20z"
+            ]
+          },
+          "pageIconColor": "#2f4554",
+          "pageIconInactiveColor": "#aaa",
+          "pageIconSize": 15,
+          "animationDurationUpdate": 800,
+          "width": null,
+          "right": null,
+          "height": null,
+          "selected": {}
+        },
+        "canvas": 320,
+        "host": 320
+      }
+    },
+    {
+      "name": "super/mobile legend retains complete real status names",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super no console errors or warnings",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "screenshots": [
+    "warm-home-desktop.png",
+    "warm-pie-desktop.png",
+    "warm-home-mobile.png",
+    "warm-pie-mobile.png",
+    "care-home-desktop.png",
+    "care-pie-desktop.png",
+    "care-home-mobile.png",
+    "care-pie-mobile.png",
+    "blue-home-desktop.png",
+    "blue-pie-desktop.png",
+    "blue-home-mobile.png",
+    "blue-pie-mobile.png",
+    "night-home-desktop.png",
+    "night-pie-desktop.png",
+    "night-home-mobile.png",
+    "night-pie-mobile.png"
+  ],
+  "base_url": "http://127.0.0.1:52092",
+  "browser": "real Edge headless",
+  "fallback_reason": "Browser plugin not available",
+  "matrix_evidence": "20261113-133156/result.json (344/344)",
+  "scope": "final pie labels/legend, stat-card spacing, read-only alert copy; refresh four theme homes",
+  "check_count": 40,
+  "failed_count": 0
+}

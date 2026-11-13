@@ -1,0 +1,61 @@
+{
+  "generated_at_utc": "2026-11-13T06:18:31.030347+00:00",
+  "source_path": "C:\\Users\\Administrator\\.codex\\sessions\\2026\\11\\12\\rollout-2026-11-12T16-15-40-01a1cd70-f4d1-7980-98af-5c4c14bf743d_01a1ced3-ab13-71e0-af7f-c2dc725e6c52.jsonl",
+  "source_sha256": "83276c493e67603aec8087d0bc2aeeef5e03244adbf3f05052f70530e0ec1884",
+  "source_bytes": 33042133,
+  "source_cwd": "D:\\Program Files (x86)\\巅峰\\python",
+  "source_session_id": "01a1cd70-f4d1-7980-98af-5c4c14bf743d",
+  "selected_lines": [
+    1470,
+    2209
+  ],
+  "exported_records": 183,
+  "record_types": {
+    "message": 15,
+    "custom_tool_call": 63,
+    "custom_tool_call_output": 63,
+    "function_call": 21,
+    "function_call_output": 21
+  },
+  "user_messages": 2,
+  "source_replacement_characters": 8,
+  "exclusions": {
+    "event_msg": 334,
+    "token_usage_record": 87,
+    "reasoning": 67,
+    "inter_agent_communication_metadata": 31,
+    "agent_message": 31,
+    "non_text_content": 6,
+    "turn_context": 3,
+    "internal_compaction_summary": 2,
+    "compacted": 1,
+    "world_state": 1
+  },
+  "redactions": {
+    "jwt": 0,
+    "api_key": 0,
+    "github_oauth_token": 0,
+    "private_key": 0,
+    "unavailable_encrypted_text": 20,
+    "credential_url": 0,
+    "authorization_literal": 0
+  },
+  "files": {
+    "visible-conversation.jsonl": {
+      "sha256": "6b807865629d0eee4ba6fc59640ca87329b86c8d01c878134747ae31db675492",
+      "bytes": 663275
+    },
+    "visible-conversation.md": {
+      "sha256": "1584c5a6ec6fb86567a4dfdfc1a673c84fcbd44d0f86bece7d456bce278e6b78",
+      "bytes": 590374
+    }
+  },
+  "limitations": [
+    "Filtered visible copy; original raw session is not bundled.",
+    "Subject indexes or agent delegated tasks do not prove independent human prompt chains.",
+    "Replacement characters, if present in source text, are retained without reconstruction.",
+    "Transcript evidence does not create missing fine-grained Git history.",
+    "Encrypted inter-agent text cannot be recovered and is omitted, never reconstructed as raw evidence.",
+    "Internal compaction summaries and credential access tool records are excluded."
+  ]
+}
