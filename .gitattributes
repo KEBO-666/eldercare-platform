@@ -5,3 +5,4 @@ reports/chuanzhi-pdf/qa.json -text
 reports/chuanzhi-artifacts-qa.json -text
 submission/verification/role-ui/** -text
 submission/verification/materials-20261113/** -text
+submission/verification/login-redesign/** -text
