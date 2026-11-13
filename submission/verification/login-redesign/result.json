@@ -1,0 +1,347 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "desktop page identity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop meaningful content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop document has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop controls at least 44px",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop demo collapsed initially",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop all local assets loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop green button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop demo expands with six roles",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "desktop expanded has no overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop page identity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop meaningful content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop document has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop controls at least 44px",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop demo collapsed initially",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop all local assets loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop green button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop demo expands with six roles",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "laptop expanded has no overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet page identity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet meaningful content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet document has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet controls at least 44px",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet demo collapsed initially",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet all local assets loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet green button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet demo expands with six roles",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "tablet expanded has no overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile page identity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile meaningful content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile document has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile controls at least 44px",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile demo collapsed initially",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile all local assets loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile green button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile demo expands with six roles",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile expanded has no overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile page identity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile meaningful content",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile document has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile controls at least 44px",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile demo collapsed initially",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile all local assets loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile green button",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile demo expands with six roles",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "small-mobile expanded has no overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "next target retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "empty fields native validation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "password visibility toggles value unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "password hidden again",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "wrong password clear alert",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "failed login preserves username next but no password",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real form login resumes requested page",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "auth cookie httponly",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "super real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "street real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "orgadmin real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "grid1 real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nurse1 real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "elder1 real role and theme",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "without JS password toggle stays hidden",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "without JS demo details work",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "without JS real login works",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "keyboard password focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "keyboard toggle focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "keyboard toggles visibility",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "keyboard login focus",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no application console errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "count": 67,
+  "errors": [],
+  "url": "http://127.0.0.1:62325/login",
+  "browser": "Edge / Playwright",
+  "fallback_reason": "Browser plugin not available",
+  "reference": "sunyctf/login-demos/css现代风网站登录页",
+  "data": "isolated synthetic database only"
+}

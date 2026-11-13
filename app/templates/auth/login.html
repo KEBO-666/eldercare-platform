@@ -3,58 +3,111 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6f1">
     <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
     <title>登录 · {{ app_name }}</title>
     <link rel="stylesheet" href="/static/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/role-themes.css">
+    <link rel="stylesheet" href="/static/css/login.css">
 </head>
-<body class="app-body">
-<main class="login-page">
-    <div class="login-card">
-        <div class="login-brand">
-            <div class="logo" aria-hidden="true">颐</div>
-            <h1>{{ app_name }}</h1>
-            <p>社区智慧养老 · 健康监测 · 上门服务全流程平台</p>
+<body class="app-body login-body">
+<a class="skip-link" href="#login-form">跳到登录表单</a>
+<div class="login-shell">
+    <header class="login-header">
+        <div class="login-wordmark">
+            <span class="login-mark" aria-hidden="true">颐</span>
+            <div><span class="login-name">颐邻</span><span class="login-product">{{ app_name }}</span></div>
         </div>
+        <span class="login-header-note">社区有温度，照护有回应</span>
+    </header>
+
+    <main class="login-surface" aria-labelledby="login-title">
+        <section class="login-welcome" aria-labelledby="welcome-title">
+            <div class="login-welcome-copy">
+                <h2 id="welcome-title">让照护更近，<br>让生活更安心。</h2>
+                <p>从一次预约开始，<br class="desktop-break">连接您与身边的社区照护。</p>
+            </div>
+            <svg class="login-community" viewBox="0 0 460 300" fill="none" aria-hidden="true" focusable="false">
+                <circle cx="361" cy="60" r="28" fill="#ead8aa"/>
+                <path d="M33 227C105 204 145 224 212 209C281 194 365 202 431 225V274H33Z" fill="#dce7d5"/>
+                <path d="M38 251C145 228 254 273 424 244" stroke="#c0d0b6" stroke-width="2" stroke-linecap="round"/>
+                <path d="M66 167 125 120 180 167V230H66Z" fill="#e1dfce"/>
+                <path d="m56 169 69-57 67 57" stroke="#8c9f82" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M99 183h23v47H99z" fill="#a9b79f"/>
+                <rect x="137" y="183" width="23" height="25" rx="3" fill="#f8faf4"/>
+                <path d="M296 156h83v74h-83z" fill="#d7dfcf"/>
+                <path d="M288 156h99" stroke="#93a28b" stroke-width="7" stroke-linecap="round"/>
+                <path d="M312 174h19v22h-19zm34 0h19v22h-19z" fill="#f8faf4"/>
+                <path d="M160 135 230 81l70 54v99H160Z" fill="#fafbf5"/>
+                <path d="m148 139 82-65 82 65" stroke="#4b7058" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="204" y="179" width="52" height="55" rx="5" fill="#76917a"/>
+                <path d="M230 183v51" stroke="#fafbf5" stroke-width="3"/>
+                <path d="M230 154s-22-13-22-26a12 12 0 0 1 22-6 12 12 0 0 1 22 6c0 13-22 26-22 26Z" fill="#c78065"/>
+                <path d="M195 234h70m-76 10h82" stroke="#b1c1a6" stroke-width="5" stroke-linecap="round"/>
+                <path d="M42 232v-70m0 38-13-11m13-6 16-13" stroke="#7a916d" stroke-width="4" stroke-linecap="round"/>
+                <ellipse cx="39" cy="159" rx="22" ry="33" fill="#acc19b"/>
+                <path d="M411 232v-72m0 43 13-12" stroke="#7a916d" stroke-width="4" stroke-linecap="round"/>
+                <ellipse cx="411" cy="155" rx="24" ry="38" fill="#9eb58d"/>
+                <path d="M326 223h42m-39-9h36m-32 9v13m28-13v13" stroke="#8b9e7d" stroke-width="4" stroke-linecap="round"/>
+                <path d="M82 77h30m-18-8h35" stroke="#d7dfcf" stroke-width="4" stroke-linecap="round"/>
+                <path d="M170 261c19 0 34-5 43-12" stroke="#fafbf5" stroke-width="7" stroke-linecap="round"/>
+            </svg>
+            <div class="login-welcome-foot"><span>便捷预约</span><span>贴心照护</span><span>健康守护</span></div>
+        </section>
+
+        <section class="login-panel" aria-labelledby="login-title">
+            <div class="login-form-heading">
+                <h1 id="login-title">欢迎回来</h1>
+                <p>登录颐邻，进入您的服务空间。</p>
+            </div>
 
         {% if error %}
-            <div class="login-error" role="alert">{{ error }}</div>
+            <div class="login-error" id="login-error" role="alert"><strong>登录未成功</strong><span>{{ error }}</span></div>
         {% endif %}
         {% if notice %}
-            <div class="notice {{ notice_type|default('') }}">{{ notice }}</div>
+            <div class="notice {{ notice_type|default('') }}" role="status">{{ notice }}</div>
         {% endif %}
 
-        <form class="login-form" method="post" action="/login" autocomplete="on">
+        <form id="login-form" class="login-form" method="post" action="/login" autocomplete="on" aria-labelledby="login-title"{% if error %} aria-describedby="login-error"{% endif %}>
             <input type="hidden" name="next" value="{{ next_url|default('/') }}">
             <div class="form-field">
                 <label for="username">用户名</label>
                 <input id="username" name="username" type="text" required autofocus
-                       placeholder="请输入用户名，例如 grid1" value="{{ username|default('') }}"
-                       autocomplete="username">
+                       placeholder="请输入您的用户名" value="{{ username|default('') }}"
+                       autocomplete="username" autocapitalize="none" spellcheck="false">
             </div>
             <div class="form-field">
                 <label for="password">密码</label>
-                <input id="password" name="password" type="password" required
-                       placeholder="演示环境统一密码 Admin@123" autocomplete="current-password">
+                <div class="login-password-field">
+                    <input id="password" name="password" type="password" required
+                           placeholder="请输入您的密码" autocomplete="current-password">
+                    <button class="login-password-toggle" type="button" aria-controls="password" aria-pressed="false" hidden>显示密码</button>
+                </div>
             </div>
-            <button class="btn btn-primary btn-block" type="submit">登 录</button>
+            <button class="btn btn-primary btn-block login-submit" type="submit"><span>登 录</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></button>
         </form>
 
-        <div class="demo-accounts">
-            <div class="mb-1"><strong>演示账号</strong>（密码统一 <span class="pwd">Admin@123</span>）</div>
-            <table>
-                <tbody>
-                <tr><td>超级管理员</td><td><code>super</code></td><td>全部权限 / 系统管理</td></tr>
-                <tr><td>街道监管员</td><td><code>street</code></td><td>全街道监管 / 审计备份</td></tr>
-                <tr><td>机构管理员</td><td><code>orgadmin</code></td><td>机构运营 / 账单复核</td></tr>
-                <tr><td>社区网格员</td><td><code>grid1</code> / <code>grid2</code></td><td>受理预约 / 智能派单</td></tr>
-                <tr><td>护理员</td><td><code>nurse1</code> … <code>nurse8</code></td><td>上门服务执行</td></tr>
-                <tr><td>老人/家属</td><td><code>elder1</code> … <code>elder20</code></td><td>预约 / 查看报告 / 评价</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
+        <p class="login-help">需要账号或登录帮助？请联系社区管理员。</p>
+
+        <details class="login-demo">
+            <summary>查看演示账号<span class="login-demo-chevron" aria-hidden="true"></span></summary>
+            <div class="login-demo-body">
+                <p>以下账号仅用于本地演示，密码统一为 <code>Admin@123</code>。</p>
+                <dl class="login-demo-list">
+                    <div><dt>老人 / 家属</dt><dd><code>elder1</code> … <code>elder20</code><span>预约、查看进展与评价</span></dd></div>
+                    <div><dt>护理员</dt><dd><code>nurse1</code> … <code>nurse8</code><span>上门服务执行</span></dd></div>
+                    <div><dt>社区网格员</dt><dd><code>grid1</code> / <code>grid2</code><span>受理预约、智能派单</span></dd></div>
+                    <div><dt>机构管理员</dt><dd><code>orgadmin</code><span>机构运营、账单复核</span></dd></div>
+                    <div><dt>街道监管员</dt><dd><code>street</code><span>全街道监管、审计备份</span></dd></div>
+                    <div><dt>超级管理员</dt><dd><code>super</code><span>全部权限、系统管理</span></dd></div>
+                </dl>
+            </div>
+        </details>
+        </section>
+    </main>
+    <footer class="login-footer">颐邻 · 社区智慧养老服务与健康监测平台</footer>
+</div>
+<script src="/static/js/login.js" defer></script>
 </body>
 </html>

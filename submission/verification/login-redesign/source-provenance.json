@@ -1,0 +1,17 @@
+{
+  "source_commit": "8c6b32c1cf39fc9dffb6934c6627fc68240dec8b",
+  "public_parent": "74990ea6de1ff596b6fdfb68057da3462c276996",
+  "source_paths": [
+    "app/static/css/login.css",
+    "app/static/js/login.js",
+    "app/templates/auth/login.html",
+    "docs/登录页设计说明.md",
+    "docs/第三方依赖与许可证.md"
+  ],
+  "design_reference": "https://github.com/sunyctf/login-demos/tree/main/css现代风网站登录页",
+  "borrowed": "split layout only; original markup, styles, SVG and interactions",
+  "pytest": 48,
+  "edge_checks": 67,
+  "scoped_changes": "login page only; API authorization unchanged",
+  "pdf_video": "previous snapshots retained"
+}
